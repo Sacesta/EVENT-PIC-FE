@@ -46,6 +46,7 @@ interface Step3_SummaryProps {
     }>;
     services: string[];
     selectedSuppliers: { [service: string]: { [supplierId: string]: string[] } };
+    selectedPackages?: { [serviceId: string]: { packageId: string; packageDetails: any } };
   };
   onBack: () => void;
   onCreateEvent: () => void;
@@ -86,6 +87,7 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
     console.log('Raw eventData:', eventData);
     console.log('Selected Services:', eventData.services);
     console.log('Selected Suppliers:', eventData.selectedSuppliers);
+    console.log('Selected Packages:', eventData.selectedPackages);
     
     // Create start and end dates
     const eventDate = new Date(eventData.date);
@@ -102,6 +104,14 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
     const suppliers: Array<{
       services: Array<{
         serviceId: string;
+        selectedPackageId?: string;
+        packageDetails?: {
+          name: string;
+          description: string;
+          price: number;
+          features: string[];
+          duration?: number;
+        };
         requestedPrice?: number;
         notes?: string;
         priority?: 'low' | 'medium' | 'high';
@@ -114,6 +124,14 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
     // Create a map to group services by supplier
     const supplierServicesMap = new Map<string, Array<{
       serviceId: string;
+      selectedPackageId?: string;
+      packageDetails?: {
+        name: string;
+        description: string;
+        price: number;
+        features: string[];
+        duration?: number;
+      };
       requestedPrice?: number;
       notes?: string;
       priority?: 'low' | 'medium' | 'high';
@@ -129,12 +147,39 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
             
             if (Array.isArray(serviceIds)) {
               serviceIds.forEach((serviceId) => {
-                const serviceEntry = {
+                // Check if this service has a selected package
+                const packageInfo = eventData.selectedPackages?.[serviceId];
+                
+                const serviceEntry: {
+                  serviceId: string;
+                  selectedPackageId?: string;
+                  packageDetails?: {
+                    name: string;
+                    description: string;
+                    price: number;
+                    features: string[];
+                    duration?: number;
+                  };
+                  requestedPrice?: number;
+                  notes?: string;
+                  priority: 'low' | 'medium' | 'high';
+                } = {
                   serviceId,
                   priority: 'medium' as const,
                   notes: `Selected for ${serviceCategory} service`,
-                  requestedPrice: undefined // Can be added later if needed
                 };
+
+                // Add package information if available
+                if (packageInfo && packageInfo.packageId && packageInfo.packageDetails) {
+                  serviceEntry.selectedPackageId = packageInfo.packageId;
+                  serviceEntry.packageDetails = packageInfo.packageDetails;
+                  serviceEntry.requestedPrice = packageInfo.packageDetails.price;
+                  
+                  console.log(`Package info added for service ${serviceId}:`, {
+                    packageId: packageInfo.packageId,
+                    packageDetails: packageInfo.packageDetails
+                  });
+                }
                 
                 // Add to supplier's services array
                 if (!supplierServicesMap.has(supplierId)) {
@@ -164,7 +209,7 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
       });
     });
 
-    console.log('Final suppliers array (backend format with nested services):', suppliers);
+    console.log('Final suppliers array (backend format with nested services and packages):', suppliers);
 
     // Calculate ticket info
     const totalTickets = eventData.tickets?.reduce((sum, ticket) => sum + ticket.quantity, 0) || 0;

@@ -154,6 +154,8 @@ interface Step1Props {
   onServicesChange?: (services: string[]) => void;
   selectedSuppliers?: { [service: string]: { [supplierId: string]: string[] } };
   onSuppliersChange?: (suppliers: { [service: string]: { [supplierId: string]: string[] } }) => void;
+  selectedPackages?: { [serviceId: string]: { packageId: string; packageDetails: any } };
+  onPackagesChange?: (packages: { [serviceId: string]: { packageId: string; packageDetails: any } }) => void;
   onNext?: () => void;
   isEditMode?: boolean;
 }
@@ -203,20 +205,26 @@ const ServiceCategoryCard = React.memo(({
 const SupplierCard = React.memo(({ 
   service, 
   selectedSuppliers, 
-  onSupplierSelect 
+  onSupplierSelect,
+  selectedPackages: globalSelectedPackages,
+  onPackageSelect
 }: { 
   service: ServiceWithSupplier;
   selectedSuppliers: { [service: string]: { [supplierId: string]: string[] } };
   onSupplierSelect: (service: string, supplierId: string, serviceId: string, isSelected: boolean) => void;
+  selectedPackages: { [serviceId: string]: { packageId: string; packageDetails: any } };
+  onPackageSelect: (serviceId: string, packageId: string | null, packageDetails: any | null) => void;
 }) => {
   const { t, i18n } = useTranslation();
 
   console.log("service.supplier.location?.city", service.location?.city);
-  const [selectedPackages, setSelectedPackages] = useState<string[]>([]);
   const [showPackages, setShowPackages] = useState(false);
 
   // Check if this supplier's service is selected
   const isSupplierSelected = selectedSuppliers[service.category]?.[service.supplier.supplierId]?.includes(service.serviceId) || false;
+  
+  // Get selected package for this service from global state
+  const selectedPackageId = globalSelectedPackages[service.serviceId]?.packageId || null;
 
   const formatPrice = (price: number, currency: string) => {
     return new Intl.NumberFormat('en-US', {
@@ -239,38 +247,46 @@ const SupplierCard = React.memo(({
   const translatedTitle = autoTranslate(service.title, i18n.language);
 
   const handlePackageSelect = (packageId: string) => {
-    const isCurrentlySelected = selectedPackages.includes(packageId);
+    const isCurrentlySelected = selectedPackageId === packageId;
     
-    // RESTRICTION: Only ONE package per supplier
-    // If clicking the same package, deselect it
-    // If clicking a different package, replace the current selection
-    setSelectedPackages(prev => 
-      isCurrentlySelected
-        ? [] // Deselect if clicking the same package
-        : [packageId] // Replace with new package (only one allowed)
-    );
-
-    const newSelectedPackages = isCurrentlySelected 
-      ? [] // Deselected
-      : [packageId]; // Only one package selected
-    
-    // If selecting a package and supplier is not yet selected, select the supplier
-    if (!isCurrentlySelected && !isSupplierSelected) {
-      onSupplierSelect(
-        service.category,
-        service.supplier.supplierId,
-        service.serviceId,
-        true
-      );
-    }
-    // If deselecting the only package, deselect the supplier
-    else if (isCurrentlySelected && newSelectedPackages.length === 0 && isSupplierSelected) {
-      onSupplierSelect(
-        service.category,
-        service.supplier.supplierId,
-        service.serviceId,
-        false
-      );
+    if (isCurrentlySelected) {
+      // Deselect the package
+      onPackageSelect(service.serviceId, null, null);
+      
+      // If supplier is selected, deselect it too
+      if (isSupplierSelected) {
+        onSupplierSelect(
+          service.category,
+          service.supplier.supplierId,
+          service.serviceId,
+          false
+        );
+      }
+    } else {
+      // Select the new package
+      const selectedPackage = service.packages.find(pkg => pkg._id === packageId);
+      
+      if (selectedPackage) {
+        const packageDetails = {
+          name: selectedPackage.name,
+          description: selectedPackage.description || '',
+          price: selectedPackage.price,
+          features: selectedPackage.features || [],
+          duration: selectedPackage.duration
+        };
+        
+        onPackageSelect(service.serviceId, packageId, packageDetails);
+        
+        // If supplier is not yet selected, select it
+        if (!isSupplierSelected) {
+          onSupplierSelect(
+            service.category,
+            service.supplier.supplierId,
+            service.serviceId,
+            true
+          );
+        }
+      }
     }
   };
 
@@ -377,8 +393,8 @@ const SupplierCard = React.memo(({
             >
               <Package className="w-3 h-3" />
               <span className="font-semibold">{service.packages.length}</span>
-              {selectedPackages.length > 0 && (
-                <span className="text-green-400 dark:text-green-300 font-bold">✓{selectedPackages.length}</span>
+              {selectedPackageId && (
+                <span className="text-green-400 dark:text-green-300 font-bold">✓1</span>
               )}
               <ChevronDown className={cn(
                 "w-3 h-3 transition-transform duration-200",
@@ -403,12 +419,12 @@ const SupplierCard = React.memo(({
             {service.packages.map((pkg) => (
               <div 
                 key={pkg._id} 
-                className={cn(
-                  "flex items-center justify-between p-2 rounded-md border transition-all duration-200 bg-card hover:shadow-sm",
-                  selectedPackages.includes(pkg._id)
-                    ? "border-primary bg-primary/10 shadow-sm"
-                    : "border-border hover:border-primary/50"
-                )}
+                  className={cn(
+                    "flex items-center justify-between p-2 rounded-md border transition-all duration-200 bg-card hover:shadow-sm",
+                    selectedPackageId === pkg._id
+                      ? "border-primary bg-primary/10 shadow-sm"
+                      : "border-border hover:border-primary/50"
+                  )}
               >
                 <div className="flex-1 pr-2">
                   <div className="flex items-center justify-between mb-1">
@@ -455,12 +471,12 @@ const SupplierCard = React.memo(({
                     onClick={() => handlePackageSelect(pkg._id)}
                     className={cn(
                       "w-4 h-4 rounded border-2 flex items-center justify-center cursor-pointer transition-all duration-200",
-                      selectedPackages.includes(pkg._id)
+                      selectedPackageId === pkg._id
                         ? "bg-primary border-primary"
                         : "border-border hover:border-primary bg-background"
                     )}
                   >
-                    {selectedPackages.includes(pkg._id) && (
+                    {selectedPackageId === pkg._id && (
                       <CheckCircle className="w-2.5 h-2.5 text-white" />
                     )}
                   </div>
@@ -593,6 +609,8 @@ const Step1_ServicesAndSuppliers: React.FC<Step1Props> = ({
   onServicesChange = () => {},
   selectedSuppliers: propSelectedSuppliers = {},
   onSuppliersChange = () => {},
+  selectedPackages: propSelectedPackages = {},
+  onPackagesChange = () => {},
   onNext = () => {} 
 }) => {
   const { t } = useTranslation();
@@ -608,10 +626,12 @@ const Step1_ServicesAndSuppliers: React.FC<Step1Props> = ({
   // Internal state for selected services (fallback if no props provided)
   const [internalSelectedServices, setInternalSelectedServices] = useState<string[]>([]);
   const [internalSelectedSuppliers, setInternalSelectedSuppliers] = useState<{ [service: string]: { [supplierId: string]: string[] } }>({});
+  const [internalSelectedPackages, setInternalSelectedPackages] = useState<{ [serviceId: string]: { packageId: string; packageDetails: any } }>({});
   
   // Use prop services if provided, otherwise use internal state
   const selectedServices = propSelectedServices.length > 0 ? propSelectedServices : internalSelectedServices;
   const selectedSuppliers = Object.keys(propSelectedSuppliers).length > 0 ? propSelectedSuppliers : internalSelectedSuppliers;
+  const selectedPackages = Object.keys(propSelectedPackages).length > 0 ? propSelectedPackages : internalSelectedPackages;
 
   // Check if at least one supplier is selected
   const hasSelectedSuppliers = useMemo(() => {
@@ -665,11 +685,33 @@ const Step1_ServicesAndSuppliers: React.FC<Step1Props> = ({
       if (Object.keys(updatedSuppliers[service]).length === 0) {
         delete updatedSuppliers[service];
       }
+      
+      // Also remove package selection when supplier is deselected
+      const updatedPackages = { ...selectedPackages };
+      if (updatedPackages[serviceId]) {
+        delete updatedPackages[serviceId];
+        setInternalSelectedPackages(updatedPackages);
+        onPackagesChange(updatedPackages);
+      }
     }
     
     setInternalSelectedSuppliers(updatedSuppliers);
     onSuppliersChange(updatedSuppliers);
-  }, [selectedSuppliers, onSuppliersChange]);
+  }, [selectedSuppliers, selectedPackages, onSuppliersChange, onPackagesChange]);
+
+  // Handle package selection
+  const handlePackageSelect = useCallback((serviceId: string, packageId: string | null, packageDetails: any | null) => {
+    const updatedPackages = { ...selectedPackages };
+    
+    if (packageId && packageDetails) {
+      updatedPackages[serviceId] = { packageId, packageDetails };
+    } else {
+      delete updatedPackages[serviceId];
+    }
+    
+    setInternalSelectedPackages(updatedPackages);
+    onPackagesChange(updatedPackages);
+  }, [selectedPackages, onPackagesChange]);
 
   // Fetch suppliers based on selected services
   const fetchSuppliers = useCallback(async () => {
@@ -879,6 +921,8 @@ const Step1_ServicesAndSuppliers: React.FC<Step1Props> = ({
                             service={service} 
                             selectedSuppliers={selectedSuppliers}
                             onSupplierSelect={handleSupplierSelect}
+                            selectedPackages={selectedPackages}
+                            onPackageSelect={handlePackageSelect}
                           />
                         ))}
                       </div>

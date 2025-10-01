@@ -43,6 +43,7 @@ const CreateEvent: React.FC = () => {
     quantity: number;
     price: number;
   }>>([]);
+  const [selectedPackages, setSelectedPackages] = useState<{ [serviceId: string]: { packageId: string; packageDetails: any } }>({});
   const [specialRequests, setSpecialRequests] = useState('');
 
   // Create eventData object with stable reference but updated values
@@ -50,7 +51,7 @@ const CreateEvent: React.FC = () => {
   eventDataRef.current = {
     name, description, date, time, location: eventLocation, eventType,
     isPrivate, eventPassword, isPaid, tickets, services,
-    selectedSuppliers, specialRequests, currentTab
+    selectedSuppliers, selectedPackages, specialRequests, currentTab
   };
 
   const steps = useMemo(() => [
@@ -79,6 +80,7 @@ const CreateEvent: React.FC = () => {
         const parsedData = JSON.parse(savedData);
         setServices(parsedData.services || []);
         setSelectedSuppliers(parsedData.selectedSuppliers || {});
+        setSelectedPackages(parsedData.selectedPackages || {});
         setCurrentTab(parsedData.currentTab || 'services');
         setName(parsedData.name || '');
         setDescription(parsedData.description || '');
@@ -100,12 +102,12 @@ const CreateEvent: React.FC = () => {
   // Save data to sessionStorage whenever form data changes
   useEffect(() => {
     const dataToSave = {
-      services, selectedSuppliers, currentTab, name, description,
+      services, selectedSuppliers, selectedPackages, currentTab, name, description,
       date, time, location: eventLocation, eventType, isPrivate,
       eventPassword, isPaid, tickets, specialRequests
     };
     sessionStorage.setItem('createEventData', JSON.stringify(dataToSave));
-  }, [services, selectedSuppliers, currentTab, name, description, date, time, eventLocation, eventType, isPrivate, eventPassword, isPaid, tickets, specialRequests]);
+  }, [services, selectedSuppliers, selectedPackages, currentTab, name, description, date, time, eventLocation, eventType, isPrivate, eventPassword, isPaid, tickets, specialRequests]);
 
   const handleInputChange = useCallback((field: string, value: unknown) => {
     switch (field) {
@@ -119,6 +121,7 @@ const CreateEvent: React.FC = () => {
       case 'eventPassword': setEventPassword(value as string); break;
       case 'isPaid': setIsPaid(value as boolean); break;
       case 'tickets': setTickets(value as Ticket[]); break;
+      case 'selectedPackages': setSelectedPackages(value as { [serviceId: string]: { packageId: string; packageDetails: any } }); break;
       case 'specialRequests': setSpecialRequests(value as string); break;
       case 'services': setServices(value as string[]); break;
       case 'selectedSuppliers': setSelectedSuppliers(value as { [service: string]: { [supplierId: string]: string[] } }); break;
@@ -251,6 +254,8 @@ const CreateEvent: React.FC = () => {
                     onServicesChange={(newServices) => handleInputChange('services', newServices)}
                     selectedSuppliers={selectedSuppliers}
                     onSuppliersChange={(newSuppliers) => handleInputChange('selectedSuppliers', newSuppliers)}
+                    selectedPackages={selectedPackages}
+                    onPackagesChange={(newPackages) => handleInputChange('selectedPackages', newPackages)}
                     onNext={nextStep}
                   />
                 )}

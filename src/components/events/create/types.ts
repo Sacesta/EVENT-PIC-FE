@@ -6,6 +6,21 @@ export interface Ticket {
   price: number;
 }
 
+// Package details interface matching backend requirements
+export interface PackageDetails {
+  name: string;
+  description: string;
+  price: number;
+  features: string[];
+  duration?: number;
+}
+
+// Selected package info: maps serviceId to package data
+export interface SelectedPackageInfo {
+  packageId: string;
+  packageDetails: PackageDetails;
+}
+
 export interface EventData {
   name: string;
   description: string;
@@ -19,6 +34,7 @@ export interface EventData {
   tickets: Ticket[];
   services: string[];
   selectedSuppliers: { [service: string]: { [supplierId: string]: string[] } };
+  selectedPackages: { [serviceId: string]: SelectedPackageInfo };
   specialRequests: string;
   currentTab: string;
 }
