@@ -1,0 +1,307 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Pic Event Planning App - Design System
+Modern, minimalistic design with depth and subtle reflections
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Pic Brand Colors - Updated to match provided color palette */
+    --background: 0 0% 99%;
+    --foreground: 225 96% 19%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 225 96% 19%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 225 96% 19%;
+
+    /* Primary Colors - From provided palette */
+    --primary: 225 96% 19%; /* #031760 - Dark Navy Blue */
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 203 100% 59%; /* #31A7FF - Bright Cyan Blue */
+
+    /* Secondary Colors - From provided palette */
+    --secondary: 203 100% 59%; /* #31A7FF - Bright Cyan Blue */
+    --secondary-foreground: 0 0% 100%;
+    --secondary-blue: 211 100% 51%; /* #087DFF - Blue */
+    --secondary-red: 0 84% 50%; /* #E21E1E - Red */
+    --secondary-red-dark: 225 100% 29%; /* #002793 - Dark Blue */
+    --secondary-green: 148 89% 47%; /* #10DF73 - Green */
+    --secondary-green-dark: 148 100% 29%; /* #009342 - Dark Green */
+    --secondary-purple: 263 79% 58%; /* #9A45E5 - Purple */
+
+    /* Accent Colors - From provided palette */
+    --accent: 355 100% 66%; /* #FF4553 - Coral/Pink */
+    --accent-foreground: 0 0% 100%;
+    --accent-orange: 25 100% 66%; /* #FF994D - Orange */
+
+    --muted: 220 13% 95%;
+    --muted-foreground: 220 9% 46%;
+
+    --destructive: 0 84% 50%; /* #E21E1E - Red */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 96%;
+    --ring: 225 96% 19%; /* #031760 - Dark Navy Blue */
+
+    --radius: 12px;
+
+    /* Gradients - Updated with new brand colors */
+    --gradient-primary: linear-gradient(135deg, hsl(225 96% 19%) 0%, hsl(203 100% 59%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(203 100% 59%) 0%, hsl(211 100% 51%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(355 100% 66%) 0%, hsl(25 100% 66%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 13% 98%) 100%);
+    --gradient-hero: linear-gradient(180deg, #031760 0%, #31A7FF 30%, #FF4553 80%, #FF994D 100%);
+
+    /* Shadows - Updated with new brand colors */
+    --shadow-sm: 0 1px 2px 0 hsl(225 96% 19% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(225 96% 19% / 0.1), 0 2px 4px -1px hsl(225 96% 19% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(225 96% 19% / 0.1), 0 4px 6px -2px hsl(225 96% 19% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(225 96% 19% / 0.1), 0 10px 10px -5px hsl(225 96% 19% / 0.04);
+    --shadow-glow: 0 0 20px hsl(203 100% 59% / 0.3);
+    --shadow-inner: inset 0 2px 4px 0 hsl(225 96% 19% / 0.06);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 225 96% 19%;
+    --sidebar-primary: 225 96% 19%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 225 96% 19%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 203 100% 59%;
+  }
+
+  .dark {
+    --background: 222 80% 8%;
+    --foreground: 0 0% 98%;
+
+    --card: 222 50% 12%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 222 50% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 200 100% 66%;
+    --primary-foreground: 222 80% 29%;
+    --primary-light: 222 80% 29%;
+
+    --secondary: 188 94% 45%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-blue: 207 92% 44%;
+    --secondary-red: 0 100% 54%;
+    --secondary-red-dark: 0 77% 40%;
+    --secondary-green: 148 100% 43%;
+    --secondary-green-dark: 148 100% 28%;
+
+    --accent: 8 100% 62%;
+    --accent-foreground: 0 0% 100%;
+    --accent-yellow: 46 99% 40%;
+
+    --muted: 222 30% 18%;
+    --muted-foreground: 220 9% 65%;
+
+    --destructive: 0 77% 40%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 222 30% 20%;
+    --input: 222 30% 18%;
+    --ring: 200 100% 66%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(200 100% 66%) 0%, hsl(222 80% 29%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(188 94% 45%) 0%, hsl(207 92% 44%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(8 100% 62%) 0%, hsl(46 99% 40%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(222 50% 12%) 0%, hsl(222 80% 8%) 100%);
+    --gradient-hero: linear-gradient(180deg, #1a1a2e 0%, #16213e 30%, #e94560 80%, #f39c12 100%);
+
+    --shadow-glow: 0 0 20px hsl(200 100% 66% / 0.2);
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  direction: rtl;
+}
+
+[dir="rtl"] .text-gradient-primary {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[dir="rtl"] .gradient-primary {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+}
+
+/* Flip icons and spacing for RTL */
+[dir="rtl"] .rtl\:rotate-180 {
+  transform: rotate(180deg);
+}
+
+[dir="rtl"] .rtl\:ml-auto {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+[dir="rtl"] .rtl\:mr-auto {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-mazzard antialiased;
+  }
+
+  /* Typography System - Based on provided font usage guidelines */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-conthrax;
+  }
+
+  /* Brand Typography - Conthrax for headlines and typo breaks */
+  .brand-typo {
+    @apply font-conthrax uppercase tracking-wide;
+  }
+
+  .brand-headline {
+    @apply font-conthrax font-bold;
+  }
+
+  .brand-subline {
+    @apply font-mazzard font-medium uppercase tracking-wider;
+  }
+
+  /* Content Typography - Mazzard for context text and inner headlines */
+  .content-text {
+    @apply font-mazzard;
+  }
+
+  .content-headline {
+    @apply font-mazzard font-bold;
+  }
+
+  .caption-text {
+    @apply font-mazzard font-normal;
+  }
+
+  .copy-text {
+    @apply font-mazzard font-medium;
+  }
+
+  /* Specific font weight classes */
+  .mazzard-regular {
+    @apply font-mazzard font-normal;
+  }
+
+  .mazzard-medium {
+    @apply font-mazzard font-medium;
+  }
+
+  .mazzard-bold {
+    @apply font-mazzard font-bold;
+  }
+
+  .mazzard-extrabold {
+    @apply font-mazzard font-extrabold;
+  }
+
+  .conthrax-regular {
+    @apply font-conthrax font-normal;
+  }
+
+  .conthrax-bold {
+    @apply font-conthrax font-bold;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-background/80 backdrop-blur-xl border border-border/50 shadow-lg dark:bg-card/80 dark:border-white/10;
+  }
+
+  .glass-card-dark {
+    @apply bg-card/80 backdrop-blur-xl border border-white/10;
+  }
+
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .text-gradient-primary {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-hero {
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg transition-all duration-300;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-md hover:shadow-lg transition-all duration-300;
+  }
+
+  .btn-glass {
+    @apply glass-card hover:bg-white/90 transition-all duration-300 hover:shadow-glow;
+  }
+
+  /* Theme classes for Layout component */
+  .theme-dark {
+    --bg: hsl(var(--background));
+    --bg-soft: hsl(var(--card));
+    --text: hsl(var(--foreground));
+    --muted: hsl(var(--muted-foreground));
+    --border: hsl(var(--border));
+  }
+
+  .theme-light {
+    --bg: hsl(var(--background));
+    --bg-soft: hsl(var(--card));
+    --text: hsl(var(--foreground));
+    --muted: hsl(var(--muted-foreground));
+    --border: hsl(var(--border));
+  }
+}
