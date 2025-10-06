@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Calendar, Clock, Users, Tag, SortAsc, SortDesc, Loader2, AlertCircle, DollarSign, Star, RotateCcw, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +47,7 @@ const EVENT_CATEGORIES = [
 
 export default function BrowseEvents() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   
   // State for filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -164,9 +166,9 @@ export default function BrowseEvents() {
   }, [events, sortOrder]);
 
   const handleJoinEvent = (eventId: string) => {
-    // Handle event joining logic here
-    console.log('Joining event:', eventId);
-    // You can navigate to event details page or open a modal
+    // Navigate to event details page
+    console.log('Navigating to event:', eventId);
+    navigate(`/event/${eventId}`);
   };
 
   // Enhanced page change handler with loading state
@@ -293,11 +295,11 @@ export default function BrowseEvents() {
                   )}
                   <Button 
                     size="sm"
-                    disabled={!hasAvailableTickets}
                     onClick={() => handleJoinEvent(event._id)}
                     className="ml-2"
+                    variant={hasAvailableTickets ? "default" : "outline"}
                   >
-                    {hasAvailableTickets ? t('events.viewEvent', 'View Event') : t('events.soldOut', 'Sold Out')}
+                    {t('events.viewDetails', 'View Details')}
                   </Button>
                 </div>
               </div>

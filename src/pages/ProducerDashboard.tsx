@@ -41,7 +41,7 @@ const ProducerDashboard = () => {
     hasPrevPage: false
   });
 
-  // Fetch producer events on component mount
+  // Fetch producer events on component mount and when page changes
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -50,7 +50,7 @@ const ProducerDashboard = () => {
         
         const response: MyEventsResponse = await apiService.getMyEvents({ 
           limit: 10,
-          page: 1,
+          page: pagination.currentPage,
           sortBy: 'createdAt',
           sortOrder: 'desc'
         });
@@ -69,7 +69,12 @@ const ProducerDashboard = () => {
     };
 
     fetchEvents();
-  }, []);
+  }, [pagination.currentPage]);
+
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => ({ ...prev, currentPage: newPage }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleEditEvent = (eventId: string) => {
     const event = events.find(e => e._id === eventId);
@@ -81,10 +86,8 @@ const ProducerDashboard = () => {
 
   const handleSaveEvent = async (updatedEvent: Record<string, unknown>) => {
     try {
-      const eventId = updatedEvent._id as string || updatedEvent.id as string;
-      await apiService.updateEvent(eventId, updatedEvent);
-      
-      // Refresh events list using the new API
+      // The EditEventModal already handles the update and refetch
+      // We just need to refresh the events list to show the updated data
       const response: MyEventsResponse = await apiService.getMyEvents({ 
         limit: 10,
         page: pagination.currentPage,
@@ -98,10 +101,10 @@ const ProducerDashboard = () => {
         setOverallStats(response.overallStats);
       }
       
-      console.log('Event saved successfully:', updatedEvent);
+      console.log('Event list refreshed successfully');
     } catch (error) {
-      console.error('Error saving event:', error);
-      setError('Failed to save event. Please try again.');
+      console.error('Error refreshing events:', error);
+      setError('Failed to refresh events. Please try again.');
     }
   };
 
@@ -242,9 +245,6 @@ const ProducerDashboard = () => {
           </div>
         </div>
 
-        {/* Error Message */}
-        
-
         {/* Events Section */}
         {isLoading ? (
           <div className="text-center py-12">
@@ -252,14 +252,70 @@ const ProducerDashboard = () => {
             <p className="mt-4 text-muted-foreground">{t('common.loadingYourEvents')}</p>
           </div>
         ) : (
-          <EventsSection 
-            events={events as any}
-            onEditEvent={handleEditEvent}
-            onDeleteEvent={handleDeleteEvent}
-            onManageAttendees={(eventId) => console.log(t('common.manageAttendees'), eventId)}
-            onChatEvent={handleChatEvent}
-            onManageTickets={handleManageTickets}
-          />
+          <>
+            <EventsSection 
+              events={events as any}
+              onEditEvent={handleEditEvent}
+              onDeleteEvent={handleDeleteEvent}
+              onManageAttendees={(eventId) => console.log(t('common.manageAttendees'), eventId)}
+              onChatEvent={handleChatEvent}
+              onManageTickets={handleManageTickets}
+            />
+
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  {t('dashboard.showing', 'Showing')} {((pagination.currentPage - 1) * 10) + 1} {t('dashboard.to', 'to')} {Math.min(pagination.currentPage * 10, pagination.totalEvents)} {t('dashboard.of', 'of')} {pagination.totalEvents} {t('dashboard.events', 'events')}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                    disabled={!pagination.hasPrevPage}
+                    className="text-muted-foreground"
+                  >
+                    {t('common.back', 'Previous')}
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(pagination.totalPages, 5) }, (_, i) => {
+                      let pageNum;
+                      if (pagination.totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (pagination.currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (pagination.currentPage >= pagination.totalPages - 2) {
+                        pageNum = pagination.totalPages - 4 + i;
+                      } else {
+                        pageNum = pagination.currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={pagination.currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handlePageChange(pageNum)}
+                          className="w-8 h-8 p-0"
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                    disabled={!pagination.hasNextPage}
+                  >
+                    {t('common.next', 'Next')}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* Back to Home */}

@@ -22,6 +22,23 @@
       "eventDetails": "פרטי האירוע",
       "summary": "סיכום"
     },
+    "editEvent": {
+      "title": "ערוך אירוע",
+      "subtitle": "עדכן את פרטי האירוע שלך בכמה צעדים פשוטים",
+      "loadingEventData": "טוען נתוני אירוע",
+      "pleaseWait": "אנא המתן בזמן שאנו טוענים את מידע האירוע שלך...",
+      "errorLoadingEvent": "שגיאה בטעינת אירוע",
+      "goBack": "חזור",
+      "tryAgain": "נסה שוב",
+      "eventUpdatedSuccessfully": "האירוע עודכן בהצלחה!",
+      "changesAreLive": "השינויים שלך עודכנו וכעת הם חיים.",
+      "updateFailed": "העדכון נכשל",
+      "eventIdMissing": "מזהה האירוע חסר. לא ניתן לעדכן אירוע.",
+      "noPermission": "אין לך הרשאה לעדכן אירוע זה.",
+      "eventNotFound": "האירוע לא נמצא. ייתכן שהוא נמחק.",
+      "failedToUpdate": "עדכון האירוע נכשל. אנא נסה שוב."
+    },
+
     "step1": {
       "title": "בחר שירותים וספקים",
       "subtitle": "בחר מה אתה צריך לאירוע שלך",
@@ -29,12 +46,15 @@
       "suppliersDesc": "בחר ספקים עבור השירותים שבחרת",
       "chooseSuppliers": "בחר ספקים",
       "available": "זמין",
-      "noSuppliers": "אין ספקים זמינים עבור",
+      "noSuppliers": "אין ספקים זמינים",
+      "noSuppliersAvailable": "אין ספקים זמינים",
       "selectServicesFirst": "אנא בחר שירותים תחילה כדי לבחור ספקים",
+      "selectServicesFirstToViewSuppliers": "בחר שירותים תחילה כדי לצפות בספקים זמינים",
       "skip": "דלג על שלב זה",
       "searchSuppliers": "חפש ספקים...",
       "filters": "מסננים",
       "clear": "נקה",
+      "clearFilters": "נקה מסננים",
       "enterCity": "הזן עיר...",
       "anyPrice": "כל מחיר",
       "priceRange": "טווח מחירים",
@@ -43,13 +63,21 @@
       "stars": "כוכבים",
       "onePackageOnly": "ניתן לבחור רק חבילה אחת לכל ספק",
       "flexible": "גמיש",
-      "selected": "נבחרו"
+      "selected": "נבחרו",
+      "noSuppliersFound": "לא נמצאו ספקים",
+      "tryAdjustingFilters": "נסה להתאים את המסננים או קריטריוני החיפוש שלך",
+      "goToServices": "עבור לשירותים"
     },
     "step2": {
       "title": "פרטי האירוע",
       "subtitle": "ספר לנו על האירוע שלך",
       "eventName": "שם האירוע",
       "eventNamePlaceholder": "הזן את שם האירוע",
+      "eventImage": "תמונת האירוע",
+      "uploadImage": "העלה תמונת אירוע",
+      "dragDropOrClick": "גרור ושחרר או לחץ לעיון",
+      "supportedFormats": "JPG, PNG, GIF, WEBP",
+      "removeImage": "הסר תמונה",
       "date": "תאריך",
       "time": "שעה",
       "pickDate": "בחר תאריך",
@@ -114,7 +142,15 @@
       "conventionCenter": "מרכז כנסים",
       "home": "בית",
       "beach": "חוף",
-      "rooftopVenue": "מקום על הגג"
+      "rooftopVenue": "מקום על הגג",
+      "telAvivConventionCenter": "מרכז הכנסים תל אביב",
+      "jerusalemConventionCenter": "מרכז הכנסים הבינלאומי ירושלים",
+      "haifaAuditorium": "אודיטוריום חיפה",
+      "eilatConventionCenter": "מרכז כנסים אילת",
+      "deadSeaConventionCenter": "מרכז כנסים ים המלח",
+      "herzliyaMarina": "מרינה הרצליה",
+      "caesareaAmphitheater": "אמפיתיאטרון קיסריה",
+      "parkHayarkon": "פארק הירקון, תל אביב"
     },
     "services": {
       "title": "שירותים",
@@ -325,7 +361,10 @@
     "community": "קהילה",
     "status": "סטטוס",
     "getInTouch": "צור קשר",
-    "rights": "כל הזכויות שמורות"
+    "rights": "כל הזכויות שמורות",
+    "email": "hello@pic.com",
+    "phone": "1+ (555) 4567-123",
+    "address": "תל אביב, ישראל"
   },
   "auth": {
     "signIn": "התחברות",
@@ -729,6 +768,8 @@
     }
   },
   "common": {
+    "minCharacters": "מינימום {{count}} תווים",
+    "charactersCount": "{{current}}/{{min}} תווים",
     "save": "שמור",
     "cancel": "ביטול",
     "delete": "מחק",

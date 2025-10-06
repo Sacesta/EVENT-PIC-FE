@@ -47,6 +47,12 @@ const EventDetails = () => {
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
+  
+  // Private event password state
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [enteredPassword, setEnteredPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [isPasswordVerified, setIsPasswordVerified] = useState(false);
 
   const serviceIcons: { [key: string]: any } = {
     'photography': Camera,
@@ -73,13 +79,24 @@ const EventDetails = () => {
         
         const response = await apiService.getEvent(eventId);
         
+        console.log('📊 Event Details Response:', response);
+        
         if (response.success && response.data) {
           setEvent(response.data);
+          console.log('✅ Event loaded successfully:', response.data.name);
+          
+          // Check if event is private and user is not the producer
+          const isPrivateEvent = !response.data.isPublic;
+          const isEventOwner = user?.role === 'producer' && user?.email === response.data.producerEmail;
+          
+          if (isPrivateEvent && !isEventOwner && !isPasswordVerified) {
+            setShowPasswordModal(true);
+          }
         } else {
           setError('Event not found');
         }
       } catch (err) {
-        console.error('Error fetching event:', err);
+        console.error('❌ Error fetching event:', err);
         setError('Failed to load event. Please try again.');
       } finally {
         setIsLoading(false);
@@ -87,7 +104,7 @@ const EventDetails = () => {
     };
 
     fetchEvent();
-  }, [eventId]);
+  }, [eventId, user, isPasswordVerified]);
 
   if (isLoading) {
     return (
@@ -120,11 +137,23 @@ const EventDetails = () => {
   const timeString = event.time || format(eventDate, 'HH:mm');
   const locationString = typeof event.location === 'string' 
     ? event.location 
-    : `${event.location.address}, ${event.location.city}`;
+    : `${event.location?.address || ''}, ${event.location?.city || ''}`.trim().replace(/^,\s*/, '');
   const services = event.requiredServices || event.services || [];
   const tickets = event.tickets || [];
   const attendeeCount = event.attendees?.length || 0;
-  const suppliers = event.suppliers || [];
+  
+  // Handle both regular suppliers array and groupedSuppliers from backend
+  const suppliers = event.groupedSuppliers 
+    ? Object.values(event.groupedSuppliers).flatMap((group: any) => 
+        group.services.map((service: any) => ({
+          name: group.supplier?.name || group.supplier?.companyName,
+          serviceId: service.service?.title || service.service?._id,
+          status: service.status,
+          price: service.requestedPrice || service.service?.price,
+          ...service
+        }))
+      )
+    : event.suppliers || [];
 
   const handleEditEvent = () => {
     setIsEditModalOpen(true);
@@ -132,10 +161,23 @@ const EventDetails = () => {
 
   const handleSaveEvent = async (updatedEvent: any) => {
     try {
+      // Update the event
       await apiService.updateEvent(eventId!, updatedEvent);
-      setEvent({ ...event, ...updatedEvent });
+      
+      // Refetch the event to get the latest data from the server
+      const refreshedEvent = await apiService.getEvent(eventId!);
+      
+      if (refreshedEvent.success && refreshedEvent.data) {
+        // Update local state with fresh data from API
+        setEvent(refreshedEvent.data);
+      } else {
+        // Fallback to merging updated data if refetch fails
+        setEvent({ ...event, ...updatedEvent });
+      }
     } catch (error) {
       console.error('Error saving event:', error);
+      // Still try to update local state on error
+      setEvent({ ...event, ...updatedEvent });
     }
   };
 
@@ -403,16 +445,27 @@ const EventDetails = () => {
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="font-semibold">{supplier.name || `Supplier ${index + 1}`}</h3>
                         <Badge 
-                          variant={supplier.status === 'confirmed' ? 'default' : 'secondary'}
+                          variant={
+                            supplier.status === 'confirmed' || supplier.status === 'approved' 
+                              ? 'default' 
+                              : supplier.status === 'rejected' 
+                              ? 'destructive' 
+                              : 'secondary'
+                          }
                         >
                           {supplier.status || 'pending'}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground mb-2">
-                        Service: {supplier.serviceId || supplier.service}
+                        Service: {supplier.serviceId || supplier.service || 'N/A'}
                       </p>
                       {supplier.price && (
                         <p className="text-sm font-medium">₪{supplier.price}</p>
+                      )}
+                      {supplier.notes && (
+                        <p className="text-xs text-muted-foreground mt-2 italic">
+                          Note: {supplier.notes}
+                        </p>
                       )}
                     </CardContent>
                   </Card>

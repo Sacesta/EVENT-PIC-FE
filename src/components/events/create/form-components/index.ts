@@ -7,3 +7,4 @@ export { DateTimeSelector } from './DateTimeSelector';
 export { ToggleCard } from './ToggleCard';
 export { TicketItem } from './TicketItem';
 export { TicketsSection } from './TicketsSection';
+export { default as ImageUpload } from './ImageUpload';

@@ -37,21 +37,31 @@ const CreateEvent: React.FC = () => {
   const [isPrivate, setIsPrivate] = useState(false);
   const [eventPassword, setEventPassword] = useState('');
   const [isPaid, setIsPaid] = useState(false);
+  const [isFree, setIsFree] = useState(false);
+  const [freeTicketLimit, setFreeTicketLimit] = useState(0);
   const [tickets, setTickets] = useState<Array<{
     id: string;
     name: string;
     quantity: number;
     price: number;
-  }>>([]);
+  }>>([
+    {
+      id: Date.now().toString(),
+      name: 'General Admission',
+      quantity: 100,
+      price: 0
+    }
+  ]);
   const [selectedPackages, setSelectedPackages] = useState<{ [serviceId: string]: { packageId: string; packageDetails: any } }>({});
   const [specialRequests, setSpecialRequests] = useState('');
+  const [eventImage, setEventImage] = useState<File | null>(null);
 
   // Create eventData object with stable reference but updated values
   const eventDataRef = useRef<EventData>({} as EventData);
   eventDataRef.current = {
     name, description, date, time, location: eventLocation, eventType,
-    isPrivate, eventPassword, isPaid, tickets, services,
-    selectedSuppliers, selectedPackages, specialRequests, currentTab
+    isPrivate, eventPassword, isPaid, isFree, freeTicketLimit, tickets, services,
+    selectedSuppliers, selectedPackages, specialRequests, currentTab, eventImage
   };
 
   const steps = useMemo(() => [
@@ -91,7 +101,17 @@ const CreateEvent: React.FC = () => {
         setIsPrivate(parsedData.isPrivate || false);
         setEventPassword(parsedData.eventPassword || '');
         setIsPaid(parsedData.isPaid || false);
-        setTickets(parsedData.tickets || []);
+        setIsFree(parsedData.isFree || false);
+        setFreeTicketLimit(parsedData.freeTicketLimit || 0);
+        // If no saved tickets, use default ticket
+        setTickets(parsedData.tickets && parsedData.tickets.length > 0 ? parsedData.tickets : [
+          {
+            id: Date.now().toString(),
+            name: 'General Admission',
+            quantity: 100,
+            price: 0
+          }
+        ]);
         setSpecialRequests(parsedData.specialRequests || '');
       } catch (error) {
         console.error('Error loading saved data:', error);
@@ -104,10 +124,10 @@ const CreateEvent: React.FC = () => {
     const dataToSave = {
       services, selectedSuppliers, selectedPackages, currentTab, name, description,
       date, time, location: eventLocation, eventType, isPrivate,
-      eventPassword, isPaid, tickets, specialRequests
+      eventPassword, isPaid, isFree, freeTicketLimit, tickets, specialRequests
     };
     sessionStorage.setItem('createEventData', JSON.stringify(dataToSave));
-  }, [services, selectedSuppliers, selectedPackages, currentTab, name, description, date, time, eventLocation, eventType, isPrivate, eventPassword, isPaid, tickets, specialRequests]);
+  }, [services, selectedSuppliers, selectedPackages, currentTab, name, description, date, time, eventLocation, eventType, isPrivate, eventPassword, isPaid, isFree, freeTicketLimit, tickets, specialRequests]);
 
   const handleInputChange = useCallback((field: string, value: unknown) => {
     switch (field) {
@@ -120,12 +140,15 @@ const CreateEvent: React.FC = () => {
       case 'isPrivate': setIsPrivate(value as boolean); break;
       case 'eventPassword': setEventPassword(value as string); break;
       case 'isPaid': setIsPaid(value as boolean); break;
+      case 'isFree': setIsFree(value as boolean); break;
+      case 'freeTicketLimit': setFreeTicketLimit(value as number); break;
       case 'tickets': setTickets(value as Ticket[]); break;
       case 'selectedPackages': setSelectedPackages(value as { [serviceId: string]: { packageId: string; packageDetails: any } }); break;
       case 'specialRequests': setSpecialRequests(value as string); break;
       case 'services': setServices(value as string[]); break;
       case 'selectedSuppliers': setSelectedSuppliers(value as { [service: string]: { [supplierId: string]: string[] } }); break;
       case 'currentTab': setCurrentTab(value as string); break;
+      case 'eventImage': setEventImage(value as File | null); break;
     }
   }, []);
 

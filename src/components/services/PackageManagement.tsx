@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,10 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Edit, Trash2, Package, Star, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Star, X, Image as ImageIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
-import apiService, { type Service, type PackageData, type PackageWithId } from '@/services/api';
+import apiService, { type Service, type PackageData } from '@/services/api';
+import ImageUpload from '@/components/events/create/form-components/ImageUpload';
 
 interface PackageManagementProps {
   isOpen: boolean;
@@ -21,7 +22,44 @@ interface PackageManagementProps {
 
 interface PackageFormData extends PackageData {
   _id?: string;
+  image?: File | null;
 }
+
+// Helper functions for localStorage image management
+const PACKAGE_IMAGES_KEY = 'package_images';
+
+const savePackageImage = (serviceId: string, packageId: string, imageDataUrl: string) => {
+  try {
+    const images = JSON.parse(localStorage.getItem(PACKAGE_IMAGES_KEY) || '{}');
+    const key = `${serviceId}_${packageId}`;
+    images[key] = imageDataUrl;
+    localStorage.setItem(PACKAGE_IMAGES_KEY, JSON.stringify(images));
+  } catch (error) {
+    console.error('Error saving package image:', error);
+  }
+};
+
+const getPackageImage = (serviceId: string, packageId: string): string | null => {
+  try {
+    const images = JSON.parse(localStorage.getItem(PACKAGE_IMAGES_KEY) || '{}');
+    const key = `${serviceId}_${packageId}`;
+    return images[key] || null;
+  } catch (error) {
+    console.error('Error getting package image:', error);
+    return null;
+  }
+};
+
+const deletePackageImage = (serviceId: string, packageId: string) => {
+  try {
+    const images = JSON.parse(localStorage.getItem(PACKAGE_IMAGES_KEY) || '{}');
+    const key = `${serviceId}_${packageId}`;
+    delete images[key];
+    localStorage.setItem(PACKAGE_IMAGES_KEY, JSON.stringify(images));
+  } catch (error) {
+    console.error('Error deleting package image:', error);
+  }
+};
 
 export default function PackageManagement({ isOpen, onClose, service, onPackagesUpdated }: PackageManagementProps) {
   const { t } = useTranslation();
@@ -38,8 +76,24 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
     price: 0,
     features: [],
     duration: 0,
-    isPopular: false
+    isPopular: false,
+    image: null
   });
+  const [packageImages, setPackageImages] = useState<Record<string, string>>({});
+
+  // Load package images from localStorage when service changes
+  useEffect(() => {
+    if (service) {
+      const images: Record<string, string> = {};
+      service.packages?.forEach(pkg => {
+        const imageUrl = getPackageImage(service._id, pkg._id);
+        if (imageUrl) {
+          images[pkg._id] = imageUrl;
+        }
+      });
+      setPackageImages(images);
+    }
+  }, [service]);
 
   const resetForm = () => {
     setFormData({
@@ -48,7 +102,8 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
       price: 0,
       features: [],
       duration: 0,
-      isPopular: false
+      isPopular: false,
+      image: null
     });
     setEditingPackage(null);
     setIsAddingPackage(false);
@@ -63,7 +118,8 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
       price: pkg.price,
       features: pkg.features || [],
       duration: pkg.duration || 0,
-      isPopular: pkg.isPopular || false
+      isPopular: pkg.isPopular || false,
+      image: null // Will be loaded from localStorage via preview
     });
     setEditingPackage(pkg);
     setIsAddingPackage(true);
@@ -100,22 +156,58 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
 
     setIsLoading(true);
     try {
+      let packageId: string;
+      
       if (editingPackage && formData._id) {
-        // Update existing package - exclude _id from request body
-        const { _id, ...packageDataWithoutId } = formData;
+        // Update existing package - exclude _id and image from request body
+        const { _id, image, ...packageDataWithoutId } = formData;
         await apiService.updateServicePackage(service._id, _id, packageDataWithoutId);
+        packageId = _id;
+        
         toast({
           title: t('common.success', 'Success'),
           description: t('packages.packageUpdated', 'Package updated successfully')
         });
       } else {
-        // Add new package - _id is not included in formData for new packages
-        const { _id, ...packageDataWithoutId } = formData;
-        await apiService.addPackageToService(service._id, packageDataWithoutId);
+        // Add new package - exclude _id and image from request body
+        const { _id, image, ...packageDataWithoutId } = formData;
+        const response = await apiService.addPackageToService(service._id, packageDataWithoutId);
+        
+        // Extract package ID from response
+        // The response structure may vary, so we try different possible locations
+        const responseData = response.data as Record<string, unknown>;
+        const pkgData = responseData?.package as { _id?: string } | undefined;
+        const packagesArray = responseData?.packages as Array<{ _id?: string }> | undefined;
+        
+        packageId = pkgData?._id || 
+                   (responseData?._id as string) || 
+                   (packagesArray && packagesArray.length > 0 ? packagesArray[packagesArray.length - 1]?._id : undefined) || 
+                   '';
+        
+        if (!packageId) {
+          console.warn('Could not extract package ID from response, image will not be saved');
+        }
+        
         toast({
           title: t('common.success', 'Success'),
           description: t('packages.packageAdded', 'Package added successfully')
         });
+      }
+      
+      // Save image to localStorage if provided
+      if (formData.image && packageId) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const imageDataUrl = reader.result as string;
+          savePackageImage(service._id, packageId, imageDataUrl);
+          
+          // Update local state
+          setPackageImages(prev => ({
+            ...prev,
+            [packageId]: imageDataUrl
+          }));
+        };
+        reader.readAsDataURL(formData.image);
       }
       
       onPackagesUpdated();
@@ -140,6 +232,17 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
     setIsLoading(true);
     try {
       await apiService.deleteServicePackage(service._id, packageId);
+      
+      // Delete image from localStorage
+      deletePackageImage(service._id, packageId);
+      
+      // Update local state
+      setPackageImages(prev => {
+        const newImages = { ...prev };
+        delete newImages[packageId];
+        return newImages;
+      });
+      
       toast({
         title: t('common.success', 'Success'),
         description: t('packages.packageDeleted', 'Package deleted successfully')
@@ -244,6 +347,29 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
                       placeholder={t('packages.descriptionPlaceholder', 'Describe what this package includes')}
                       rows={3}
                     />
+                  </div>
+
+                  {/* Package Image Upload */}
+                  <div>
+                    <ImageUpload
+                      label={t('packages.image', 'Package Image')}
+                      value={formData.image}
+                      onChange={(file) => setFormData(prev => ({ ...prev, image: file }))}
+                    />
+                    {editingPackage && formData._id && packageImages[formData._id] && !formData.image && (
+                      <div className="mt-2">
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {t('packages.currentImage', 'Current Image')}:
+                        </p>
+                        <div className="relative rounded-lg overflow-hidden border-2 border-border w-full max-w-xs">
+                          <img
+                            src={packageImages[formData._id]}
+                            alt={formData.name}
+                            className="w-full h-32 object-cover"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -370,11 +496,22 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
                 {service.packages.map((pkg) => (
                   <Card key={pkg._id} className="relative">
                     {pkg.isPopular && (
-                      <div className="absolute -top-2 -right-2">
+                      <div className="absolute -top-2 -right-2 z-10">
                         <Badge className="bg-yellow-500 text-white flex items-center gap-1">
                           <Star className="h-3 w-3" />
                           {t('packages.popular', 'Popular')}
                         </Badge>
+                      </div>
+                    )}
+                    
+                    {/* Package Image */}
+                    {packageImages[pkg._id] && (
+                      <div className="relative w-full h-40 overflow-hidden rounded-t-lg">
+                        <img
+                          src={packageImages[pkg._id]}
+                          alt={pkg.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     )}
                     

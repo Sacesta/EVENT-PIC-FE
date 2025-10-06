@@ -37,6 +37,7 @@ interface Step3_SummaryProps {
     location: string;
     eventType: string;
     isPrivate: boolean;
+    eventPassword?: string;
     isPaid: boolean;
     tickets: Array<{
       id: string;
@@ -222,6 +223,21 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
     const city = locationParts.length > 1 ? locationParts[locationParts.length - 1].trim() : eventData.location;
     const address = locationParts.length > 1 ? locationParts.slice(0, -1).join(',').trim() : eventData.location;
 
+    // Transform tickets to backend format (simplified - backend will handle defaults)
+    const transformedTickets = eventData.tickets && eventData.tickets.length > 0 ? eventData.tickets.map(ticket => ({
+      title: ticket.name,
+      description: `${ticket.name} ticket for ${eventData.name}`,
+      type: ticket.name.toLowerCase().replace(/\s+/g, '-'),
+      price: {
+        amount: ticket.price,
+        currency: 'ILS'
+      },
+      quantity: {
+        total: ticket.quantity,
+        available: ticket.quantity
+      }
+    })) : [];
+
     const transformedData = {
       name: eventData.name,
       description: eventData.description || '',
@@ -231,23 +247,40 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
         address: address,
         city: city
       },
-      language: 'en' as const, // Default to English
+      language: 'en' as const,
       category: eventData.eventType,
       requiredServices: eventData.services || [],
-      suppliers: suppliers, // Now correctly structured with nested services
+      suppliers: suppliers,
       status: 'draft' as const,
       isPublic: !eventData.isPrivate,
-      ...(eventData.isPaid && totalTickets > 0 && {
-        ticketInfo: {
-          availableTickets: totalTickets,
-          soldTickets: 0,
-          reservedTickets: 0,
-          priceRange: {
-            min: minPrice,
-            max: maxPrice
-          }
-        }
+      // Include password for private events (when isPublic is false)
+      ...(eventData.isPrivate && eventData.eventPassword && {
+        password: eventData.eventPassword
       }),
+      // Include tickets array for backend to create ticket documents
+      ...(transformedTickets.length > 0 && {
+        tickets: transformedTickets
+      }),
+      // Include ticketInfo for event metadata
+      ticketInfo: eventData.isPaid && totalTickets > 0 ? {
+        availableTickets: totalTickets,
+        soldTickets: 0,
+        reservedTickets: 0,
+        isFree: false,
+        priceRange: {
+          min: minPrice,
+          max: maxPrice
+        }
+      } : {
+        availableTickets: totalTickets || 0,
+        soldTickets: 0,
+        reservedTickets: 0,
+        isFree: true,
+        priceRange: {
+          min: 0,
+          max: 0
+        }
+      },
       ...(eventData.isPaid && totalRevenue > 0 && {
         budget: {
           total: totalRevenue,

@@ -41,13 +41,13 @@ export const LocationInput = React.memo<LocationInputProps>(({
         <div className="flex flex-wrap gap-2">
           {POPULAR_LOCATIONS.map((location) => (
             <Button
-              key={location}
+              key={location.value}
               variant="outline"
               size="sm"
-              onClick={() => onChange(location)}
+              onClick={() => onChange(t(location.labelKey))}
               className="text-xs h-7"
             >
-              {location}
+              {t(location.labelKey)}
             </Button>
           ))}
         </div>

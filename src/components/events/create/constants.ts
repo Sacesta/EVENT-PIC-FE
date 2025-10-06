@@ -12,16 +12,16 @@ export const EVENT_TYPES = [
   { value: 'other', labelKey: 'createEvent.eventTypes.other' }
 ];
 
-// Popular locations
+// Popular locations - using translation keys
 export const POPULAR_LOCATIONS = [
-  'Tel Aviv Convention Center',
-  'Jerusalem International Convention Center',
-  'Haifa Auditorium',
-  'Eilat Convention Center',
-  'Dead Sea Convention Center',
-  'Herzliya Marina',
-  'Caesarea Amphitheater',
-  'Park Hayarkon, Tel Aviv'
+  { value: 'telAvivConventionCenter', labelKey: 'createEvent.locations.telAvivConventionCenter' },
+  { value: 'jerusalemConventionCenter', labelKey: 'createEvent.locations.jerusalemConventionCenter' },
+  { value: 'haifaAuditorium', labelKey: 'createEvent.locations.haifaAuditorium' },
+  { value: 'eilatConventionCenter', labelKey: 'createEvent.locations.eilatConventionCenter' },
+  { value: 'deadSeaConventionCenter', labelKey: 'createEvent.locations.deadSeaConventionCenter' },
+  { value: 'herzliyaMarina', labelKey: 'createEvent.locations.herzliyaMarina' },
+  { value: 'caesareaAmphitheater', labelKey: 'createEvent.locations.caesareaAmphitheater' },
+  { value: 'parkHayarkon', labelKey: 'createEvent.locations.parkHayarkon' }
 ];
 
 // Time slots

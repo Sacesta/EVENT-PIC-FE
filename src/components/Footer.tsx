@@ -45,9 +45,9 @@ const Footer = () => {
   ];
 
   const contactInfo = [
-    { icon: Mail, text: 'hello@pic.com', href: 'mailto:hello@pic.com' },
-    { icon: Phone, text: '+1 (555) 123-4567', href: 'tel:+15551234567' },
-    { icon: MapPin, text: 'Tel Aviv, Israel', href: '#' },
+    { icon: Mail, text: t('footer.email'), href: 'mailto:hello@pic.com' },
+    { icon: Phone, text: t('footer.phone'), href: 'tel:+15551234567' },
+    { icon: MapPin, text: t('footer.address'), href: '#' },
   ];
 
   return (

@@ -79,26 +79,16 @@ export default function ServiceCard({
           </div>
         )}
 
-        {/* Price Information */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-2xl font-bold text-primary">
-              {service.price.currency} {service.price.amount}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {t(`pricing.${service.price.pricingType}`, service.price.pricingType)}
-            </p>
+        {/* Rating */}
+        {service.rating && (
+          <div className="flex items-center gap-1">
+            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            <span className="text-sm font-medium">{service.rating.average.toFixed(1)}</span>
+            <span className="text-sm text-muted-foreground">
+              ({service.rating.count})
+            </span>
           </div>
-          {service.rating && (
-            <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-sm font-medium">{service.rating.average.toFixed(1)}</span>
-              <span className="text-sm text-muted-foreground">
-                ({service.rating.count})
-              </span>
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Location */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">

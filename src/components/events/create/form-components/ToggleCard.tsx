@@ -22,24 +22,24 @@ export const ToggleCard = React.memo<ToggleCardProps>(({
   children 
 }) => (
   <Card className={cn(
-    "transition-all duration-200",
+    "transition-all duration-200 overflow-hidden",
     isEnabled ? "ring-2 ring-primary border-primary bg-primary/5" : ""
   )}>
     <CardHeader className="pb-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3 rtl:flex-row-reverse">
+        <div className="flex items-center gap-3 rtl:flex-row-reverse flex-1 min-w-0">
           <div className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center",
+            "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
             isEnabled ? "bg-primary text-primary-foreground" : "bg-gray-100 text-gray-600"
           )}>
             <Icon className="w-5 h-5" />
           </div>
-          <div>
-            <CardTitle className="text-base">{title}</CardTitle>
-            <p className="text-sm text-muted-foreground">{description}</p>
+          <div className="rtl:text-right flex-1 min-w-0">
+            <CardTitle className="text-base truncate">{title}</CardTitle>
+            <p className="text-sm text-muted-foreground truncate">{description}</p>
           </div>
         </div>
-        <Switch checked={isEnabled} onCheckedChange={onToggle} />
+        <Switch checked={isEnabled} onCheckedChange={onToggle} className="flex-shrink-0" />
       </div>
     </CardHeader>
     {isEnabled && children && (

@@ -18,6 +18,7 @@ import SupplierDashboard from "./pages/SupplierDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import EventChat from "./pages/EventChat";
 import EventDetails from "./pages/EventDetails";
+import PublicEventDetails from "./pages/PublicEventDetails";
 import BrowseEvents from "./pages/BrowseEvents";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -53,7 +54,8 @@ const App = () => (
             <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/browse-events" element={<BrowseEvents />} />
-            <Route path="/event/:eventId" element={<EventDetails />} />
+            <Route path="/event/:eventId" element={<PublicEventDetails />} />
+            <Route path="/event/:eventId/manage" element={<EventDetails />} />
             <Route path="/event-chat/:eventId" element={<EventChat />} />
             <Route path="/event-chat/select" element={<EventChat />} />
             <Route path="/reset-password" element={<ResetPassword />} />

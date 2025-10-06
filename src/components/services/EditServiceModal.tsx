@@ -325,63 +325,6 @@ export default function EditServiceModal({ isOpen, onClose, service, onServiceUp
             </CardContent>
           </Card>
 
-          {/* Pricing */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
-                {t('services.pricing', 'Pricing')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="amount">{t('services.price', 'Price')}</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.price?.amount || 0}
-                    onChange={(e) => handleInputChange('price.amount', parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="currency">{t('services.currency', 'Currency')}</Label>
-                  <Select value={formData.price?.currency} onValueChange={(value) => handleInputChange('price.currency', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CURRENCIES.map((currency) => (
-                        <SelectItem key={currency} value={currency}>
-                          {currency}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="pricingType">{t('services.pricingType', 'Pricing Type')}</Label>
-                  <Select value={formData.price?.pricingType} onValueChange={(value) => handleInputChange('price.pricingType', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PRICING_TYPES.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {t(`pricing.${type}`, type)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Location */}
           <Card>
             <CardHeader>

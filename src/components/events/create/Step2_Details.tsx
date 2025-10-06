@@ -56,6 +56,8 @@ interface EventData {
   isPrivate: boolean;
   eventPassword: string;
   isPaid: boolean;
+  isFree: boolean;
+  freeTicketLimit: number;
   tickets: Ticket[];
   services: string[];
   selectedSuppliers: { [service: string]: { [supplierId: string]: string[] } };
@@ -70,34 +72,8 @@ interface Step2_DetailsProps {
   onBack: () => void;
 }
 
-// Event types configuration - moved outside component to prevent recreation
-const EVENT_TYPES = [
-  { value: "birthday", label: "Birthday Party" },
-  { value: "wedding", label: "Wedding" },
-  { value: "corporate", label: "Corporate Event" },
-  { value: "conference", label: "Conference" },
-  { value: "workshop", label: "Workshop" },
-  { value: "concert", label: "Concert" },
-  { value: "festival", label: "Festival" },
-  { value: "graduation", label: "Graduation" },
-  { value: "anniversary", label: "Anniversary" },
-  { value: "baby-shower", label: "Baby Shower" },
-  { value: "networking", label: "Networking Event" },
-  { value: "charity", label: "Charity Event" },
-  { value: "other", label: "Other" },
-];
-
-// Popular locations - moved outside component
-const POPULAR_LOCATIONS = [
-  "Tel Aviv Convention Center",
-  "Jerusalem International Convention Center",
-  "Haifa Auditorium",
-  "Eilat Convention Center",
-  "Dead Sea Convention Center",
-  "Herzliya Marina",
-  "Caesarea Amphitheater",
-  "Park Hayarkon, Tel Aviv",
-];
+// Import constants from the constants file
+import { EVENT_TYPES, POPULAR_LOCATIONS } from './constants';
 
 // Time slots - moved outside component
 const TIME_SLOTS = [
@@ -213,7 +189,7 @@ const MemoizedSelect = React.memo<{
   placeholder: string;
   value: string;
   onChange: (value: string) => void;
-  options: Array<{ value: string; label: string }>;
+  options: Array<{ value: string; labelKey: string }>;
   required?: boolean;
   error?: string;
 }>(
@@ -225,31 +201,35 @@ const MemoizedSelect = React.memo<{
     options,
     required = false,
     error,
-  }) => (
-    <div className="space-y-2">
-      <Label className="text-sm font-medium">
-        {label} {required && <span className="text-red-500">*</span>}
-      </Label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className={error ? "border-red-500" : ""}>
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      {error && (
-        <p className="text-sm text-red-500 flex items-center gap-1">
-          <AlertCircle className="w-3 h-3" />
-          {error}
-        </p>
-      )}
-    </div>
-  )
+  }) => {
+    const { t } = useTranslation();
+    
+    return (
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">
+          {label} {required && <span className="text-red-500">*</span>}
+        </Label>
+        <Select value={value} onValueChange={onChange}>
+          <SelectTrigger className={error ? "border-red-500" : ""}>
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {t(option.labelKey)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {error && (
+          <p className="text-sm text-red-500 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            {error}
+          </p>
+        )}
+      </div>
+    );
+  }
 );
 
 // Location Input Component
@@ -257,47 +237,51 @@ const LocationInput = React.memo<{
   value: string;
   onChange: (value: string) => void;
   error?: string;
-}>(({ value, onChange, error }) => (
-  <div className="space-y-2">
-    <Label className="text-sm font-medium">
-      Event Location <span className="text-red-500">*</span>
-    </Label>
-    <div className="relative">
-      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-      <Input
-        placeholder="Enter event location..."
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={cn("pl-10", error ? "border-red-500" : "")}
-      />
-    </div>
-
-    {/* Popular Locations */}
+}>(({ value, onChange, error }) => {
+  const { t } = useTranslation();
+  
+  return (
     <div className="space-y-2">
-      <p className="text-xs text-gray-500">Popular locations:</p>
-      <div className="flex flex-wrap gap-2">
-        {POPULAR_LOCATIONS.map((location) => (
-          <Button
-            key={location}
-            variant="outline"
-            size="sm"
-            onClick={() => onChange(location)}
-            className="text-xs h-7"
-          >
-            {location}
-          </Button>
-        ))}
+      <Label className="text-sm font-medium">
+        {t('createEvent.step2.location')} <span className="text-red-500">*</span>
+      </Label>
+      <div className="relative">
+        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Input
+          placeholder={t('createEvent.step2.locationPlaceholder')}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={cn("pl-10", error ? "border-red-500" : "")}
+        />
       </div>
-    </div>
 
-    {error && (
-      <p className="text-sm text-red-500 flex items-center gap-1">
-        <AlertCircle className="w-3 h-3" />
-        {error}
-      </p>
-    )}
-  </div>
-));
+      {/* Popular Locations */}
+      <div className="space-y-2">
+        <p className="text-xs text-gray-500">{t('createEvent.step2.popular')}</p>
+        <div className="flex flex-wrap gap-2">
+          {POPULAR_LOCATIONS.map((location) => (
+            <Button
+              key={location.value}
+              variant="outline"
+              size="sm"
+              onClick={() => onChange(t(location.labelKey))}
+              className="text-xs h-7"
+            >
+              {t(location.labelKey)}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {error && (
+        <p className="text-sm text-red-500 flex items-center gap-1">
+          <AlertCircle className="w-3 h-3" />
+          {error}
+        </p>
+      )}
+    </div>
+  );
+});
 
 // Date Time Selector Component
 const DateTimeSelector = React.memo<{
@@ -879,10 +863,10 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
       {/* Header - Fixed */}
       <div className="flex-shrink-0 text-center pb-4">
         <h2 className="text-2xl font-semibold text-foreground mb-2">
-          Event Details
+          {t('createEvent.step2.title')}
         </h2>
         <p className="text-muted-foreground">
-          Provide the essential information about your event
+          {t('createEvent.step2.subtitle')}
         </p>
       </div>
 
@@ -891,8 +875,8 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
         <div className="space-y-6 pb-4">
           {/* Event Name */}
           <MemoizedInput
-            label="Event Name"
-            placeholder="Enter your event name..."
+            label={t('createEvent.step2.eventName')}
+            placeholder={t('createEvent.step2.eventNamePlaceholder')}
             value={eventData.name}
             onChange={handleNameChange}
             required
@@ -911,8 +895,8 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
 
           {/* Event Type */}
           <MemoizedSelect
-            label="Event Type"
-            placeholder="Select event type..."
+            label={t('createEvent.step2.eventType')}
+            placeholder={t('createEvent.step2.selectEventType')}
             value={eventData.eventType}
             onChange={handleEventTypeChange}
             options={EVENT_TYPES}
@@ -927,12 +911,12 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
             error={errors.location}
           />
 
-          {/* Private Event and Paid Event Toggles - Side by Side */}
+          {/* Private Event, Free Event, and Paid Event Toggles */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Private Event Toggle */}
             <ToggleCard
-              title="Private Event"
-              description="Require a password for attendees to join"
+              title={t('createEvent.step2.privateEvent')}
+              description={t('createEvent.step2.privateEventDesc')}
               icon={Lock}
               isEnabled={eventData.isPrivate}
               onToggle={handlePrivateToggle}
@@ -940,7 +924,7 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter event password..."
+                  placeholder={t('createEvent.step2.passwordPlaceholder')}
                   value={eventData.eventPassword || ""}
                   onChange={(e) => handlePasswordChange(e.target.value)}
                   className={errors.eventPassword ? "border-red-500" : ""}
@@ -967,10 +951,53 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
               )}
             </ToggleCard>
 
-            {/* Paid Event Toggle */}
+            {/* Free Event Toggle */}
             <ToggleCard
-              title="Paid Event"
-              description="Sell tickets and manage event revenue"
+              title="Free Event"
+              description="Tickets are free for this event"
+              icon={Ticket}
+              isEnabled={eventData.isFree || false}
+              onToggle={(enabled) => {
+                handleUpdate("isFree", enabled);
+                if (enabled) {
+                  // Disable paid event when free event is enabled
+                  handleUpdate("isPaid", false);
+                  handleUpdate("tickets", []);
+                }
+              }}
+            >
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Set Ticket Limit</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 100"
+                  value={eventData.freeTicketLimit || ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "") {
+                      handleUpdate("freeTicketLimit", 0);
+                    } else {
+                      const numValue = parseInt(value);
+                      if (!isNaN(numValue) && numValue >= 0) {
+                        handleUpdate("freeTicketLimit", numValue);
+                      }
+                    }
+                  }}
+                  className="w-full"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Maximum number of free tickets available
+                </p>
+              </div>
+            </ToggleCard>
+          </div>
+
+          {/* Paid Event Toggle - Full Width */}
+          {!eventData.isFree && (
+            <ToggleCard
+              title={t('createEvent.step2.paidEvent')}
+              description={t('createEvent.step2.paidEventDesc')}
               icon={DollarSign}
               isEnabled={eventData.isPaid}
               onToggle={handlePaidToggle}
@@ -988,12 +1015,12 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
                 </p>
               )}
             </ToggleCard>
-          </div>
+          )}
 
           {/* Event Description */}
           <MemoizedTextarea
-            label="Event Description"
-            placeholder="Describe your event, what attendees can expect, special instructions, etc..."
+            label={t('createEvent.step2.description')}
+            placeholder={t('createEvent.step2.descriptionPlaceholder')}
             value={eventData.description}
             onChange={handleDescriptionChange}
           />
@@ -1003,10 +1030,10 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
       {/* Navigation - Fixed at bottom */}
       <div className="flex-shrink-0 flex justify-between pt-4 border-t bg-background">
         <Button variant="outline" onClick={onBack} className="px-8">
-          Back
+          {t('common.back')}
         </Button>
         <Button onClick={handleNext} disabled={!isFormValid} className="px-8">
-          Continue to Summary
+          {t('createEvent.step2.continue')}
           {isFormValid && <CheckCircle className="w-4 h-4 ml-2" />}
         </Button>
       </div>

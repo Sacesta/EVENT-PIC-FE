@@ -250,8 +250,8 @@ const EditEvent: React.FC<EditEventProps> = () => {
   const handleUpdateEvent = useCallback(async () => {
     if (!eventId) {
       toast({
-        title: "Update Failed",
-        description: "Event ID is missing. Cannot update event.",
+        title: t('createEvent.editEvent.updateFailed'),
+        description: t('createEvent.editEvent.eventIdMissing'),
         variant: "destructive"
       });
       return;
@@ -446,8 +446,8 @@ const EditEvent: React.FC<EditEventProps> = () => {
       navigate('/producer-dashboard');
       
       toast({
-        title: "Event Updated Successfully!",
-        description: "Your event has been updated and changes are now live.",
+        title: t('createEvent.editEvent.eventUpdatedSuccessfully'),
+        description: t('createEvent.editEvent.changesAreLive'),
       });
     } catch (error) {
       console.error('Error updating event:', error);
@@ -456,22 +456,22 @@ const EditEvent: React.FC<EditEventProps> = () => {
       
       // Handle specific error types
       if (error instanceof Error) {
-        try {
-          const errorData = JSON.parse(error.message);
-          if (errorData.status === 403) {
-            errorMessage = 'You do not have permission to update this event.';
-          } else if (errorData.status === 404) {
-            errorMessage = 'Event not found. It may have been deleted.';
-          } else {
-            errorMessage = errorData.message || errorMessage;
+          try {
+            const errorData = JSON.parse(error.message);
+            if (errorData.status === 403) {
+              errorMessage = t('createEvent.editEvent.noPermission');
+            } else if (errorData.status === 404) {
+              errorMessage = t('createEvent.editEvent.eventNotFound');
+            } else {
+              errorMessage = errorData.message || errorMessage;
+            }
+          } catch {
+            errorMessage = error.message || errorMessage;
           }
-        } catch {
-          errorMessage = error.message || errorMessage;
-        }
       }
       
       toast({
-        title: "Update Failed",
+        title: t('createEvent.editEvent.updateFailed'),
         description: errorMessage,
         variant: "destructive"
       });
@@ -507,8 +507,8 @@ const EditEvent: React.FC<EditEventProps> = () => {
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-            <h3 className="text-lg font-semibold mb-2">Loading Event Data</h3>
-            <p className="text-muted-foreground">Please wait while we load your event information...</p>
+            <h3 className="text-lg font-semibold mb-2">{t('createEvent.editEvent.loadingEventData')}</h3>
+            <p className="text-muted-foreground">{t('createEvent.editEvent.pleaseWait')}</p>
           </CardContent>
         </Card>
       </div>
@@ -524,14 +524,14 @@ const EditEvent: React.FC<EditEventProps> = () => {
             <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <XCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
             </div>
-            <h3 className="text-lg font-semibold mb-2 text-red-900 dark:text-red-400">Error Loading Event</h3>
+            <h3 className="text-lg font-semibold mb-2 text-red-900 dark:text-red-400">{t('createEvent.editEvent.errorLoadingEvent')}</h3>
             <p className="text-muted-foreground mb-4">{error}</p>
             <div className="flex gap-2 justify-center">
               <Button variant="outline" onClick={() => navigate('/producer-dashboard')}>
-                Go Back
+                {t('createEvent.editEvent.goBack')}
               </Button>
               <Button onClick={() => window.location.reload()}>
-                Try Again
+                {t('createEvent.editEvent.tryAgain')}
               </Button>
             </div>
           </CardContent>
@@ -546,10 +546,10 @@ const EditEvent: React.FC<EditEventProps> = () => {
         {/* Header */}
         <div className="text-center mb-4 sm:mb-8">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2">
-            Edit Event: {name}
+            {t('createEvent.editEvent.title')}: {name}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground px-2">
-            Update your event details in just a few simple steps
+            {t('createEvent.editEvent.subtitle')}
           </p>
         </div>
 

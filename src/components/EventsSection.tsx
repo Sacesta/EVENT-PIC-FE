@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, MapPin, Tag, SortAsc, SortDesc, Calendar, Clock, Pencil, User, Trash2, MessageCircle, Ticket, CheckCircle, XCircle, AlertCircle, Pause, DollarSign, Users as UsersIcon } from 'lucide-react';
+import { Search, MapPin, Tag, SortAsc, SortDesc, Calendar, Clock, Pencil, User, Trash2, MessageCircle, Ticket, CheckCircle, XCircle, AlertCircle, Pause, DollarSign, Users as UsersIcon, Lock, Gift, Link2, Check } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -87,10 +88,12 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
 }) => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [locationFilter, setLocationFilter] = useState('all');
   const [eventTypeFilter, setEventTypeFilter] = useState('all');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [copiedEventId, setCopiedEventId] = useState<string | null>(null);
 
   // Get current date for filtering
   const currentDate = new Date();
@@ -166,7 +169,26 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
   const filteredUpcomingEvents = filterAndSortEvents(upcomingEvents);
   const filteredPastEvents = filterAndSortEvents(pastEvents);
 
-  const EventCard: React.FC<{ event: Event }> = ({ event }) => {
+  const handleCopyLink = (eventId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const eventUrl = `${window.location.origin}/event/${eventId}`;
+    navigator.clipboard.writeText(eventUrl).then(() => {
+      setCopiedEventId(eventId);
+      toast({
+        title: "Link Copied!",
+        description: "Event link has been copied to clipboard",
+      });
+      setTimeout(() => setCopiedEventId(null), 2000);
+    }).catch(() => {
+      toast({
+        title: "Copy Failed",
+        description: "Failed to copy link. Please try again.",
+        variant: "destructive"
+      });
+    });
+  };
+
+  const EventCard: React.FC<{ event: Event; isPastEvent?: boolean }> = ({ event, isPastEvent = false }) => {
     // Get event ID (support both _id and id)
     const eventId = event._id || event.id;
     
@@ -182,25 +204,51 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
     const eventDate = new Date(event.startDate || (event as any).date || new Date());
     const timeString = (event as any).time || format(eventDate, 'HH:mm');
     
-    // Check if event has paid tickets
-    const hasPaidTickets = event.ticketInfo?.priceRange?.min > 0 || 
-                          ((event as any).tickets && (event as any).tickets.some((ticket: any) => ticket.price > 0));
+    // Determine event type badges
+    const isPrivate = !(event as any).isPublic;
+    const isFreeEvent = (event.ticketInfo?.isFree === true) || 
+                       (event.ticketInfo?.priceRange?.min === 0) ||
+                       (!event.ticketInfo?.priceRange?.min && !((event as any).tickets?.some((t: any) => t.price > 0)));
+    const isPaidEvent = !isFreeEvent;
+    const isCopied = copiedEventId === eventId;
     
     return (
       <Card 
         className="group hover:shadow-lg transition-all duration-300 hover:bg-muted/20 cursor-pointer"
-        onClick={() => navigate(`/event/${eventId}/step/1`)}
+        onClick={() => navigate(`/event/${eventId}`)}
       >
         <CardContent className="p-5">
           <div className="flex items-start justify-between mb-3">
-            <h3 className="font-semibold group-hover:text-primary transition-all duration-300 text-foreground">
-              {event.name}
-            </h3>
-            <div className="flex flex-wrap gap-1">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold group-hover:text-primary transition-all duration-300 text-foreground mb-2">
+                {event.name}
+              </h3>
+              {/* Event Type Badges */}
+              <div className="flex flex-wrap gap-1 mb-2">
+                {isPrivate && (
+                  <Badge variant="outline" className="text-xs flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-300">
+                    <Lock className="w-3 h-3" />
+                    Private
+                  </Badge>
+                )}
+                {isFreeEvent ? (
+                  <Badge variant="outline" className="text-xs flex items-center gap-1 bg-green-50 text-green-700 border-green-300">
+                    <Gift className="w-3 h-3" />
+                    Free Event
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-xs flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-300">
+                    <DollarSign className="w-3 h-3" />
+                    Paid Event
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1 ml-2">
               {services.slice(0, 2).map((service) => (
-            <Badge key={service} variant="secondary" className="text-xs">
-              {autoTranslate(service, i18n.language)}
-            </Badge>
+                <Badge key={service} variant="secondary" className="text-xs">
+                  {autoTranslate(service, i18n.language)}
+                </Badge>
               ))}
               {services.length > 2 && (
                 <Badge variant="outline" className="text-xs">
@@ -233,17 +281,20 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
           </div>
           
           <div className="flex gap-2 flex-wrap">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-10 h-10 p-0" 
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditEvent(eventId);
-              }}
-            >
-              <Pencil className="w-4 h-4" />
-            </Button>
+            {!isPastEvent && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-10 h-10 p-0" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditEvent(eventId);
+                }}
+                title="Edit Event"
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+            )}
             <Button 
               variant="ghost" 
               size="sm" 
@@ -252,8 +303,18 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
                 e.stopPropagation();
                 onChatEvent?.(eventId);
               }}
+              title="Chat"
             >
               <MessageCircle className="w-4 h-4" />
+            </Button>
+            <Button 
+              variant={isCopied ? "default" : "outline"}
+              size="sm" 
+              className="w-10 h-10 p-0"
+              onClick={(e) => handleCopyLink(eventId, e)}
+              title="Copy Event Link"
+            >
+              {isCopied ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
             </Button>
             <Button 
               variant="destructive" 
@@ -263,6 +324,7 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
                 e.stopPropagation();
                 onDeleteEvent?.(eventId);
               }}
+              title="Delete Event"
             >
               <Trash2 className="w-4 h-4" />
             </Button>
@@ -360,7 +422,7 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {filteredUpcomingEvents.map((event) => (
-                <EventCard key={event._id || event.id} event={event} />
+                <EventCard key={event._id || event.id} event={event} isPastEvent={false} />
               ))}
             </div>
           )}
@@ -372,7 +434,7 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {filteredPastEvents.map((event) => (
-                <EventCard key={event._id || event.id} event={event} />
+                <EventCard key={event._id || event.id} event={event} isPastEvent={true} />
               ))}
             </div>
           )}

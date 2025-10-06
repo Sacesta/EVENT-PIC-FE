@@ -41,4 +41,15 @@ i18n
     }
   });
 
+// Listen for language changes and update direction
+i18n.on('languageChanged', (lng) => {
+  if (lng === 'he') {
+    document.documentElement.dir = 'rtl';
+    document.documentElement.lang = 'he';
+  } else {
+    document.documentElement.dir = 'ltr';
+    document.documentElement.lang = 'en';
+  }
+});
+
 export default i18n;

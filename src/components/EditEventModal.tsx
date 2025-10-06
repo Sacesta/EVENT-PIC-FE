@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Loader2, XCircle, Users, MessageCircle, Plus, Package, CheckCircle, Star, MapPin, Clock } from 'lucide-react';
+import { Loader2, XCircle, Users, MessageCircle, Plus, Package, CheckCircle, Star, MapPin, Clock, Search, Mail, Phone, Calendar, Ticket as TicketIcon, UserCheck, Link2, Copy } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
@@ -67,6 +68,24 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
   const [newSelectedSuppliers, setNewSelectedSuppliers] = useState<{ [supplierId: string]: string }>({});
   const [newSelectedPackages, setNewSelectedPackages] = useState<{ [serviceId: string]: string }>({});
 
+  // Attendees state
+  const [attendees, setAttendees] = useState<any[]>([]);
+  const [loadingAttendees, setLoadingAttendees] = useState(false);
+  const [attendeesError, setAttendeesError] = useState<string | null>(null);
+  const [attendeesPagination, setAttendeesPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalAttendees: 0,
+    hasNextPage: false,
+    hasPrevPage: false
+  });
+  const [attendeesStatistics, setAttendeesStatistics] = useState<any>(null);
+  const [attendeeSearch, setAttendeeSearch] = useState('');
+  const [attendeeStatusFilter, setAttendeeStatusFilter] = useState('all');
+  
+  // Copy link state
+  const [linkCopied, setLinkCopied] = useState(false);
+
   // Create eventData object with stable reference
   const eventDataRef = useRef<EventData>({} as EventData);
   eventDataRef.current = {
@@ -112,19 +131,35 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
         const hasPaidTickets = event.ticketInfo?.priceRange?.min && event.ticketInfo.priceRange.min > 0;
         setIsPaid(hasPaidTickets || false);
         
-        // Handle tickets
-        const formattedTickets = event.ticketInfo ? [{
-          id: 'general',
-          name: 'General Admission',
-          quantity: event.ticketInfo.availableTickets || 0,
-          price: event.ticketInfo.priceRange?.min || 0
-        }] : [];
+        // Handle tickets - use actual tickets array from API if available
+        let formattedTickets: Array<{ id: string; name: string; quantity: number; price: number }> = [];
+        
+        if (event.tickets && Array.isArray(event.tickets) && event.tickets.length > 0) {
+          // Use actual tickets from the tickets array
+          formattedTickets = event.tickets.map((ticket: any) => ({
+            id: ticket._id || ticket.id || `ticket-${Math.random()}`,
+            name: ticket.title || ticket.name || 'General Admission',
+            quantity: ticket.quantity?.total || ticket.quantity?.available || 0,
+            price: ticket.price?.amount || ticket.price || 0
+          }));
+        } else if (event.ticketInfo) {
+          // Fallback to ticketInfo if no tickets array
+          formattedTickets = [{
+            id: 'general',
+            name: 'General Admission',
+            quantity: event.ticketInfo.availableTickets || 0,
+            price: event.ticketInfo.priceRange?.min || 0
+          }];
+        }
+        
         setTickets(formattedTickets);
         
         setServices(event.requiredServices || []);
         
-        // Handle suppliers
+        // Handle suppliers and their packages
         const formattedSuppliers: { [service: string]: { [supplierId: string]: string[] } } = {};
+        const formattedPackages: { [serviceId: string]: { packageId: string; packageDetails: any } } = {};
+        
         if (event.suppliers && Array.isArray(event.suppliers) && event.suppliers.length > 0) {
           event.suppliers.forEach((supplier) => {
             let serviceId: string | undefined;
@@ -147,10 +182,23 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                 formattedSuppliers[serviceId] = {};
               }
               formattedSuppliers[serviceId][supplierId] = [serviceId];
+              
+              // Extract package information if available
+              const selectedPackageId = (supplier as any).selectedPackageId;
+              const packageDetails = (supplier as any).packageDetails;
+              
+              if (selectedPackageId && packageDetails) {
+                formattedPackages[serviceId] = {
+                  packageId: selectedPackageId,
+                  packageDetails: packageDetails
+                };
+              }
             }
           });
         }
+        
         setSelectedSuppliers(formattedSuppliers);
+        setSelectedPackages(formattedPackages);
         setSpecialRequests('');
 
       } catch (err) {
@@ -164,13 +212,78 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
     loadEventData();
   }, [isOpen, event]);
 
+  // Fetch attendees when attendees tab is active
+  useEffect(() => {
+    if (activeTab === 'attendees' && event?._id) {
+      fetchAttendees();
+    }
+  }, [activeTab, event?._id, attendeesPagination.currentPage, attendeeSearch, attendeeStatusFilter]);
+
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
       setActiveTab('event-detail');
       setError(null);
+      setAttendees([]);
+      setAttendeeSearch('');
+      setAttendeeStatusFilter('all');
+      setAttendeesPagination({
+        currentPage: 1,
+        totalPages: 1,
+        totalAttendees: 0,
+        hasNextPage: false,
+        hasPrevPage: false
+      });
     }
   }, [isOpen]);
+
+  // Fetch attendees function
+  const fetchAttendees = useCallback(async () => {
+    if (!event?._id) return;
+
+    try {
+      setLoadingAttendees(true);
+      setAttendeesError(null);
+
+      const params: any = {
+        page: attendeesPagination.currentPage,
+        limit: 20
+      };
+
+      if (attendeeSearch.trim()) {
+        params.search = attendeeSearch.trim();
+      }
+
+      if (attendeeStatusFilter && attendeeStatusFilter !== 'all') {
+        params.status = attendeeStatusFilter;
+      }
+
+      const response = await apiService.getEventAttendees(event._id, params);
+
+      if (response.success) {
+        setAttendees(response.data || []);
+        setAttendeesPagination(response.pagination || {
+          currentPage: 1,
+          totalPages: 1,
+          totalAttendees: 0,
+          hasNextPage: false,
+          hasPrevPage: false
+        });
+        setAttendeesStatistics(response.statistics || null);
+      } else {
+        setAttendeesError('Failed to load attendees');
+      }
+    } catch (error) {
+      console.error('Error fetching attendees:', error);
+      setAttendeesError('Failed to load attendees. Please try again.');
+    } finally {
+      setLoadingAttendees(false);
+    }
+  }, [event?._id, attendeesPagination.currentPage, attendeeSearch, attendeeStatusFilter]);
+
+  const handleAttendeePageChange = (newPage: number) => {
+    setAttendeesPagination(prev => ({ ...prev, currentPage: newPage }));
+  };
 
   const handleInputChange = useCallback((field: string, value: unknown) => {
     switch (field) {
@@ -336,6 +449,26 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
       const city = locationParts.length > 1 ? locationParts[locationParts.length - 1].trim() : eventDataRef.current.location;
       const address = locationParts.length > 1 ? locationParts.slice(0, -1).join(',').trim() : eventDataRef.current.location;
 
+      // Determine if event is free or paid
+      const isFreeEvent = !eventDataRef.current.isPaid || minPrice === 0;
+
+      // Transform tickets to backend format (same as create event)
+      const transformedTickets = eventDataRef.current.tickets && eventDataRef.current.tickets.length > 0 
+        ? eventDataRef.current.tickets.map(ticket => ({
+            title: ticket.name,
+            description: `${ticket.name} ticket for ${eventDataRef.current.name}`,
+            type: ticket.name.toLowerCase().replace(/\s+/g, '-'),
+            price: {
+              amount: ticket.price,
+              currency: 'ILS'
+            },
+            quantity: {
+              total: ticket.quantity,
+              available: ticket.quantity
+            }
+          }))
+        : [];
+
       const updateData = {
         name: eventDataRef.current.name,
         description: eventDataRef.current.description || '',
@@ -348,16 +481,27 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
         suppliers: suppliers,
         status: event.status || 'draft' as const,
         isPublic: !eventDataRef.current.isPrivate,
-        ...(eventDataRef.current.isPaid && totalTickets > 0 && {
+        // Include tickets array for backend to update/create ticket documents
+        ...(transformedTickets.length > 0 && {
+          tickets: transformedTickets
+        }),
+        // Always include ticketInfo for both free and paid events
+        ...(totalTickets > 0 && {
           ticketInfo: {
             availableTickets: totalTickets,
-            soldTickets: 0,
-            reservedTickets: 0,
-            priceRange: { min: minPrice, max: maxPrice }
+            soldTickets: event.ticketInfo?.soldTickets || 0,
+            reservedTickets: event.ticketInfo?.reservedTickets || 0,
+            priceRange: { min: minPrice, max: maxPrice },
+            isFree: isFreeEvent
           }
         }),
+        // Only include budget for paid events with revenue
         ...(eventDataRef.current.isPaid && totalRevenue > 0 && {
-          budget: { total: totalRevenue, spent: 0 }
+          budget: { 
+            total: totalRevenue, 
+            spent: event.budget?.spent || 0,
+            allocated: event.budget?.allocated || {}
+          }
         }),
         tags: eventDataRef.current.services || [],
       };
@@ -368,13 +512,30 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
         throw new Error(response.message || 'Failed to update event');
       }
 
-      toast({
-        title: "Event Updated Successfully!",
-        description: "Your event has been updated and changes are now live.",
-      });
+      // Refetch the updated event to get the latest data from the server
+      const refreshedEvent = await apiService.getEvent(event._id);
+      
+      if (refreshedEvent.success && refreshedEvent.data) {
+        toast({
+          title: "Event Updated Successfully!",
+          description: "Your event has been updated and changes are now live.",
+        });
 
-      onSave(response.data as ApiEvent);
-      onClose();
+        // Pass the fresh data to parent component
+        onSave(refreshedEvent.data as ApiEvent);
+        
+        // Close modal after successful refresh
+        onClose();
+      } else {
+        // Fallback to response data if refetch fails
+        toast({
+          title: "Event Updated Successfully!",
+          description: "Your event has been updated and changes are now live.",
+        });
+        
+        onSave(response.data as ApiEvent);
+        onClose();
+      }
       
     } catch (error) {
       console.error('Error updating event:', error);
@@ -642,6 +803,26 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
     }
   };
 
+  const handleCopyInviteLink = () => {
+    if (!event?._id) return;
+    
+    const eventUrl = `${window.location.origin}/event/${event._id}`;
+    navigator.clipboard.writeText(eventUrl).then(() => {
+      setLinkCopied(true);
+      toast({
+        title: "Link Copied!",
+        description: "Event invite link has been copied to clipboard",
+      });
+      setTimeout(() => setLinkCopied(false), 2000);
+    }).catch(() => {
+      toast({
+        title: "Copy Failed",
+        description: "Failed to copy link. Please try again.",
+        variant: "destructive"
+      });
+    });
+  };
+
   const handleClose = () => {
     setActiveTab('event-detail');
     setError(null);
@@ -649,6 +830,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
     setSelectedCategory('');
     setNewSelectedSuppliers({});
     setNewSelectedPackages({});
+    setLinkCopied(false);
     onClose();
   };
 
@@ -685,13 +867,54 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                   </CardContent>
                 </Card>
               ) : (
-                <Step2_Details
-                  eventData={eventDataRef.current}
-                  onUpdate={handleInputChange}
-                  onNext={() => {}} // No next step needed
-                  onBack={() => {}} // No back step needed
-                  isEditMode={true}
-                />
+                <>
+                  {/* Invite Share Link Section - Only for Private Events */}
+                  {!event.isPublic && (
+                    <Card className="mb-4 border-primary/20 bg-primary/5">
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                          <Link2 className="w-5 h-5 text-primary" />
+                          Invite Share Link
+                        </h3>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 bg-background border rounded-lg px-4 py-3 text-sm text-muted-foreground overflow-hidden">
+                            <span className="truncate block">
+                              {`${window.location.origin}/event/${event._id}`}
+                            </span>
+                          </div>
+                          <Button
+                            variant={linkCopied ? "default" : "outline"}
+                            onClick={handleCopyInviteLink}
+                            className="px-6"
+                          >
+                            {linkCopied ? (
+                              <>
+                                <CheckCircle className="w-4 h-4 mr-2" />
+                                Copied!
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-4 h-4 mr-2" />
+                                Copy Link
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Share this link with invitees to allow them to view and register for your private event
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  <Step2_Details
+                    eventData={eventDataRef.current}
+                    onUpdate={handleInputChange}
+                    onNext={() => {}} // No next step needed
+                    onBack={() => {}} // No back step needed
+                    isEditMode={true}
+                  />
+                </>
               )}
             </TabsContent>
 
@@ -779,6 +1002,9 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                           const isSelected = newSelectedSuppliers[service.supplier.supplierId] === service.serviceId;
                           const selectedPkg = newSelectedPackages[service.serviceId];
                           
+                          // Check if this service already has a package selected in the event
+                          const existingPackageId = selectedPackages[service.serviceId]?.packageId;
+                          
                           return (
                             <Card 
                               key={service.serviceId}
@@ -791,10 +1017,10 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                                 <div className="flex items-start gap-2">
                                   {/* Checkbox */}
                                   <div 
-                                    className={cn(
-                                      "w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer mt-1",
-                                      isSelected ? "bg-primary border-primary" : "border-border"
-                                    )}
+                                    // className={cn(
+                                    //   "w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer mt-1",
+                                    //   isSelected ? "bg-primary border-primary" : "border-border"
+                                    // )}
                                     onClick={() => handleSupplierToggle(service.serviceId, service.supplier.supplierId)}
                                   >
                                     {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
@@ -838,49 +1064,75 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                                     {/* Packages */}
                                     {service.packages && service.packages.length > 0 && (
                                       <div className="mt-2 space-y-1">
-                                        {service.packages.map((pkg: any) => (
-                                          <div
-                                            key={pkg._id}
-                                            className={cn(
-                                              "flex items-center justify-between p-2 rounded border text-xs cursor-pointer",
-                                              selectedPkg === pkg._id
-                                                ? "border-primary bg-primary/10"
-                                                : "border-border hover:border-primary/50"
-                                            )}
-                                            onClick={() => {
-                                              if (!isSelected) {
-                                                handleSupplierToggle(service.serviceId, service.supplier.supplierId);
-                                              }
-                                              handlePackageToggle(service.serviceId, pkg._id);
-                                            }}
-                                          >
-                                            <div className="flex-1">
-                                              <div className="flex items-center gap-1">
-                                                <span className="font-medium capitalize">{pkg.name}</span>
-                                                {pkg.isPopular && <span className="text-orange-500">🔥</span>}
-                                              </div>
-                                              {pkg.duration && (
-                                                <div className="flex items-center gap-1 text-muted-foreground">
-                                                  <Clock className="w-2.5 h-2.5" />
-                                                  <span>{pkg.duration}h</span>
-                                                </div>
+                                        {service.packages.map((pkg: any) => {
+                                          // Check if this package is already selected in the event
+                                          const isAlreadySelected = existingPackageId === pkg._id;
+                                          const isCurrentlySelected = selectedPkg === pkg._id;
+                                          
+                                          return (
+                                            <div
+                                              key={pkg._id}
+                                              className={cn(
+                                                "flex items-center justify-between p-2 rounded border text-xs",
+                                                isAlreadySelected 
+                                                  ? "border-green-500 bg-green-50 opacity-60 cursor-not-allowed"
+                                                  : isCurrentlySelected
+                                                    ? "border-primary bg-primary/10 cursor-pointer"
+                                                    : "border-border hover:border-primary/50 cursor-pointer"
                                               )}
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                              <span className="font-bold text-primary">₪{pkg.price}</span>
-                                              <div className={cn(
-                                                "w-4 h-4 rounded border-2 flex items-center justify-center",
-                                                selectedPkg === pkg._id
-                                                  ? "bg-primary border-primary"
-                                                  : "border-border"
-                                              )}>
-                                                {selectedPkg === pkg._id && (
-                                                  <CheckCircle className="w-2.5 h-2.5 text-white" />
+                                              onClick={() => {
+                                                if (isAlreadySelected) return; // Don't allow clicking already selected packages
+                                                if (!isSelected) {
+                                                  handleSupplierToggle(service.serviceId, service.supplier.supplierId);
+                                                }
+                                                handlePackageToggle(service.serviceId, pkg._id);
+                                              }}
+                                            >
+                                              <div className="flex-1">
+                                                <div className="flex items-center gap-1">
+                                                  <span className={cn(
+                                                    "font-medium capitalize",
+                                                    isAlreadySelected && "text-muted-foreground"
+                                                  )}>
+                                                    {pkg.name}
+                                                  </span>
+                                                  {pkg.isPopular && <span className="text-orange-500">🔥</span>}
+                                                  {isAlreadySelected && (
+                                                    <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300 ml-1">
+                                                      Already Selected
+                                                    </Badge>
+                                                  )}
+                                                </div>
+                                                {pkg.duration && (
+                                                  <div className="flex items-center gap-1 text-muted-foreground">
+                                                    <Clock className="w-2.5 h-2.5" />
+                                                    <span>{pkg.duration}h</span>
+                                                  </div>
                                                 )}
                                               </div>
+                                              <div className="flex items-center gap-2">
+                                                <span className={cn(
+                                                  "font-bold",
+                                                  isAlreadySelected ? "text-muted-foreground" : "text-primary"
+                                                )}>
+                                                  ₪{pkg.price}
+                                                </span>
+                                                <div className={cn(
+                                                  "w-4 h-4 rounded border-2 flex items-center justify-center",
+                                                  isAlreadySelected
+                                                    ? "bg-green-500 border-green-500"
+                                                    : isCurrentlySelected
+                                                      ? "bg-primary border-primary"
+                                                      : "border-border"
+                                                )}>
+                                                  {(isAlreadySelected || isCurrentlySelected) && (
+                                                    <CheckCircle className="w-2.5 h-2.5 text-white" />
+                                                  )}
+                                                </div>
+                                              </div>
                                             </div>
-                                          </div>
-                                        ))}
+                                          );
+                                        })}
                                       </div>
                                     )}
                                   </div>
@@ -1071,39 +1323,212 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
             <TabsContent value="attendees" className="flex-1 overflow-y-auto mt-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Event Attendees</CardTitle>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Event Attendees</span>
+                    {attendeesStatistics && (
+                      <Badge variant="secondary" className="text-sm">
+                        {attendeesPagination.totalAttendees} Total
+                      </Badge>
+                    )}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Attendee management coming soon</p>
-                    <p className="text-sm mt-2">
-                      View and manage event attendees, ticket holders, and check-in status
-                    </p>
-                  </div>
-                  
-                  {/* Ticket Summary */}
-                  {event.ticketInfo && (
-                    <div className="mt-6 grid grid-cols-3 gap-4">
+                  {/* Statistics Cards */}
+                  {attendeesStatistics && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                       <Card>
                         <CardContent className="p-4 text-center">
-                          <p className="text-2xl font-bold">{event.ticketInfo.availableTickets || 0}</p>
-                          <p className="text-sm text-muted-foreground">Available</p>
+                          <p className="text-2xl font-bold text-green-600">{attendeesStatistics.confirmedAttendees || 0}</p>
+                          <p className="text-sm text-muted-foreground">Confirmed</p>
                         </CardContent>
                       </Card>
                       <Card>
                         <CardContent className="p-4 text-center">
-                          <p className="text-2xl font-bold">{event.ticketInfo.soldTickets || 0}</p>
-                          <p className="text-sm text-muted-foreground">Sold</p>
+                          <p className="text-2xl font-bold text-blue-600">{attendeesStatistics.totalTicketsSold || 0}</p>
+                          <p className="text-sm text-muted-foreground">Tickets Sold</p>
                         </CardContent>
                       </Card>
+                   
                       <Card>
                         <CardContent className="p-4 text-center">
-                          <p className="text-2xl font-bold">{event.ticketInfo.reservedTickets || 0}</p>
-                          <p className="text-sm text-muted-foreground">Reserved</p>
+                          <p className="text-2xl font-bold text-orange-600">₪{attendeesStatistics.totalRevenue || 0}</p>
+                          <p className="text-sm text-muted-foreground">Revenue</p>
                         </CardContent>
                       </Card>
                     </div>
+                  )}
+
+                  {/* Search and Filter */}
+                  <div className="flex gap-3 mb-4">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search by name, email, phone, or booking reference..."
+                        value={attendeeSearch}
+                        onChange={(e) => setAttendeeSearch(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <Select value={attendeeStatusFilter} onValueChange={setAttendeeStatusFilter}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Attendees List */}
+                  {loadingAttendees ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      <span className="ml-2 text-muted-foreground">Loading attendees...</span>
+                    </div>
+                  ) : attendeesError ? (
+                    <div className="text-center py-8 text-red-600">
+                      <XCircle className="w-12 h-12 mx-auto mb-4" />
+                      <p>{attendeesError}</p>
+                    </div>
+                  ) : attendees.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>No attendees yet</p>
+                      <p className="text-sm mt-2">
+                        Attendees will appear here once they register for your event
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-3">
+                        {attendees.map((attendee, index) => (
+                          <Card key={attendee._id || index} className="border-l-4 border-l-primary">
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-3 flex-1">
+                                  <Avatar className="w-10 h-10">
+                                    <AvatarFallback className="bg-primary/10 text-primary">
+                                      {attendee.fullName?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'A'}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <h4 className="font-semibold text-base">{attendee.fullName}</h4>
+                                      {attendee.checkedIn && (
+                                        <Badge variant="default" className="bg-green-500">
+                                          <UserCheck className="w-3 h-3 mr-1" />
+                                          Checked In
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                      <div className="flex items-center gap-1">
+                                        <Mail className="w-3 h-3" />
+                                        <span className="truncate">{attendee.email}</span>
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <Phone className="w-3 h-3" />
+                                        <span>{attendee.phone}</span>
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <TicketIcon className="w-3 h-3" />
+                                        <span>{attendee.ticketType || 'General'} × {attendee.ticketQuantity || 1}</span>
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <Calendar className="w-3 h-3" />
+                                        <span>
+                                          {attendee.registeredAt 
+                                            ? new Date(attendee.registeredAt).toLocaleDateString()
+                                            : 'N/A'}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    {/* Ticket Pricing Details */}
+                                    {(attendee.ticketPrice !== undefined || attendee.totalAmount !== undefined) && (
+                                      <div className="mt-2 p-2 bg-muted/30 rounded border border-border">
+                                        <div className="flex items-center justify-between text-xs">
+                                          <span className="text-muted-foreground">Price per ticket:</span>
+                                          <span className="font-semibold">₪{attendee.ticketPrice || 0}</span>
+                                        </div>
+                                        {attendee.ticketQuantity > 1 && (
+                                          <div className="flex items-center justify-between text-xs mt-1">
+                                            <span className="text-muted-foreground">Total amount:</span>
+                                            <span className="font-bold text-primary">₪{attendee.totalAmount || 0}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+
+                                   
+                                    {attendee.specialRequirements && (
+                                      <div className="mt-2 text-xs text-muted-foreground italic">
+                                        Note: {attendee.specialRequirements}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="flex flex-col items-end gap-2">
+                                  <Badge 
+                                    variant={
+                                      attendee.bookingStatus === 'confirmed' 
+                                        ? 'default' 
+                                        : attendee.bookingStatus === 'cancelled' 
+                                        ? 'destructive' 
+                                        : 'secondary'
+                                    }
+                                  >
+                                    {attendee.bookingStatus || 'pending'}
+                                  </Badge>
+                                  {attendee.age && (
+                                    <span className="text-xs text-muted-foreground">
+                                      Age: {attendee.age}
+                                    </span>
+                                  )}
+                                  {attendee.gender && (
+                                    <span className="text-xs text-muted-foreground capitalize">
+                                      {attendee.gender}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+
+                      {/* Pagination */}
+                      {attendeesPagination.totalPages > 1 && (
+                        <div className="mt-6 flex items-center justify-between">
+                          <div className="text-sm text-muted-foreground">
+                            Showing {((attendeesPagination.currentPage - 1) * 20) + 1} to {Math.min(attendeesPagination.currentPage * 20, attendeesPagination.totalAttendees)} of {attendeesPagination.totalAttendees} attendees
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAttendeePageChange(attendeesPagination.currentPage - 1)}
+                              disabled={!attendeesPagination.hasPrevPage}
+                            >
+                              Previous
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAttendeePageChange(attendeesPagination.currentPage + 1)}
+                              disabled={!attendeesPagination.hasNextPage}
+                            >
+                              Next
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </CardContent>
               </Card>

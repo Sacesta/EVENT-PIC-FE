@@ -22,6 +22,22 @@
       "eventDetails": "Event Details",
       "summary": "Summary"
     },
+    "editEvent": {
+      "title": "Edit Event",
+      "subtitle": "Update your event details in just a few simple steps",
+      "loadingEventData": "Loading Event Data",
+      "pleaseWait": "Please wait while we load your event information...",
+      "errorLoadingEvent": "Error Loading Event",
+      "goBack": "Go Back",
+      "tryAgain": "Try Again",
+      "eventUpdatedSuccessfully": "Event Updated Successfully!",
+      "changesAreLive": "Your event has been updated and changes are now live.",
+      "updateFailed": "Update Failed",
+      "eventIdMissing": "Event ID is missing. Cannot update event.",
+      "noPermission": "You do not have permission to update this event.",
+      "eventNotFound": "Event not found. It may have been deleted.",
+      "failedToUpdate": "Failed to update event. Please try again."
+    },
     "step1": {
       "title": "Select Services & Suppliers",
       "subtitle": "Choose what you need for your event",
@@ -50,6 +66,11 @@
       "subtitle": "Tell us about your event",
       "eventName": "Event Name",
       "eventNamePlaceholder": "Enter your event name",
+      "eventImage": "Event Image",
+      "uploadImage": "Upload Event Image",
+      "dragDropOrClick": "Drag & drop or click to browse",
+      "supportedFormats": "JPG, PNG, GIF, WEBP",
+      "removeImage": "Remove Image",
       "date": "Date",
       "time": "Time",
       "pickDate": "Pick a date",
@@ -114,7 +135,15 @@
       "conventionCenter": "Convention Center",
       "home": "Home",
       "beach": "Beach",
-      "rooftopVenue": "Rooftop Venue"
+      "rooftopVenue": "Rooftop Venue",
+      "telAvivConventionCenter": "Tel Aviv Convention Center",
+      "jerusalemConventionCenter": "Jerusalem International Convention Center",
+      "haifaAuditorium": "Haifa Auditorium",
+      "eilatConventionCenter": "Eilat Convention Center",
+      "deadSeaConventionCenter": "Dead Sea Convention Center",
+      "herzliyaMarina": "Herzliya Marina",
+      "caesareaAmphitheater": "Caesarea Amphitheater",
+      "parkHayarkon": "Park Hayarkon, Tel Aviv"
     },
     "services": {
       "title": "Services",
@@ -322,7 +351,10 @@
     "community": "Community",
     "status": "Status",
     "getInTouch": "Get in Touch",
-    "rights": "All rights reserved"
+    "rights": "All rights reserved",
+    "email": "hello@pic.com",
+    "phone": "+1 (555) 123-4567",
+    "address": "Tel Aviv, Israel"
   },
   "auth": {
     "signIn": "Sign In",
@@ -736,6 +768,8 @@
     "lastUpdated": "Last updated: December 2024"
   },
   "common": {
+    "minCharacters": "Min. {{count}} characters",
+    "charactersCount": "{{current}}/{{min}} characters",
     "loading": "Loading...",
     "save": "Save",
     "saving": "Saving...",

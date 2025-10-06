@@ -31,12 +31,15 @@ export interface EventData {
   isPrivate: boolean;
   eventPassword: string;
   isPaid: boolean;
+  isFree: boolean;
+  freeTicketLimit: number;
   tickets: Ticket[];
   services: string[];
   selectedSuppliers: { [service: string]: { [supplierId: string]: string[] } };
   selectedPackages: { [serviceId: string]: SelectedPackageInfo };
   specialRequests: string;
   currentTab: string;
+  eventImage?: File | null;
 }
 
 export interface Step2_DetailsProps {

@@ -42,6 +42,7 @@ interface EventData {
   }>;
   status?: 'draft' | 'published' | 'cancelled' | 'completed';
   isPublic?: boolean;
+  password?: string; // Password for private events (when isPublic is false)
   ticketInfo?: {
     availableTickets: number;
     soldTickets?: number;
@@ -1701,6 +1702,69 @@ class ApiService {
   // Get user by ID (for supplier details)
   async getUserById(userId: string) {
     return this.request(`/users/${userId}`);
+  }
+
+  // Attendee registration (Public - No auth required)
+  async registerAttendee(registrationData: {
+    eventId: string;
+    tickets: Array<{
+      ticketId: string;
+      quantity: number;
+    }>;
+    attendeeInfo: {
+      fullName: string;
+      email: string;
+      phone: string;
+      age: number;
+      gender: string;
+    };
+    specialRequirements?: string;
+  }) {
+    return this.request('/attendees/register', {
+      method: 'POST',
+      body: JSON.stringify(registrationData),
+    });
+  }
+
+  // Get attendees for an event (Producer only)
+  async getEventAttendees(eventId: string, params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    ticketType?: string;
+    checkedIn?: boolean;
+  }) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.ticketType) queryParams.append('ticketType', params.ticketType);
+    if (params?.checkedIn !== undefined) queryParams.append('checkedIn', params.checkedIn.toString());
+
+    const queryString = queryParams.toString();
+    const url = `/attendees/event/${eventId}${queryString ? `?${queryString}` : ''}`;
+
+    return this.request(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  }
+
+  // Verify event password for private events
+  async verifyEventPassword(eventId: string, password: string) {
+    return this.request(`/events/${eventId}/verify-password`, {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    });
   }
 
   // Health check
