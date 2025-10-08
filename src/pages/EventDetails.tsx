@@ -195,7 +195,7 @@ const EventDetails = () => {
   };
 
   const handleChatEvent = () => {
-    navigate(`/event-chat/${eventId}`);
+    navigate("/event-chat/select");
   };
 
   return (

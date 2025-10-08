@@ -19,9 +19,10 @@ interface AddServiceModalProps {
 }
 
 const SERVICE_CATEGORIES = [
-  'photography', 'videography', 'catering', 'music', 
-  'decoration', 'transportation', 'security', 'lighting',
-  'sound', 'furniture', 'tents', 'other'
+  'photography', 'videography', 'catering', 'bar', 'music', 'musicians',
+  'decoration', 'scenery', 'lighting', 'sound', 'sounds_lights',
+  'transportation', 'security', 'first_aid', 'insurance', 
+  'furniture', 'tents', 'location', 'dj', 'other'
 ];
 
 const PRICING_TYPES = ['fixed', 'per_hour', 'per_person', 'negotiable'];

@@ -29,6 +29,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { type EnhancedEvent } from '@/services/api';
 
 interface EnhancedEventsSectionProps {
@@ -63,6 +64,7 @@ export const EnhancedEventsSection: React.FC<EnhancedEventsSectionProps> = ({
   onPageChange
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -87,11 +89,13 @@ export const EnhancedEventsSection: React.FC<EnhancedEventsSectionProps> = ({
     }, { upcomingEvents: [] as EnhancedEvent[], pastEvents: [] as EnhancedEvent[] });
   }, [events, currentDate]);
 
-  // Get unique categories and statuses for filters
-  const uniqueCategories = useMemo(() => {
-    const categories = events.map(event => event.category).filter(Boolean);
-    return Array.from(new Set(categories)).sort();
-  }, [events]);
+  // Static list of all 21 service categories
+  const uniqueCategories = [
+    'photography', 'videography', 'catering', 'bar', 'music', 'musicians',
+    'decoration', 'scenery', 'lighting', 'sound', 'sounds_lights',
+    'transportation', 'security', 'first_aid', 'insurance', 
+    'furniture', 'tents', 'location', 'dj', 'other'
+  ];
 
   const uniqueStatuses = useMemo(() => {
     const statuses = events.map(event => event.status).filter(Boolean);
@@ -333,7 +337,7 @@ export const EnhancedEventsSection: React.FC<EnhancedEventsSectionProps> = ({
             <SelectItem value="all">All Categories</SelectItem>
             {uniqueCategories.map((category) => (
               <SelectItem key={category} value={category}>
-                {category}
+                {t(`categories.${category}`, category)}
               </SelectItem>
             ))}
           </SelectContent>

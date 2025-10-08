@@ -906,7 +906,7 @@ export default function SupplierDashboard() {
                                 variant="outline" 
                                 size="sm" 
                                 className="flex items-center gap-1 text-blue-600 border-blue-600 hover:bg-blue-500"
-                                onClick={() => navigate('/event-chat/select')}
+                                onClick={() => navigate("/event-chat/select")}
                               >
                                 <MessageCircle className="h-3 w-3" />
                                 {t('events.chat', 'Chat')}

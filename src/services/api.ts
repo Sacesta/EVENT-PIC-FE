@@ -1589,22 +1589,72 @@ class ApiService {
     });
   }
 
+  async getEventChats(eventId: string, page = 1, limit = 50) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    return this.request(`/chats/event/${eventId}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  }
+
+  async getChatDetails(chatId: string) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    return this.request(`/chats/${chatId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  }
+
   async createChat(participants: Array<{ userId: string; role: string }>, eventId?: string, title?: string) {
     const token = localStorage.getItem('token');
     if (!token) {
       throw new Error('No authentication token found');
     }
     
+    const requestBody = {
+      participants,
+      eventId,
+      title
+    };
+    
+    console.log('🔵 createChat API - Request body:', JSON.stringify(requestBody, null, 2));
+    console.log('🔵 createChat API - Participants array:', participants);
+    console.log('🔵 createChat API - Participants length:', participants?.length);
+    
     return this.request('/chats', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+  }
+
+  async updateChatSettings(chatId: string, settings: { allowFileSharing?: boolean; notifications?: boolean; title?: string }) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    return this.request(`/chats/${chatId}`, {
+      method: 'PUT',
+      headers: {
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({
-        participants,
-        eventId,
-        title
-      })
+      body: JSON.stringify(settings)
     });
   }
 
@@ -1622,6 +1672,94 @@ class ApiService {
     });
   }
 
+  async sendChatMessage(chatId: string, messageData: {
+    content: string;
+    type?: 'text' | 'image' | 'file' | 'system';
+    replyTo?: string;
+    attachments?: Array<{
+      filename: string;
+      originalName: string;
+      mimeType: string;
+      size: number;
+      url: string;
+      thumbnailUrl?: string;
+    }>;
+  }) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    return this.request(`/chats/${chatId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+       'Content-Type': 'application/json'
+
+      },
+      body: JSON.stringify(messageData)
+    });
+  }
+
+  async editChatMessage(messageId: string, content: string) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    return this.request(`/messages/${messageId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ content })
+    });
+  }
+
+  async deleteChatMessage(messageId: string) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    return this.request(`/messages/${messageId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  }
+
+  async addMessageReaction(messageId: string, emoji: string) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    return this.request(`/messages/${messageId}/reactions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ emoji })
+    });
+  }
+
+  async removeMessageReaction(messageId: string, emoji: string) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    return this.request(`/messages/${messageId}/reactions`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ emoji })
+    });
+  }
+
   async markChatAsRead(chatId: string) {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -1633,6 +1771,94 @@ class ApiService {
       headers: {
         'Authorization': `Bearer ${token}`
       }
+    });
+  }
+
+  async addParticipant(chatId: string, userId: string, role: string) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    return this.request(`/chats/${chatId}/participants`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ userId, role })
+    });
+  }
+
+  async removeParticipant(chatId: string, userId: string) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    return this.request(`/chats/${chatId}/participants/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  }
+
+  async archiveChat(chatId: string) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    return this.request(`/chats/${chatId}/archive`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  }
+
+  async uploadChatFile(file: File, onProgress?: (progress: number) => void) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      
+      // Track upload progress
+      if (onProgress) {
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const progress = (e.loaded / e.total) * 100;
+            onProgress(progress);
+          }
+        });
+      }
+      
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response);
+          } catch (error) {
+            reject(new Error('Failed to parse response'));
+          }
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}`));
+        }
+      });
+      
+      xhr.addEventListener('error', () => {
+        reject(new Error('Upload failed'));
+      });
+      
+      xhr.open('POST', `${this.baseURL}/upload/chat-file`);
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      xhr.send(formData);
     });
   }
 

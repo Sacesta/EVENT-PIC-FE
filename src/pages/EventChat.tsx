@@ -9,11 +9,11 @@ import { ChatMessages } from '@/components/chat/ChatMessages';
 import { StartChatModal } from '@/components/chat/StartChatModal';
 import { useAuth } from '@/hooks/use-auth';
 
-// Remove the old interfaces as they're now defined in the hooks
-
 const EventChat = () => {
   const { eventId } = useParams<{ eventId: string }>();
-  const [selectedEvent, setSelectedEvent] = useState<string | null>(eventId !== 'select' ? eventId || null : null);
+  const [selectedEvent, setSelectedEvent] = useState<string | null>(
+    eventId && eventId !== 'select' ? eventId : null
+  );
   const { user } = useAuth();
   
   // Use the chat hook
@@ -26,6 +26,7 @@ const EventChat = () => {
     typingUsers,
     isConnected,
     fetchChats,
+    fetchEventChats,
     fetchMessages,
     createChat,
     sendMessage,
@@ -39,6 +40,38 @@ const EventChat = () => {
     deleteMessage,
     messagesEndRef
   } = useChat();
+  
+  // Local state for managing chats to update unread counts
+  const [localChats, setLocalChats] = useState<Chat[]>([]);
+  
+  // Sync local chats with hook chats
+  useEffect(() => {
+    setLocalChats(chats);
+  }, [chats]);
+  
+  // Update selectedEvent when eventId changes
+  useEffect(() => {
+    if (eventId && eventId !== 'select') {
+      setSelectedEvent(eventId);
+    }
+  }, [eventId]);
+  
+  // Auto-refresh chat list every 5 seconds to detect new chats
+  useEffect(() => {
+    if (!selectedEvent || selectedEvent === 'select') return;
+    
+    console.log('🔄 Starting chat list auto-refresh');
+    
+    const refreshInterval = setInterval(() => {
+      console.log('📡 Auto-refreshing chat list...');
+      fetchChats();
+    }, 5000); // Refresh every 5 seconds
+    
+    return () => {
+      console.log('🛑 Stopping chat list auto-refresh');
+      clearInterval(refreshInterval);
+    };
+  }, [selectedEvent, fetchChats]);
 
   // Determine the correct dashboard based on user role
   const getDashboardPath = () => {
@@ -77,21 +110,46 @@ const EventChat = () => {
 
   const mockEvent = getCurrentEvent();
 
-  // Fetch chats when event is selected
+  // Fetch all chats (no longer filtering by event on backend)
   useEffect(() => {
-    if (selectedEvent) {
-      fetchChats(selectedEvent);
-    }
-  }, [selectedEvent, fetchChats]);
+    console.log('🔍 Fetching all chats');
+    fetchChats();
+  }, [fetchChats]);
 
-  const handleSelectChat = (chat: Chat) => {
-    joinChat(chat._id);
-    markAsRead(chat._id);
+  const handleSelectChat = async (chat: Chat) => {
+    console.log('🎯 Selecting chat:', chat._id);
+    try {
+      // Join the chat (this will also fetch messages)
+      await joinChat(chat._id, chat);
+      
+      // Mark as read
+      await markAsRead(chat._id);
+      
+      // Update the chat's unread count to 0 in local state immediately
+      setLocalChats(prev => prev.map(c => 
+        c._id === chat._id ? { ...c, unreadCount: 0 } : c
+      ));
+      
+      console.log('✅ Chat marked as read, unread count reset to 0');
+    } catch (error) {
+      console.error('Error selecting chat:', error);
+    }
   };
 
-  const handleChatCreated = (newChat: Chat) => {
-    // The chat will be automatically added to the chats list by the hook
-    joinChat(newChat._id);
+  const handleChatCreated = async (newChat: Chat) => {
+    console.log('📨 Chat created, handling in EventChat:', newChat);
+    
+    try {
+      // The chat is already added to the list by the createChat function in the hook
+      // Just join it and fetch messages
+      if (newChat?._id) {
+        console.log('🔗 Joining newly created chat:', newChat._id);
+        await joinChat(newChat._id, newChat);
+        await markAsRead(newChat._id);
+      }
+    } catch (error) {
+      console.error('Error handling created chat:', error);
+    }
   };
 
   return (
@@ -121,7 +179,7 @@ const EventChat = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {mockEvents.map((event) => (
+                {mockEvents?.map((event) => (
                   <div
                     key={event.id}
                     className="p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
@@ -161,9 +219,9 @@ const EventChat = () => {
 
         {/* Show conversations only if we have a selected event */}
         {((eventId !== 'select') || selectedEvent) && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-250px)] max-h-[700px]">
             {/* Conversations List */}
-            <div className="space-y-4">
+            <div className="space-y-4 h-full flex flex-col">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Chats</h2>
                 <StartChatModal
@@ -178,7 +236,7 @@ const EventChat = () => {
                 />
               </div>
               <ChatList
-                chats={chats}
+                chats={localChats}
                 selectedChatId={currentChat?._id}
                 onSelectChat={handleSelectChat}
                 loading={loading}

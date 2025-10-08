@@ -136,7 +136,7 @@ const ProducerDashboard = () => {
   };
 
   const handleChatEvent = (eventId: string) => {
-    navigate(`/event-chat/${eventId}`);
+    navigate("/event-chat/select");
   };
 
   const handleManageTickets = (eventId: string) => {

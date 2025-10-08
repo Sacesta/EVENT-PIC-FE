@@ -50,6 +50,7 @@ export const StartChatModal: React.FC<StartChatModalProps> = ({
   const [initialLoading, setInitialLoading] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
   const [creating, setCreating] = useState(false);
+  const [chatTitle, setChatTitle] = useState('');
 
   // Fetch initial users list when modal opens
   useEffect(() => {
@@ -78,6 +79,7 @@ export const StartChatModal: React.FC<StartChatModalProps> = ({
       setSearchTerm('');
       setUsers([]);
       setSelectedUsers([]);
+      setChatTitle('');
     }
   }, [open, user?._id]);
 
@@ -153,24 +155,80 @@ export const StartChatModal: React.FC<StartChatModalProps> = ({
   };
 
   const handleCreateChat = async () => {
-    if (selectedUsers.length === 0) return;
+    if (selectedUsers.length === 0) {
+      alert('Please select at least one user to start a chat');
+      return;
+    }
 
     try {
       setCreating(true);
-      const participants = selectedUsers.map(u => ({
-        userId: u._id,
-        role: u.role
-      }));
+      console.log('=== Creating Chat ===');
+      console.log('Selected users:', selectedUsers);
+      console.log('Current user:', user);
+      
+      // Include current user in participants
+      const participants = [
+        // Add current user first
+        {
+          userId: user?._id,
+          role: user?.role || 'producer'
+        },
+        // Add selected users
+        ...selectedUsers.map(u => ({
+          userId: u._id,
+          role: u.role
+        }))
+      ];
 
-      const response = await apiService.createChat(participants, eventId) as ApiResponse<Chat>;
+      // CRITICAL: Sort participants by userId to ensure consistent chat lookup
+      // This ensures that [UserA, UserB] and [UserB, UserA] create the same chat
+      const sortedParticipants = participants.sort((a, b) => 
+        (a.userId || '').localeCompare(b.userId || '')
+      );
 
-      onChatCreated(response.data);
+      console.log('Original participants:', participants);
+      console.log('Sorted participants:', sortedParticipants);
+      console.log('Event ID:', eventId);
+      console.log('Chat title:', chatTitle.trim() || undefined);
+
+      const response = await apiService.createChat(
+        sortedParticipants, 
+        eventId, 
+        chatTitle.trim() || undefined
+      );
+
+      console.log('Create chat response:', response);
+
+      // Handle different response structures
+      let chatData: Chat;
+      const resp = response as any;
+      
+      if (resp.data?.data) {
+        // Response structure: { data: { data: Chat } }
+        chatData = resp.data.data as Chat;
+      } else if (resp.data) {
+        // Response structure: { data: Chat }
+        chatData = resp.data as Chat;
+      } else {
+        // Response is the chat directly
+        chatData = resp as Chat;
+      }
+
+      console.log('Chat created successfully:', chatData);
+      
+      if (chatData && chatData._id) {
+        onChatCreated(chatData);
+      } else {
+        throw new Error('Invalid chat data received from server');
+      }
       setOpen(false);
       setSelectedUsers([]);
       setSearchTerm('');
+      setChatTitle('');
     } catch (error: unknown) {
       console.error('Error creating chat:', error);
-      // Handle error (show toast, etc.)
+      // Show error to user
+      alert('Failed to create chat. Please try again.');
     } finally {
       setCreating(false);
     }
@@ -205,6 +263,18 @@ export const StartChatModal: React.FC<StartChatModalProps> = ({
         </DialogHeader>
         
         <div className="space-y-4">
+          {/* Chat Title Input (optional, for group chats) */}
+          {selectedUsers.length > 1 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Chat Title (Optional)</label>
+              <Input
+                placeholder="Enter a title for this group chat..."
+                value={chatTitle}
+                onChange={(e) => setChatTitle(e.target.value)}
+              />
+            </div>
+          )}
+
           {/* Search Input */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />

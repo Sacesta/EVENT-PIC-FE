@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ChatMessage, Chat } from '@/hooks/use-chat';
+import { useAuth } from '@/hooks/use-auth';
 
 interface ChatMessagesProps {
   chat: Chat | null;
@@ -36,18 +37,29 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   loading = false,
   messagesEndRef
 }) => {
+  const { user } = useAuth();
   const [newMessage, setNewMessage] = React.useState('');
   const [editingMessage, setEditingMessage] = React.useState<{ id: string; content: string } | null>(null);
   const [replyingTo, setReplyingTo] = React.useState<ChatMessage | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
+  const [sending, setSending] = React.useState(false);
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || sending) return;
     
-    onSendMessage(newMessage.trim());
-    setNewMessage('');
-    setReplyingTo(null);
-    onStopTyping();
+    try {
+      setSending(true);
+      await onSendMessage(newMessage.trim());
+      setNewMessage('');
+      setReplyingTo(null);
+      onStopTyping();
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      // Error is already handled in the hook
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -91,18 +103,20 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   };
 
   const getMessageSender = (message: ChatMessage) => {
-    return chat?.participants.find(p => p.user._id === message.sender._id)?.user || message.sender;
+    return chat?.participants?.find(p => p.user?._id === message.sender?._id)?.user || message.sender;
   };
 
+  // Check if the message sender is the currently logged-in user
   const isCurrentUser = (message: ChatMessage) => {
-    return message.sender._id === chat?.participants[0]?.user._id;
+    if (!user || !message.sender) return false;
+    return message.sender._id === user._id;
   };
 
   const commonReactions = ['👍', '❤️', '😂', '😮', '😢', '😡'];
 
   if (!chat) {
     return (
-      <Card className="glass-card h-full flex flex-col">
+      <Card className="glass-card h-[75vh] flex flex-col">
         <CardContent className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <MessageCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
@@ -117,17 +131,17 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   }
 
   return (
-    <Card className="glass-card h-full flex flex-col">
-      <CardHeader className="border-b border-border">
+    <Card className="glass-card h-[75vh] flex flex-col overflow-hidden">
+      <CardHeader className="border-b border-border flex-shrink-0">
         <CardTitle className="flex items-center gap-2">
           <Avatar className="w-8 h-8">
             <AvatarFallback>
-              {chat.participants.find(p => p.user._id !== chat.participants[0]?.user._id)?.user.name.split(' ').map(n => n[0]).join('').toUpperCase() || 'C'}
+            {chat.participants?.find(p => p.user?._id !== chat.participants?.[0]?.user?._id)?.user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'C'}
             </AvatarFallback>
           </Avatar>
           <div>
             <h3 className="font-semibold">
-              {chat.title || chat.participants.find(p => p.user._id !== chat.participants[0]?.user._id)?.user.name || 'Chat'}
+              {chat.title || chat.participants?.find(p => p.user?._id !== chat.participants?.[0]?.user?._id)?.user?.name || 'Chat'}
             </h3>
             {chat.event && (
               <p className="text-sm text-muted-foreground">{chat.event.name}</p>
@@ -136,11 +150,11 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="flex-1 flex flex-col p-0">
+      <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
         {/* Messages */}
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
-            {loading && messages.length === 0 ? (
+        <ScrollArea className="flex-1">
+          <div className="p-4 space-y-4">
+            {loading && messages?.length === 0 ? (
               <div className="space-y-4">
                 {[...Array(3)].map((_, i) => (
                   <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
@@ -152,7 +166,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                 ))}
               </div>
             ) : (
-              messages.map((message) => {
+              messages?.map((message) => {
                 const sender = getMessageSender(message);
                 const isUser = isCurrentUser(message);
                 
@@ -232,20 +246,38 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                           </div>
                         </div>
                         
-                        {/* Reactions */}
+                        {/* Reactions - Group by emoji and show count */}
                         {message.reactions && message.reactions.length > 0 && (
                           <div className="flex gap-1 mt-1">
-                            {message.reactions.map((reaction, index) => (
-                              <Button
-                                key={index}
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 px-2 text-xs"
-                                onClick={() => onAddReaction(message._id, reaction.emoji)}
-                              >
-                                {reaction.emoji} 1
-                              </Button>
-                            ))}
+                            {(() => {
+                              // Group reactions by emoji
+                              const reactionGroups = message.reactions.reduce((acc, reaction) => {
+                                const emoji = reaction.emoji;
+                                if (!acc[emoji]) {
+                                  acc[emoji] = {
+                                    emoji,
+                                    count: 0,
+                                    users: []
+                                  };
+                                }
+                                acc[emoji].count++;
+                                acc[emoji].users.push(reaction.user);
+                                return acc;
+                              }, {} as Record<string, { emoji: string; count: number; users: string[] }>);
+
+                              return Object.values(reactionGroups).map((group, idx) => (
+                                <Button
+                                  key={idx}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 px-2 text-xs "
+                                  onClick={() => onAddReaction(message._id, group.emoji)}
+                                  title={`${group.count} reaction${group.count > 1 ? 's' : ''}`}
+                                >
+                                  {group.emoji} {group.count}
+                                </Button>
+                              ));
+                            })()}
                           </div>
                         )}
                       </div>
@@ -278,7 +310,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
         </ScrollArea>
         
         {/* Message Input */}
-        <div className="border-t border-border p-4">
+        <div className="border-t border-border p-4 flex-shrink-0">
           {replyingTo && (
             <div className="mb-3 p-2 bg-muted rounded-lg border-l-2 border-primary">
               <div className="flex items-center justify-between">
@@ -324,9 +356,17 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
                 className="flex-1"
+                disabled={sending}
               />
-              <Button onClick={handleSendMessage} disabled={!newMessage.trim()}>
-                <Send className="w-4 h-4" />
+              <Button 
+                onClick={handleSendMessage} 
+                disabled={!newMessage.trim() || sending}
+              >
+                {sending ? (
+                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
               </Button>
             </div>
           )}
@@ -341,7 +381,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                 className="h-8 w-8 p-0"
                 onClick={() => {
                   // Add reaction to last message or selected message
-                  const lastMessage = messages[messages.length - 1];
+                  const lastMessage = messages?.[messages.length - 1];
                   if (lastMessage) {
                     onAddReaction(lastMessage._id, emoji);
                   }

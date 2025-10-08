@@ -24,8 +24,7 @@ import {
   ImageUpload,
 } from "./form-components";
 
-const Step2_Details: React.FC<Step2_DetailsProps> = React.memo(
-  ({ eventData, onUpdate, onNext, onBack, isEditMode = false }) => {
+const Step2_Details: React.FC<Step2_DetailsProps> = ({ eventData, onUpdate, onNext, onBack, isEditMode = false }) => {
     const { t } = useTranslation();
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -344,8 +343,8 @@ const Step2_Details: React.FC<Step2_DetailsProps> = React.memo(
 
               {/* Ticketing Type Toggle */}
               <ToggleCard
-                title={eventData.isPaid ? "Paid Tickets" : "Free Tickets"}
-                description={eventData.isPaid ? "Charge attendees for entry" : "No charge for attendees"}
+                title={eventData.isPaid ? t("createEvent.step2.paidTickets") : t("createEvent.step2.freeTickets")}
+                description={eventData.isPaid ? t("createEvent.step2.chargeAttendees") : t("createEvent.step2.noChargeAttendees")}
                 icon={DollarSign}
                 isEnabled={eventData.isPaid}
                 onToggle={handlePaidToggle}
@@ -353,8 +352,8 @@ const Step2_Details: React.FC<Step2_DetailsProps> = React.memo(
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">
                     {eventData.isPaid 
-                      ? "Set ticket prices in the section below"
-                      : "Toggle to enable paid ticketing"}
+                      ? t("createEvent.step2.setPricesBelow")
+                      : t("createEvent.step2.toggleForPaid")}
                   </p>
                 </div>
               </ToggleCard>
@@ -363,12 +362,12 @@ const Step2_Details: React.FC<Step2_DetailsProps> = React.memo(
             {/* Tickets Section - Always Visible with Default Ticket */}
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">
-                {eventData.isPaid ? "Ticket Types & Pricing *" : "Ticket Types *"}
+                {eventData.isPaid ? `${t("createEvent.step2.ticketTypesPricing")} *` : `${t("createEvent.step2.ticketTypes")} *`}
               </h3>
               <p className="text-sm text-muted-foreground">
                 {eventData.isPaid
-                  ? "Create ticket tiers with different prices (e.g., VIP, General Admission, Early Bird)"
-                  : "Create ticket categories. All tickets are free - no payment required from attendees."}
+                  ? t("createEvent.step2.createTicketTiers")
+                  : t("createEvent.step2.createTicketCategories")}
               </p>
               <TicketsSection
                 tickets={eventData.tickets}
@@ -397,20 +396,21 @@ const Step2_Details: React.FC<Step2_DetailsProps> = React.memo(
           </div>
         </div>
 
-        {/* Navigation - Fixed at bottom */}
-        <div className="flex-shrink-0 flex justify-between pt-4 border-t bg-background">
-          <Button variant="outline" onClick={onBack} className="px-8">
-            {t("common.back")}
-          </Button>
-          <Button onClick={handleNext} disabled={!isFormValid} className="px-8">
-            {t("createEvent.step2.continue")}
-            {isFormValid && <CheckCircle className="w-4 h-4 ml-2" />}
-          </Button>
-        </div>
+        {/* Navigation - Fixed at bottom - Hidden in edit mode */}
+        {!isEditMode && (
+          <div className="flex-shrink-0 flex justify-between pt-4 border-t bg-background">
+            <Button variant="outline" onClick={onBack} className="px-8">
+              {t("common.back")}
+            </Button>
+            <Button onClick={handleNext} disabled={!isFormValid} className="px-8">
+              {t("createEvent.step2.continue")}
+              {isFormValid && <CheckCircle className="w-4 h-4 ml-2" />}
+            </Button>
+          </div>
+        )}
       </div>
     );
-  }
-);
+};
 
 Step2_Details.displayName = "Step2_Details";
 

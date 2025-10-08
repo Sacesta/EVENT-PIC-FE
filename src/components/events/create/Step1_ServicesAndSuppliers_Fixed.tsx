@@ -5,9 +5,11 @@ import {
   Video, 
   UtensilsCrossed, 
   Music, 
+  Music2,
   Palette, 
   Car, 
   Shield, 
+  ShieldCheck,
   Lightbulb, 
   Volume2, 
   Armchair, 
@@ -26,7 +28,13 @@ import {
   AlertCircle,
   ChevronDown,
   Package,
-  X
+  X,
+  Wine,
+  Image,
+  Zap,
+  Heart,
+  Building,
+  Disc3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,19 +48,27 @@ import { cn } from '@/lib/utils';
 import apiService from '@/services/api';
 import { autoTranslate } from '@/utils/autoTranslate';
 
-// Service categories with icons - using translation keys
+// Service categories with icons - using translation keys (All 21 categories)
 const SERVICE_CATEGORIES = [
   { key: 'photography', icon: Camera, labelKey: 'categories.photography', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
   { key: 'videography', icon: Video, labelKey: 'categories.videography', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
   { key: 'catering', icon: UtensilsCrossed, labelKey: 'categories.catering', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
+  { key: 'bar', icon: Wine, labelKey: 'categories.bar', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' },
   { key: 'music', icon: Music, labelKey: 'categories.music', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' },
+  { key: 'musicians', icon: Music2, labelKey: 'categories.musicians', color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' },
   { key: 'decoration', icon: Palette, labelKey: 'categories.decoration', color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300' },
-  { key: 'transportation', icon: Car, labelKey: 'categories.transportation', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' },
-  { key: 'security', icon: Shield, labelKey: 'categories.security', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
+  { key: 'scenery', icon: Image, labelKey: 'categories.scenery', color: 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300' },
   { key: 'lighting', icon: Lightbulb, labelKey: 'categories.lighting', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' },
   { key: 'sound', icon: Volume2, labelKey: 'categories.sound', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300' },
+  { key: 'sounds_lights', icon: Zap, labelKey: 'categories.sounds_lights', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300' },
+  { key: 'transportation', icon: Car, labelKey: 'categories.transportation', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' },
+  { key: 'security', icon: Shield, labelKey: 'categories.security', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
+  { key: 'first_aid', icon: Heart, labelKey: 'categories.first_aid', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
+  { key: 'insurance', icon: ShieldCheck, labelKey: 'categories.insurance', color: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300' },
   { key: 'furniture', icon: Armchair, labelKey: 'categories.furniture', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' },
   { key: 'tents', icon: Home, labelKey: 'categories.tents', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
+  { key: 'location', icon: Building, labelKey: 'categories.location', color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' },
+  { key: 'dj', icon: Disc3, labelKey: 'categories.dj', color: 'bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-300' },
   { key: 'other', icon: Grid3X3, labelKey: 'categories.other', color: 'bg-muted text-muted-foreground' }
 ];
 

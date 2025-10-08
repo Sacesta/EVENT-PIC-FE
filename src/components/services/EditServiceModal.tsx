@@ -20,9 +20,10 @@ interface EditServiceModalProps {
 }
 
 const SERVICE_CATEGORIES = [
-  'photography', 'videography', 'catering', 'music', 
-  'decoration', 'transportation', 'security', 'lighting',
-  'sound', 'furniture', 'tents', 'other'
+  'photography', 'videography', 'catering', 'bar', 'music', 'musicians',
+  'decoration', 'scenery', 'lighting', 'sound', 'sounds_lights',
+  'transportation', 'security', 'first_aid', 'insurance', 
+  'furniture', 'tents', 'location', 'dj', 'other'
 ];
 
 const PRICING_TYPES = ['fixed', 'per_hour', 'per_person', 'negotiable'];
@@ -39,11 +40,6 @@ export default function EditServiceModal({ isOpen, onClose, service, onServiceUp
     description: '',
     category: '',
     subcategories: [],
-    price: {
-      amount: 0,
-      currency: 'ILS',
-      pricingType: 'fixed'
-    },
     location: {
       city: ''
     },
@@ -62,11 +58,6 @@ export default function EditServiceModal({ isOpen, onClose, service, onServiceUp
         description: service.description || '',
         category: service.category || '',
         subcategories: service.subcategories || [],
-        price: service.price || {
-          amount: 0,
-          currency: 'ILS',
-          pricingType: 'fixed'
-        },
         location: service.location || { city: '' },
         experience: service.experience || 'intermediate',
         tags: service.tags || []
@@ -146,10 +137,6 @@ export default function EditServiceModal({ isOpen, onClose, service, onServiceUp
       errors.push('Title must be less than 200 characters');
     }
 
-    if (formData.price && formData.price.amount <= 0) {
-      errors.push('Price must be greater than 0');
-    }
-
     if (errors.length > 0) {
       toast({
         title: t('common.error', 'Error'),
@@ -166,7 +153,6 @@ export default function EditServiceModal({ isOpen, onClose, service, onServiceUp
     if (formData.description?.trim()) cleanedData.description = formData.description.trim();
     if (formData.category) cleanedData.category = formData.category;
     if (formData.subcategories) cleanedData.subcategories = formData.subcategories;
-    if (formData.price) cleanedData.price = formData.price;
     if (formData.location?.city?.trim()) {
       cleanedData.location = {
         ...formData.location,

@@ -317,6 +317,11 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
     try {
       setLoading(true);
       
+      console.log('=== UPDATE EVENT DEBUG ===');
+      console.log('Event Data:', eventDataRef.current);
+      console.log('Tickets:', eventDataRef.current.tickets);
+      console.log('isPaid:', eventDataRef.current.isPaid);
+      
       // Create start and end dates
       const eventDate = new Date(eventDataRef.current.date);
       const [hours, minutes] = eventDataRef.current.time.split(':').map(Number);
@@ -411,10 +416,12 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
         suppliers.push({ supplierId, services });
       });
 
-      // Valid service categories
+      // Valid service categories - All 21 categories
       const validServiceCategories = [
-        'photography', 'videography', 'catering', 'music', 
-        'decoration', 'transportation', 'security', 'other'
+        'photography', 'videography', 'catering', 'bar', 'music', 'musicians',
+        'decoration', 'scenery', 'lighting', 'sound', 'sounds_lights',
+        'transportation', 'security', 'first_aid', 'insurance', 
+        'furniture', 'tents', 'location', 'dj', 'other'
       ];
 
       const serviceMapping: { [key: string]: string } = {
@@ -434,40 +441,60 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
         })
         .filter((service, index, array) => array.indexOf(service) === index);
 
-      // Calculate ticket info - ensure prices are numbers
-      const totalTickets = eventDataRef.current.tickets?.reduce((sum, ticket) => sum + Number(ticket.quantity || 0), 0) || 0;
-      const totalRevenue = eventDataRef.current.tickets?.reduce((sum, ticket) => sum + (Number(ticket.quantity || 0) * Number(ticket.price || 0)), 0) || 0;
+      // Calculate ticket info - EXPLICITLY convert to numbers (matching create event logic)
+      const totalTickets = eventDataRef.current.tickets?.reduce((sum, ticket) => {
+        const quantity = Number(ticket.quantity || 0);
+        return sum + quantity;
+      }, 0) || 0;
+      
+      const totalRevenue = eventDataRef.current.tickets?.reduce((sum, ticket) => {
+        const quantity = Number(ticket.quantity || 0);
+        const price = Number(ticket.price || 0);
+        return sum + (quantity * price);
+      }, 0) || 0;
+      
       const minPrice = eventDataRef.current.tickets && eventDataRef.current.tickets.length > 0 
         ? Math.min(...eventDataRef.current.tickets.map(t => Number(t.price || 0))) 
         : 0;
+        
       const maxPrice = eventDataRef.current.tickets && eventDataRef.current.tickets.length > 0 
         ? Math.max(...eventDataRef.current.tickets.map(t => Number(t.price || 0))) 
         : 0;
+
+      console.log('Ticket Calculations:', {
+        totalTickets,
+        totalRevenue,
+        minPrice,
+        maxPrice,
+        isPaid: eventDataRef.current.isPaid
+      });
 
       // Extract location
       const locationParts = eventDataRef.current.location.split(',');
       const city = locationParts.length > 1 ? locationParts[locationParts.length - 1].trim() : eventDataRef.current.location;
       const address = locationParts.length > 1 ? locationParts.slice(0, -1).join(',').trim() : eventDataRef.current.location;
 
-      // Determine if event is free or paid
+      // Determine if event is free - matching create event logic
       const isFreeEvent = !eventDataRef.current.isPaid || minPrice === 0;
 
-      // Transform tickets to backend format (same as create event)
+      // Transform tickets to backend format (EXACTLY like create event)
       const transformedTickets = eventDataRef.current.tickets && eventDataRef.current.tickets.length > 0 
         ? eventDataRef.current.tickets.map(ticket => ({
             title: ticket.name,
             description: `${ticket.name} ticket for ${eventDataRef.current.name}`,
             type: ticket.name.toLowerCase().replace(/\s+/g, '-'),
             price: {
-              amount: ticket.price,
+              amount: Number(ticket.price || 0), // Explicit number conversion
               currency: 'ILS'
             },
             quantity: {
-              total: ticket.quantity,
-              available: ticket.quantity
+              total: Number(ticket.quantity || 0), // Explicit number conversion
+              available: Number(ticket.quantity || 0)
             }
           }))
         : [];
+
+      console.log('Transformed Tickets:', transformedTickets);
 
       const updateData = {
         name: eventDataRef.current.name,
@@ -481,21 +508,35 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
         suppliers: suppliers,
         status: event.status || 'draft' as const,
         isPublic: !eventDataRef.current.isPrivate,
+        // Include password for private events (when isPublic is false)
+        ...(eventDataRef.current.isPrivate && eventDataRef.current.eventPassword && {
+          password: eventDataRef.current.eventPassword
+        }),
         // Include tickets array for backend to update/create ticket documents
         ...(transformedTickets.length > 0 && {
           tickets: transformedTickets
         }),
-        // Always include ticketInfo for both free and paid events
-        ...(totalTickets > 0 && {
-          ticketInfo: {
-            availableTickets: totalTickets,
-            soldTickets: event.ticketInfo?.soldTickets || 0,
-            reservedTickets: event.ticketInfo?.reservedTickets || 0,
-            priceRange: { min: minPrice, max: maxPrice },
-            isFree: isFreeEvent
+        // ALWAYS include ticketInfo for both free and paid events (matching create event)
+        ticketInfo: eventDataRef.current.isPaid && totalTickets > 0 ? {
+          availableTickets: totalTickets,
+          soldTickets: event.ticketInfo?.soldTickets || 0,
+          reservedTickets: event.ticketInfo?.reservedTickets || 0,
+          isFree: false,
+          priceRange: {
+            min: minPrice,
+            max: maxPrice
           }
-        }),
-        // Only include budget for paid events with revenue
+        } : {
+          availableTickets: totalTickets || 0,
+          soldTickets: event.ticketInfo?.soldTickets || 0,
+          reservedTickets: event.ticketInfo?.reservedTickets || 0,
+          isFree: true,
+          priceRange: {
+            min: 0,
+            max: 0
+          }
+        },
+        // Only include budget for paid events with revenue (matching create event)
         ...(eventDataRef.current.isPaid && totalRevenue > 0 && {
           budget: { 
             total: totalRevenue, 
@@ -505,6 +546,10 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
         }),
         tags: eventDataRef.current.services || [],
       };
+
+      console.log('=== FINAL UPDATE DATA ===');
+      console.log('Update payload:', updateData);
+      console.log('========================');
 
       const response = await apiService.updateEvent(event._id, updateData);
       
@@ -848,9 +893,9 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
         <div className="flex-1 overflow-hidden flex flex-col min-h-0">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
             <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
-              <TabsTrigger value="event-detail">Event Detail</TabsTrigger>
-              <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
-              <TabsTrigger value="attendees">Attendees</TabsTrigger>
+              <TabsTrigger value="event-detail">{t('events.editEventModal.eventDetail')}</TabsTrigger>
+              <TabsTrigger value="suppliers">{t('events.editEventModal.suppliers')}</TabsTrigger>
+              <TabsTrigger value="attendees">{t('events.editEventModal.attendees')}</TabsTrigger>
             </TabsList>
             
             {/* Event Detail Tab */}
@@ -868,44 +913,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                 </Card>
               ) : (
                 <>
-                  {/* Invite Share Link Section - Only for Private Events */}
-                  {!event.isPublic && (
-                    <Card className="mb-4 border-primary/20 bg-primary/5">
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                          <Link2 className="w-5 h-5 text-primary" />
-                          Invite Share Link
-                        </h3>
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1 bg-background border rounded-lg px-4 py-3 text-sm text-muted-foreground overflow-hidden">
-                            <span className="truncate block">
-                              {`${window.location.origin}/event/${event._id}`}
-                            </span>
-                          </div>
-                          <Button
-                            variant={linkCopied ? "default" : "outline"}
-                            onClick={handleCopyInviteLink}
-                            className="px-6"
-                          >
-                            {linkCopied ? (
-                              <>
-                                <CheckCircle className="w-4 h-4 mr-2" />
-                                Copied!
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-4 h-4 mr-2" />
-                                Copy Link
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          Share this link with invitees to allow them to view and register for your private event
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
+                 
                   
                   <Step2_Details
                     eventData={eventDataRef.current}
@@ -922,7 +930,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
             <TabsContent value="suppliers" className="flex-1 overflow-y-auto mt-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Event Suppliers</CardTitle>
+                  <CardTitle>{t('events.editEventModal.eventSuppliers')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {/* Add New Supplier Section */}
@@ -930,26 +938,34 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                     <div className="mb-6 p-4 bg-muted/30 rounded-lg border border-border">
                       <h3 className="font-semibold mb-3 flex items-center gap-2">
                         <Plus className="w-4 h-4" />
-                        Add More Suppliers
+                        {t('events.editEventModal.addMoreSuppliers')}
                       </h3>
                       <div className="flex gap-2">
                         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                           <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="Select service category..." />
+                            <SelectValue placeholder={t('events.editEventModal.selectServiceCategory')} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="photography">Photography</SelectItem>
-                            <SelectItem value="videography">Videography</SelectItem>
-                            <SelectItem value="catering">Catering</SelectItem>
-                            <SelectItem value="music">Music</SelectItem>
-                            <SelectItem value="decoration">Decoration</SelectItem>
-                            <SelectItem value="transportation">Transportation</SelectItem>
-                            <SelectItem value="security">Security</SelectItem>
-                            <SelectItem value="lighting">Lighting</SelectItem>
-                            <SelectItem value="sound">Sound</SelectItem>
-                            <SelectItem value="furniture">Furniture</SelectItem>
-                            <SelectItem value="tents">Tents</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
+                            <SelectItem value="photography">{t('categories.photography')}</SelectItem>
+                            <SelectItem value="videography">{t('categories.videography')}</SelectItem>
+                            <SelectItem value="catering">{t('categories.catering')}</SelectItem>
+                            <SelectItem value="bar">{t('categories.bar')}</SelectItem>
+                            <SelectItem value="music">{t('categories.music')}</SelectItem>
+                            <SelectItem value="musicians">{t('categories.musicians')}</SelectItem>
+                            <SelectItem value="decoration">{t('categories.decoration')}</SelectItem>
+                            <SelectItem value="scenery">{t('categories.scenery')}</SelectItem>
+                            <SelectItem value="lighting">{t('categories.lighting')}</SelectItem>
+                            <SelectItem value="sound">{t('categories.sound')}</SelectItem>
+                            <SelectItem value="sounds_lights">{t('categories.sounds_lights')}</SelectItem>
+                            <SelectItem value="transportation">{t('categories.transportation')}</SelectItem>
+                            <SelectItem value="security">{t('categories.security')}</SelectItem>
+                            <SelectItem value="first_aid">{t('categories.first_aid')}</SelectItem>
+                            <SelectItem value="insurance">{t('categories.insurance')}</SelectItem>
+                            <SelectItem value="furniture">{t('categories.furniture')}</SelectItem>
+                            <SelectItem value="tents">{t('categories.tents')}</SelectItem>
+                            <SelectItem value="location">{t('categories.location')}</SelectItem>
+                            <SelectItem value="dj">{t('categories.dj')}</SelectItem>
+                            <SelectItem value="other">{t('categories.other')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <Button 
@@ -961,18 +977,18 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                           ) : (
                             <>
                               <Users className="w-4 h-4 mr-2" />
-                              Browse Suppliers
+                              {t('events.editEventModal.browseSuppliers')}
                             </>
                           )}
                         </Button>
                       </div>
                     </div>
                   ) : (
-                    <div className="mb-6 p-4 bg-primary/5 rounded-lg border border-primary">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold flex items-center gap-2">
+                    <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-primary/5 rounded-lg border border-primary">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
+                        <h3 className="font-semibold flex items-center gap-2 text-sm sm:text-base">
                           <Users className="w-4 h-4" />
-                          Browse {selectedCategory} Suppliers
+                          {t('events.editEventModal.browseSuppliersFor', { category: selectedCategory })}
                         </h3>
                         <div className="flex gap-2">
                           <Button 
@@ -983,21 +999,23 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                               setNewSelectedSuppliers({});
                               setNewSelectedPackages({});
                             }}
+                            className="text-xs sm:text-sm"
                           >
-                            Cancel
+                            {t('common.cancel')}
                           </Button>
                           <Button 
                             size="sm"
                             onClick={handleAddSuppliers}
                             disabled={Object.keys(newSelectedSuppliers).length === 0}
+                            className="text-xs sm:text-sm"
                           >
-                            Add Selected ({Object.keys(newSelectedSuppliers).length})
+                            {t('events.editEventModal.addSelected')} ({Object.keys(newSelectedSuppliers).length})
                           </Button>
                         </div>
                       </div>
                       
                       {/* Compact Supplier Cards */}
-                      <div className="space-y-2 max-h-96 overflow-y-auto">
+                      <div className="space-y-2 max-h-[60vh] sm:max-h-96 overflow-y-auto">
                         {availableSuppliers.map((service) => {
                           const isSelected = newSelectedSuppliers[service.supplier.supplierId] === service.serviceId;
                           const selectedPkg = newSelectedPackages[service.serviceId];
@@ -1013,51 +1031,51 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                                 isSelected ? "border-primary bg-primary/5" : ""
                               )}
                             >
-                              <CardContent className="p-3">
+                              <CardContent className="p-2 sm:p-3">
                                 <div className="flex items-start gap-2">
                                   {/* Checkbox */}
                                   <div 
-                                    // className={cn(
-                                    //   "w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer mt-1",
-                                    //   isSelected ? "bg-primary border-primary" : "border-border"
-                                    // )}
+                                    className="cursor-pointer mt-1"
                                     onClick={() => handleSupplierToggle(service.serviceId, service.supplier.supplierId)}
                                   >
-                                    {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
+                                    {isSelected && <CheckCircle className="w-4 h-4 sm:w-3 sm:h-3 text-primary" />}
+                                    {!isSelected && <div className="w-4 h-4 sm:w-3 sm:h-3 rounded border-2 border-border" />}
                                   </div>
                                   
                                   {/* Supplier Info */}
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <h4 className="font-semibold text-sm truncate">{service.title}</h4>
+                                    <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                                      <h4 className="font-semibold text-xs sm:text-sm truncate">{service.title}</h4>
                                       {service.supplier.isVerified && (
                                         <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
                                       )}
                                     </div>
                                     
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs text-muted-foreground mb-1">
                                       <span className="truncate">{service.supplier.name}</span>
-                                      <span>•</span>
+                                      <span className="hidden sm:inline">•</span>
                                       <div className="flex items-center gap-0.5">
                                         {Array.from({ length: 5 }, (_, i) => (
                                           <Star
                                             key={i}
                                             className={cn(
-                                              "w-2.5 h-2.5",
+                                              "w-2 h-2 sm:w-2.5 sm:h-2.5",
                                               i < Math.floor(service.rating.average)
                                                 ? "fill-yellow-400 text-yellow-400"
                                                 : "text-muted-foreground/30"
                                             )}
                                           />
                                         ))}
-                                        <span className="ml-1">{service.rating.average.toFixed(1)}</span>
+                                        <span className="ml-1 text-xs">{service.rating.average.toFixed(1)}</span>
                                       </div>
                                     </div>
                                     
-                                    <div className="flex items-center gap-2 text-xs">
-                                      <MapPin className="w-3 h-3" />
-                                      <span>{service.location?.city}</span>
-                                      <span>•</span>
+                                    <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs">
+                                      <div className="flex items-center gap-1">
+                                        <MapPin className="w-3 h-3 flex-shrink-0" />
+                                        <span>{service.location?.city}</span>
+                                      </div>
+                                      <span className="hidden sm:inline">•</span>
                                       <span className="font-semibold text-primary">₪{service.price.amount}</span>
                                     </div>
                                     
@@ -1073,7 +1091,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                                             <div
                                               key={pkg._id}
                                               className={cn(
-                                                "flex items-center justify-between p-2 rounded border text-xs",
+                                                "flex items-center justify-between p-1.5 sm:p-2 rounded border text-xs",
                                                 isAlreadySelected 
                                                   ? "border-green-500 bg-green-50 opacity-60 cursor-not-allowed"
                                                   : isCurrentlySelected
@@ -1081,44 +1099,44 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                                                     : "border-border hover:border-primary/50 cursor-pointer"
                                               )}
                                               onClick={() => {
-                                                if (isAlreadySelected) return; // Don't allow clicking already selected packages
+                                                if (isAlreadySelected) return;
                                                 if (!isSelected) {
                                                   handleSupplierToggle(service.serviceId, service.supplier.supplierId);
                                                 }
                                                 handlePackageToggle(service.serviceId, pkg._id);
                                               }}
                                             >
-                                              <div className="flex-1">
-                                                <div className="flex items-center gap-1">
+                                              <div className="flex-1 min-w-0 mr-2">
+                                                <div className="flex flex-wrap items-center gap-1">
                                                   <span className={cn(
-                                                    "font-medium capitalize",
+                                                    "font-medium capitalize text-xs",
                                                     isAlreadySelected && "text-muted-foreground"
                                                   )}>
                                                     {pkg.name}
                                                   </span>
-                                                  {pkg.isPopular && <span className="text-orange-500">🔥</span>}
+                                                  {pkg.isPopular && <span className="text-orange-500 text-xs">🔥</span>}
                                                   {isAlreadySelected && (
-                                                    <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300 ml-1">
-                                                      Already Selected
+                                                    <Badge variant="outline" className="text-[10px] sm:text-xs bg-green-100 text-green-700 border-green-300">
+                                                      Selected
                                                     </Badge>
                                                   )}
                                                 </div>
                                                 {pkg.duration && (
-                                                  <div className="flex items-center gap-1 text-muted-foreground">
-                                                    <Clock className="w-2.5 h-2.5" />
-                                                    <span>{pkg.duration}h</span>
+                                                  <div className="flex items-center gap-1 text-muted-foreground mt-0.5">
+                                                    <Clock className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
+                                                    <span className="text-[10px] sm:text-xs">{pkg.duration}h</span>
                                                   </div>
                                                 )}
                                               </div>
-                                              <div className="flex items-center gap-2">
+                                              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                                                 <span className={cn(
-                                                  "font-bold",
+                                                  "font-bold text-xs sm:text-sm",
                                                   isAlreadySelected ? "text-muted-foreground" : "text-primary"
                                                 )}>
                                                   ₪{pkg.price}
                                                 </span>
                                                 <div className={cn(
-                                                  "w-4 h-4 rounded border-2 flex items-center justify-center",
+                                                  "w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border-2 flex items-center justify-center flex-shrink-0",
                                                   isAlreadySelected
                                                     ? "bg-green-500 border-green-500"
                                                     : isCurrentlySelected
@@ -1126,7 +1144,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                                                       : "border-border"
                                                 )}>
                                                   {(isAlreadySelected || isCurrentlySelected) && (
-                                                    <CheckCircle className="w-2.5 h-2.5 text-white" />
+                                                    <CheckCircle className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-white" />
                                                   )}
                                                 </div>
                                               </div>
@@ -1149,7 +1167,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                   {!showSupplierBrowser && (
                     <>
                       <div className="mb-4">
-                        <h3 className="font-semibold mb-3">Current Suppliers</h3>
+                        <h3 className="font-semibold mb-3">{t('events.editEventModal.currentSuppliers')}</h3>
                       </div>
                   
                       {event.suppliers && event.suppliers.length > 0 ? (
@@ -1309,8 +1327,8 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                       ) : (
                         <div className="text-center py-8 text-muted-foreground">
                           <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                          <p>No suppliers invited yet</p>
-                          <p className="text-sm mt-2">Select a category above to browse suppliers</p>
+                          <p>{t('events.editEventModal.noSuppliersYet')}</p>
+                          <p className="text-sm mt-2">{t('events.editEventModal.selectCategoryAbove')}</p>
                         </div>
                       )}
                     </>
@@ -1323,128 +1341,133 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
             <TabsContent value="attendees" className="flex-1 overflow-y-auto mt-2">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Event Attendees</span>
+                  <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <span className="text-base sm:text-lg">{t('events.editEventModal.eventAttendees')}</span>
                     {attendeesStatistics && (
-                      <Badge variant="secondary" className="text-sm">
-                        {attendeesPagination.totalAttendees} Total
+                      <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
+                        {attendeesPagination.totalAttendees} {t('events.editEventModal.total')}
                       </Badge>
                     )}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-3 sm:p-6">
                   {/* Statistics Cards */}
                   {attendeesStatistics && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
                       <Card>
-                        <CardContent className="p-4 text-center">
-                          <p className="text-2xl font-bold text-green-600">{attendeesStatistics.confirmedAttendees || 0}</p>
-                          <p className="text-sm text-muted-foreground">Confirmed</p>
+                        <CardContent className="p-3 sm:p-4 text-center">
+                          <p className="text-lg sm:text-2xl font-bold text-green-600">{attendeesStatistics.confirmedAttendees || 0}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{t('events.editEventModal.confirmed')}</p>
                         </CardContent>
                       </Card>
                       <Card>
-                        <CardContent className="p-4 text-center">
-                          <p className="text-2xl font-bold text-blue-600">{attendeesStatistics.totalTicketsSold || 0}</p>
-                          <p className="text-sm text-muted-foreground">Tickets Sold</p>
+                        <CardContent className="p-3 sm:p-4 text-center">
+                          <p className="text-lg sm:text-2xl font-bold text-blue-600">{attendeesStatistics.totalTicketsSold || 0}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{t('events.editEventModal.ticketsSold')}</p>
                         </CardContent>
                       </Card>
-                   
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <p className="text-2xl font-bold text-orange-600">₪{attendeesStatistics.totalRevenue || 0}</p>
-                          <p className="text-sm text-muted-foreground">Revenue</p>
+                      <Card className="col-span-2 lg:col-span-1">
+                        <CardContent className="p-3 sm:p-4 text-center">
+                          <p className="text-lg sm:text-2xl font-bold text-orange-600">₪{attendeesStatistics.totalRevenue || 0}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{t('events.editEventModal.revenue')}</p>
                         </CardContent>
                       </Card>
                     </div>
                   )}
 
                   {/* Search and Filter */}
-                  <div className="flex gap-3 mb-4">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
-                        placeholder="Search by name, email, phone, or booking reference..."
+                        placeholder={t('events.editEventModal.searchAttendees')}
                         value={attendeeSearch}
                         onChange={(e) => setAttendeeSearch(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 text-sm"
                       />
                     </div>
                     <Select value={attendeeStatusFilter} onValueChange={setAttendeeStatusFilter}>
-                      <SelectTrigger className="w-40">
+                      <SelectTrigger className="w-full sm:w-32">
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="all">{t('events.editEventModal.allStatus')}</SelectItem>
+                        <SelectItem value="confirmed">{t('events.editEventModal.confirmed')}</SelectItem>
+                        <SelectItem value="pending">{t('events.editEventModal.pending')}</SelectItem>
+                        <SelectItem value="cancelled">{t('events.cancelled')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Attendees List */}
                   {loadingAttendees ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                      <span className="ml-2 text-muted-foreground">Loading attendees...</span>
+                    <div className="flex flex-col items-center justify-center py-8 sm:py-12">
+                      <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-primary" />
+                      <span className="ml-2 text-xs sm:text-sm text-muted-foreground mt-2">{t('events.editEventModal.loadingAttendees')}</span>
                     </div>
                   ) : attendeesError ? (
-                    <div className="text-center py-8 text-red-600">
-                      <XCircle className="w-12 h-12 mx-auto mb-4" />
-                      <p>{attendeesError}</p>
+                    <div className="text-center py-6 sm:py-8 text-red-600">
+                      <XCircle className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4" />
+                      <p className="text-sm sm:text-base">{attendeesError}</p>
                     </div>
                   ) : attendees.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No attendees yet</p>
-                      <p className="text-sm mt-2">
-                        Attendees will appear here once they register for your event
+                    <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                      <Users className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-50" />
+                      <p className="text-sm sm:text-base">{t('events.editEventModal.noAttendeesYet')}</p>
+                      <p className="text-xs sm:text-sm mt-2 px-4">
+                        {t('events.editEventModal.attendeesWillAppear')}
                       </p>
                     </div>
                   ) : (
                     <>
-                      <div className="space-y-3">
+                      <div className="space-y-2 sm:space-y-3">
                         {attendees.map((attendee, index) => (
                           <Card key={attendee._id || index} className="border-l-4 border-l-primary">
-                            <CardContent className="p-4">
-                              <div className="flex items-start justify-between">
-                                <div className="flex items-start gap-3 flex-1">
-                                  <Avatar className="w-10 h-10">
-                                    <AvatarFallback className="bg-primary/10 text-primary">
+                            <CardContent className="p-3 sm:p-4">
+                              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                                {/* Main Content */}
+                                <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                                  <Avatar className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
+                                    <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
                                       {attendee.fullName?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'A'}
                                     </AvatarFallback>
                                   </Avatar>
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <h4 className="font-semibold text-base">{attendee.fullName}</h4>
+                                    {/* Name and Check-in Badge */}
+                                    <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
+                                      <h4 className="font-semibold text-sm sm:text-base truncate">{attendee.fullName}</h4>
                                       {attendee.checkedIn && (
-                                        <Badge variant="default" className="bg-green-500">
-                                          <UserCheck className="w-3 h-3 mr-1" />
-                                          Checked In
+                                        <Badge variant="default" className="bg-green-500 text-xs flex-shrink-0">
+                                          <UserCheck className="w-2 h-2 sm:w-3 sm:h-3 mr-1" />
+                                          <span className="hidden sm:inline">{t('events.editEventModal.checkedIn')}</span>
+                                          <span className="sm:hidden">✓</span>
                                         </Badge>
                                       )}
                                     </div>
                                     
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                    {/* Contact Info */}
+                                    <div className="space-y-1 text-xs sm:text-sm text-muted-foreground">
                                       <div className="flex items-center gap-1">
-                                        <Mail className="w-3 h-3" />
+                                        <Mail className="w-3 h-3 flex-shrink-0" />
                                         <span className="truncate">{attendee.email}</span>
                                       </div>
                                       <div className="flex items-center gap-1">
-                                        <Phone className="w-3 h-3" />
+                                        <Phone className="w-3 h-3 flex-shrink-0" />
                                         <span>{attendee.phone}</span>
                                       </div>
-                                      <div className="flex items-center gap-1">
-                                        <TicketIcon className="w-3 h-3" />
-                                        <span>{attendee.ticketType || 'General'} × {attendee.ticketQuantity || 1}</span>
-                                      </div>
-                                      <div className="flex items-center gap-1">
-                                        <Calendar className="w-3 h-3" />
-                                        <span>
-                                          {attendee.registeredAt 
-                                            ? new Date(attendee.registeredAt).toLocaleDateString()
-                                            : 'N/A'}
-                                        </span>
+                                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                                        <div className="flex items-center gap-1">
+                                          <TicketIcon className="w-3 h-3 flex-shrink-0" />
+                                          <span>{attendee.ticketType || 'General'} × {attendee.ticketQuantity || 1}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                          <Calendar className="w-3 h-3 flex-shrink-0" />
+                                          <span>
+                                            {attendee.registeredAt 
+                                              ? new Date(attendee.registeredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                                              : 'N/A'}
+                                          </span>
+                                        </div>
                                       </div>
                                     </div>
 
@@ -1452,28 +1475,29 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                                     {(attendee.ticketPrice !== undefined || attendee.totalAmount !== undefined) && (
                                       <div className="mt-2 p-2 bg-muted/30 rounded border border-border">
                                         <div className="flex items-center justify-between text-xs">
-                                          <span className="text-muted-foreground">Price per ticket:</span>
+                                          <span className="text-muted-foreground">{t('events.editEventModal.pricePerTicket')}:</span>
                                           <span className="font-semibold">₪{attendee.ticketPrice || 0}</span>
                                         </div>
                                         {attendee.ticketQuantity > 1 && (
                                           <div className="flex items-center justify-between text-xs mt-1">
-                                            <span className="text-muted-foreground">Total amount:</span>
+                                            <span className="text-muted-foreground">Total:</span>
                                             <span className="font-bold text-primary">₪{attendee.totalAmount || 0}</span>
                                           </div>
                                         )}
                                       </div>
                                     )}
 
-                                   
+                                    {/* Special Requirements */}
                                     {attendee.specialRequirements && (
-                                      <div className="mt-2 text-xs text-muted-foreground italic">
+                                      <div className="mt-2 text-xs text-muted-foreground italic line-clamp-2">
                                         Note: {attendee.specialRequirements}
                                       </div>
                                     )}
                                   </div>
                                 </div>
 
-                                <div className="flex flex-col items-end gap-2">
+                                {/* Status and Meta Info */}
+                                <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-2 flex-shrink-0">
                                   <Badge 
                                     variant={
                                       attendee.bookingStatus === 'confirmed' 
@@ -1482,19 +1506,18 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                                         ? 'destructive' 
                                         : 'secondary'
                                     }
+                                    className="text-xs"
                                   >
                                     {attendee.bookingStatus || 'pending'}
                                   </Badge>
-                                  {attendee.age && (
-                                    <span className="text-xs text-muted-foreground">
-                                      Age: {attendee.age}
-                                    </span>
-                                  )}
-                                  {attendee.gender && (
-                                    <span className="text-xs text-muted-foreground capitalize">
-                                      {attendee.gender}
-                                    </span>
-                                  )}
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    {attendee.age && (
+                                      <span>{t('events.editEventModal.age')}: {attendee.age}</span>
+                                    )}
+                                    {attendee.gender && (
+                                      <span className="capitalize">{attendee.gender}</span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </CardContent>
@@ -1504,9 +1527,9 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
 
                       {/* Pagination */}
                       {attendeesPagination.totalPages > 1 && (
-                        <div className="mt-6 flex items-center justify-between">
-                          <div className="text-sm text-muted-foreground">
-                            Showing {((attendeesPagination.currentPage - 1) * 20) + 1} to {Math.min(attendeesPagination.currentPage * 20, attendeesPagination.totalAttendees)} of {attendeesPagination.totalAttendees} attendees
+                        <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+                          <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+                            {t('events.editEventModal.showing')} {((attendeesPagination.currentPage - 1) * 20) + 1}-{Math.min(attendeesPagination.currentPage * 20, attendeesPagination.totalAttendees)} {t('events.editEventModal.of')} {attendeesPagination.totalAttendees}
                           </div>
                           <div className="flex gap-2">
                             <Button
@@ -1514,16 +1537,18 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                               size="sm"
                               onClick={() => handleAttendeePageChange(attendeesPagination.currentPage - 1)}
                               disabled={!attendeesPagination.hasPrevPage}
+                              className="text-xs sm:text-sm"
                             >
-                              Previous
+                              {t('events.editEventModal.previous')}
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleAttendeePageChange(attendeesPagination.currentPage + 1)}
                               disabled={!attendeesPagination.hasNextPage}
+                              className="text-xs sm:text-sm"
                             >
-                              Next
+                              {t('events.editEventModal.next')}
                             </Button>
                           </div>
                         </div>
@@ -1540,7 +1565,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
         <div className="flex-shrink-0 pt-4 border-t">
           <div className="flex justify-end gap-4">
             <Button variant="outline" onClick={handleClose}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             {activeTab === 'event-detail' && (
               <Button 
@@ -1551,10 +1576,10 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Updating...
+                    {t('events.editEventModal.updating')}
                   </>
                 ) : (
-                  'Update Event'
+                  t('events.editEventModal.updateEvent')
                 )}
               </Button>
             )}

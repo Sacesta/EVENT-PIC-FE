@@ -84,9 +84,16 @@
       "privateEventDesc": "Require password to join",
       "eventPassword": "Event Password",
       "passwordPlaceholder": "Enter password",
-      "paidEvent": "Paid Event",
-      "paidEventDesc": "Sell tickets for your event",
+      "paidTickets": "Paid Tickets",
+      "freeTickets": "Free Tickets",
+      "chargeAttendees": "Charge attendees for entry",
+      "noChargeAttendees": "No charge for attendees",
+      "setPricesBelow": "Set ticket prices in the section below",
+      "toggleForPaid": "Toggle to enable paid ticketing",
+      "ticketTypesPricing": "Ticket Types & Pricing",
       "ticketTypes": "Ticket Types",
+      "createTicketTiers": "Create ticket tiers with different prices (e.g., VIP, General Admission, Early Bird)",
+      "createTicketCategories": "Create ticket categories. All tickets are free - no payment required from attendees.",
       "addTicket": "Add Ticket",
       "ticketName": "Ticket Name",
       "ticketNamePlaceholder": "e.g., General Admission",
@@ -331,7 +338,50 @@
     "reset": "Reset",
     "noDescription": "No description available",
     "eventOrganizer": "Event Organizer",
-    "fetchError": "Failed to load events. Please try again."
+    "fetchError": "Failed to load events. Please try again.",
+    "editEventModal": {
+      "eventDetail": "Event Detail",
+      "suppliers": "Suppliers",
+      "attendees": "Attendees",
+      "eventSuppliers": "Event Suppliers",
+      "addMoreSuppliers": "Add More Suppliers",
+      "selectServiceCategory": "Select service category...",
+      "browseSuppliers": "Browse Suppliers",
+      "browse": "Browse",
+      "browseSuppliersFor": "Browse {{category}} Suppliers",
+      "addSelected": "Add Selected",
+      "currentSuppliers": "Current Suppliers",
+      "noSuppliersYet": "No suppliers invited yet",
+      "selectCategoryAbove": "Select a category above to browse suppliers",
+      "service": "Service",
+      "requestedPrice": "Requested Price",
+      "finalPrice": "Final Price",
+      "selectedPackage": "Selected Package",
+      "packageFeatures": "Package Features",
+      "alreadySelected": "Already Selected",
+      "eventAttendees": "Event Attendees",
+      "total": "Total",
+      "confirmed": "Confirmed",
+      "ticketsSold": "Tickets Sold",
+      "revenue": "Revenue",
+      "searchAttendees": "Search attendees...",
+      "allStatus": "All Status",
+      "pending": "Pending",
+      "loadingAttendees": "Loading attendees...",
+      "noAttendeesYet": "No attendees yet",
+      "attendeesWillAppear": "Attendees will appear here once they register for your event",
+      "checkedIn": "Checked In",
+      "pricePerTicket": "Price/ticket",
+      "age": "Age",
+      "showing": "Showing",
+      "of": "of",
+      "previous": "Previous",
+      "next": "Next",
+      "updateEvent": "Update Event",
+      "updating": "Updating...",
+      "suppliersAdded": "Suppliers Added!",
+      "newSuppliersAdded": "New suppliers have been added to your event."
+    }
   },
   "footer": {
     "tagline": "The ultimate platform for event planning and supplier management. Create memorable events with ease.",
@@ -708,14 +758,22 @@
     "photography": "Photography",
     "videography": "Videography",
     "catering": "Catering",
+    "bar": "Bar",
     "music": "Music",
+    "musicians": "Musicians",
     "decoration": "Decoration",
-    "transportation": "Transportation",
-    "security": "Security",
+    "scenery": "Scenery",
     "lighting": "Lighting",
     "sound": "Sound",
+    "sounds_lights": "Sound & Lighting",
+    "transportation": "Transportation",
+    "security": "Security",
+    "first_aid": "First Aid",
+    "insurance": "Insurance",
     "furniture": "Furniture",
     "tents": "Tents",
+    "location": "Venue Rental",
+    "dj": "DJ",
     "other": "Other"
   },
   "pricing": {
@@ -730,42 +788,135 @@
     "expert": "Expert"
   },
   "terms": {
-    "title": "Terms and Conditions",
+    "title": "Framework Agreement for Platform Use",
     "agreement": "I agree to the Terms and Conditions",
     "readTerms": "Terms and Conditions",
-    "acceptance": {
-      "title": "1. Acceptance of Terms",
-      "content": "By accessing and using this platform, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service."
+    "lastUpdated": "Last updated: December 2024",
+    "intro": {
+      "title": "Introduction and Appendices",
+      "content": "The introduction to this agreement and its appendices form an integral part thereof. Section headings in this agreement are for convenience only and shall not be used for interpretation purposes."
     },
-    "services": {
-      "title": "2. Use of Services",
-      "content": "This platform provides event management and supplier connection services. You may use our services for lawful purposes only. You agree not to use the service in any way that violates any applicable federal, state, local, or international law or regulation."
+    "definitions": {
+      "title": "1. Definitions",
+      "platform": "\"Platform\" - An online system operated by the Company, enabling connection between suppliers and clients.",
+      "client": "\"Client\" - A person or entity interested in purchasing services or products from the Supplier through the Platform.",
+      "services": "\"Services/Products\" - Services and/or products offered by the Supplier to clients through the Platform.",
+      "usageFees": "\"Usage Fees\" - Monthly payment due to the Company for use of the Platform and clearing services, as detailed in the Compensation Appendix.",
+      "clientAgreement": "\"Client Agreement\" - Agreement between the Supplier and Client for provision of Services/Products."
     },
-    "userAccounts": {
-      "title": "3. User Accounts",
-      "content": "When you create an account with us, you must provide information that is accurate, complete, and current at all times. You are responsible for safeguarding the password and for all activities that occur under your account."
+    "nature": {
+      "title": "2. Nature of Engagement",
+      "content1": "The Company grants the Supplier a non-exclusive right to use the Platform for presenting their Services/Products to potential clients.",
+      "content2": "The Platform serves as a means of connecting the Supplier with potential clients and provides clearing services for transactions conducted.",
+      "content3": "The engagement for provision of Services/Products shall be direct between the Supplier and Client, in accordance with a Client Agreement signed between them.",
+      "content4": "The Supplier undertakes to provide Services/Products to clients in accordance with the Client Agreement and high professional standards."
     },
-    "privacy": {
-      "title": "4. Privacy Policy",
-      "content": "Your privacy is important to us. Our Privacy Policy explains how we collect, use, and protect your information when you use our service. By using our service, you agree to the collection and use of information in accordance with our Privacy Policy."
+    "supplierObligations": {
+      "title": "3. Supplier Declarations and Undertakings",
+      "content1": "The Supplier declares that they possess the knowledge, skill, experience, licenses, and permits required for provision of Services/Products.",
+      "content2": "The Supplier undertakes to provide accurate and updated information about Services/Products offered, including prices, delivery times, and additional terms.",
+      "content3": "The Supplier undertakes to fulfill all obligations to clients in accordance with the Client Agreement.",
+      "content4": "The Supplier undertakes to indemnify the Company for any damage caused as a result of breach of obligations to clients or to the Company.",
+      "content5": "The Supplier undertakes to act in accordance with all applicable laws and bear full responsibility for Services/Products supplied."
+    },
+    "companyObligations": {
+      "title": "4. Company Declarations and Undertakings",
+      "content1": "The Company undertakes to maintain the Platform and ensure its availability reasonably, except in cases of maintenance, malfunctions, or force majeure.",
+      "content2": "The Company will provide the Supplier access to a management system enabling updates to Service/Product details offered.",
+      "content3": "The Company will provide clearing services for transactions conducted through the Platform.",
+      "content4": "The Company is not responsible for the quality of Services/Products supplied by the Supplier to clients."
+    },
+    "orderProcess": {
+      "title": "5. Order and Clearing Process",
+      "content1": "A client interested in Supplier's Services/Products will place an order through the Platform.",
+      "content2": "Upon order approval by the Supplier, a Client Agreement will be created between the Supplier and Client.",
+      "content3": "Payment for Services/Products will be made through the Platform's clearing system.",
+      "content4": "The Company will transfer compensation to the Supplier for Services/Products, minus direct clearing expenses paid to clearing companies or credit card companies. If the Supplier owes the Company usage fees, minus usage fees due to the Company, according to timeframes detailed in the Compensation Appendix.",
+      "content5": "The Company will provide the Supplier with periodic reports detailing transactions conducted, payments received, and usage fees deducted."
+    },
+    "compensation": {
+      "title": "6. Compensation",
+      "content1": "In consideration for use of the Platform and clearing services, the Supplier shall pay the Company usage fees at the rate detailed in the Compensation Appendix.",
+      "content2": "Usage fees shall be paid directly monthly to the Company, and the Company has the right to deduct them directly from payments received from clients for Services/Products.",
+      "content3": "The Company shall be entitled to update the usage fee amount with 30 days' advance notice to the Supplier."
+    },
+    "taxes": {
+      "title": "7. Taxes",
+      "content1": "Each party shall bear tax payments applicable to them by law.",
+      "content2": "The Supplier is responsible for issuing proper tax invoices to clients for Services/Products supplied.",
+      "content3": "The Company will issue a tax invoice to the Supplier for commission collected."
+    },
+    "intellectualProperty": {
+      "title": "8. Intellectual Property",
+      "content1": "All intellectual property rights in the Platform belong to the Company.",
+      "content2": "The Supplier grants the Company a non-exclusive license to use their name, logo, and Service/Product descriptions for advertising and display on the Platform.",
+      "content3": "The Supplier declares that they own all intellectual property rights in Services/Products offered, or have a valid license to use them."
+    },
+    "confidentiality": {
+      "title": "9. Confidentiality and Information Protection",
+      "content1": "Each party undertakes to maintain confidentiality of the other party's confidential information and not use it except for purposes of fulfilling this agreement.",
+      "content2": "The Company will maintain privacy of Supplier and client information in accordance with its Privacy Policy and provisions of all applicable laws.",
+      "content3": "The Supplier undertakes to maintain privacy of client information in accordance with provisions of all applicable laws."
     },
     "liability": {
-      "title": "5. Limitation of Liability",
-      "content": "In no event shall the platform, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses."
+      "title": "10. Limitation of Liability",
+      "content1": "The Company shall not be liable for indirect, consequential, or special damages caused to the Supplier.",
+      "content2": "The Company's liability to the Supplier for direct damages shall be limited to the amount of commissions paid to the Company by the Supplier in the 12 months preceding the damage event.",
+      "content3": "The Supplier shall be exclusively liable to clients regarding Services/Products supplied by them."
+    },
+    "indemnification": {
+      "title": "11. Indemnification",
+      "content1": "The Supplier undertakes to indemnify the Company for any claim, demand, loss, damage, or expense caused as a result of breach of Supplier's obligations under this agreement or as a result of Services/Products supplied by them.",
+      "content2": "The Company will notify the Supplier of any such claim or demand and allow them to defend against it."
     },
     "termination": {
-      "title": "6. Termination",
-      "content": "We may terminate or suspend your account immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms. Upon termination, your right to use the service will cease immediately."
+      "title": "12. Agreement Term and Termination",
+      "content1": "This agreement shall be in effect for 12 months from signing date and will automatically renew for additional 12-month periods, unless either party notifies the other of non-renewal at least 30 days before end of agreement term.",
+      "content2": "Either party may terminate the agreement with 60 days' advance notice to the other party.",
+      "content3": "Either party may terminate the agreement immediately in case of material breach by the other party, not remedied within 14 days from notice of breach.",
+      "content4": "Upon agreement termination, the Supplier shall cease offering Services/Products through the Platform, but shall be obligated to complete supply of Services/Products ordered before termination date.",
+      "content5": "Provisions of sections 7, 8, 9, 10, 11, and 13 shall continue to apply after agreement termination."
     },
-    "changes": {
-      "title": "7. Changes to Terms",
-      "content": "We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days notice prior to any new terms taking effect."
+    "general": {
+      "title": "13. General Provisions",
+      "content1": "This agreement exhausts all agreements between the parties. The Company has the right to change and update agreement terms and/or appendices from time to time (and change or update them again accordingly), and from the date the Company gives notice to the Supplier of agreement change, the agreement as it is in its version at that time shall apply to relations between the parties.",
+      "content2": "Nothing in this agreement creates employee-employer, partnership, or agency relations between the parties.",
+      "content3": "The Supplier may not assign their rights or obligations under this agreement without the Company's prior written consent.",
+      "content4": "Non-enforcement of any provision of this agreement shall not be considered a waiver of any right.",
+      "content5": "The law applicable to this agreement is the laws of the State of Israel, and exclusive jurisdiction is given to competent courts in Tel Aviv district.",
+      "content6": "Party addresses for purposes of this agreement are as detailed in the introduction, and any notice sent by registered mail shall be deemed to have reached its destination within 72 hours of dispatch.",
+      "content7": "This agreement shall bind the parties even without signing, and Supplier's use of the Platform constitutes agreement and undertaking by the Supplier to act according to provisions of this agreement."
+    },
+    "appendixA": {
+      "title": "Appendix A - Compensation",
+      "usageFeeAmount": "1. Usage Fee Amount",
+      "content1": "For use of the Platform and clearing services, the Supplier shall pay the Company usage fees in an amount determined by the Company with notice provided to the Supplier.",
+      "content2": "During the trial period, usage fees shall be 0 (zero new shekels). At end of trial period, the Company will notify the Supplier of the first usage fee amount.",
+      "content3": "In addition to usage fees, the Supplier shall bear actual clearing costs incurred by the Company.",
+      "paymentTerms": "2. Payment Terms",
+      "content4": "The Company will transfer compensation due to the Supplier, minus usage fees due to the Company, within ___ business days from receipt of payment from the client.",
+      "content5": "Payment will be transferred to the Supplier's bank account, as provided to the Company upon Platform registration.",
+      "content6": "The Company will provide the Supplier with a detailed report of transactions and commissions once per month.",
+      "vat": "3. Value Added Tax",
+      "content7": "Usage fees do not include VAT and it will be added to payment at the rate prescribed by law.",
+      "content8": "The Company will issue a tax invoice to the Supplier for usage fees collected."
+    },
+    "appendixB": {
+      "title": "Appendix B - Service Level Agreement (SLA)",
+      "availability": "1. Platform Availability",
+      "content1": "The Company will strive to provide Platform availability of at least 99%, except during scheduled maintenance times.",
+      "content2": "The Company will notify the Supplier in advance of scheduled maintenance times, as much as possible.",
+      "responseTime": "2. Malfunction Response Times",
+      "content3": "The Company will respond to critical malfunctions disabling Platform use within ___ hours from report.",
+      "content4": "The Company will respond to non-critical malfunctions within ___ business hours from report.",
+      "customerService": "3. Customer Service",
+      "content5": "The Company will provide customer service to the Supplier on days Sunday-Thursday between hours 9:00-17:00.",
+      "content6": "Response time to Supplier inquiries will not exceed ___ business hours."
     },
     "contact": {
-      "title": "8. Contact Information",
+      "title": "Contact Information",
       "content": "If you have any questions about these Terms and Conditions, please contact us at support@pic-platform.com or through our contact form on the website."
-    },
-    "lastUpdated": "Last updated: December 2024"
+    }
   },
   "common": {
     "minCharacters": "Min. {{count}} characters",
