@@ -59,7 +59,15 @@
       "stars": "stars",
       "onePackageOnly": "Only one package can be selected per supplier",
       "flexible": "Flexible",
-      "selected": "selected"
+      "selected": "Selected",
+      "reviews": "reviews",
+      "radius": "radius",
+      "experience": "experience",
+      "viewPackages": "View Packages",
+      "hidePackages": "Hide Packages",
+      "selectOnePackage": "Only one package can be selected per supplier",
+      "packageFeatures": "Package Features",
+      "clickToSelect": "Click to Select"
     },
     "step2": {
       "title": "Event Details", 
@@ -951,7 +959,10 @@
     "accessDenied": "Access Denied",
     "pleaseSignInToAccessDashboard": "Please sign in to access the dashboard.",
     "signedOut": "Signed Out",
-    "signedOutSuccessfully": "You have been successfully signed out."
+    "signedOutSuccessfully": "You have been successfully signed out.",
+    "showLess": "Show Less",
+    "readMore": "Read More",
+    "more": "more"
   },
   "profile": {
     "editProfile": "Edit Profile",

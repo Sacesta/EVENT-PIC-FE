@@ -74,6 +74,7 @@ interface Step2_DetailsProps {
 
 // Import constants from the constants file
 import { EVENT_TYPES, POPULAR_LOCATIONS } from './constants';
+import { TicketsSection } from './form-components/TicketsSection';
 
 // Time slots - moved outside component
 const TIME_SLOTS = [
@@ -558,75 +559,6 @@ const TicketItem = React.memo<{
   );
 });
 
-// Tickets Section Component
-const TicketsSection = React.memo<{
-  tickets: Ticket[];
-  onUpdate: (id: string, updates: Partial<Ticket>) => void;
-  onAdd: () => void;
-  onRemove: (id: string) => void;
-}>(({ tickets, onUpdate, onAdd, onRemove }) => {
-  const totalRevenue = useMemo(() => {
-    return tickets.reduce(
-      (sum, ticket) => sum + ticket.quantity * ticket.price,
-      0
-    );
-  }, [tickets]);
-
-  const totalTickets = useMemo(() => {
-    return tickets.reduce((sum, t) => sum + t.quantity, 0);
-  }, [tickets]);
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h4 className="font-medium">Event Tickets</h4>
-        <Button onClick={onAdd} size="sm" className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Add Ticket Type
-        </Button>
-      </div>
-
-      {tickets.length === 0 ? (
-        <Card className="p-6 text-center">
-          <Ticket className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-          <p className="text-gray-600 mb-3">No tickets created yet</p>
-          <Button onClick={onAdd} variant="outline">
-            Create First Ticket
-          </Button>
-        </Card>
-      ) : (
-        <>
-          <div className="space-y-3">
-            {tickets.map((ticket) => (
-              <TicketItem
-                key={ticket.id}
-                ticket={ticket}
-                onUpdate={onUpdate}
-                onRemove={onRemove}
-              />
-            ))}
-          </div>
-
-          <Card className="p-4 bg-primary/5 border-primary/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Total Expected Revenue</p>
-                <p className="text-sm text-gray-600">
-                  {totalTickets} tickets available
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-primary">
-                  ₪{totalRevenue.toFixed(2)}
-                </p>
-              </div>
-            </div>
-          </Card>
-        </>
-      )}
-    </div>
-  );
-});
 
 // Main Component
 const Step2_Details: React.FC<Step2_DetailsProps> = ({
@@ -1007,6 +939,7 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
                 onUpdate={handleUpdateTicket}
                 onAdd={handleAddTicket}
                 onRemove={handleRemoveTicket}
+                disabled={!eventData.isPaid}
               />
               {errors.tickets && (
                 <p className="text-sm text-red-500 flex items-center gap-1 mt-2">

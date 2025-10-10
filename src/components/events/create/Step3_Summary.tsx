@@ -56,13 +56,14 @@ interface Step3_SummaryProps {
 }
 
 const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCreateEvent, isEditMode = false, eventId }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, isLoadingUser } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
   const [supplierDetails, setSupplierDetails] = useState<{ [key: string]: SupplierData }>({});
   const [loadingSuppliers, setLoadingSuppliers] = useState(false);
+  const isRTL = i18n.language === 'he';
 
   const serviceIcons: { [key: string]: React.ComponentType<{ className?: string }> } = {
     'photography': Camera,
@@ -489,7 +490,7 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
           {/* Event Overview */}
           <Card>
             <CardHeader className="pb-2 sm:pb-3">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <CardTitle className={`flex items-center gap-2 text-base sm:text-lg ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                 {t('createEvent.step3.eventOverview')}
               </CardTitle>
@@ -507,19 +508,19 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                <div className="flex items-center gap-2 text-xs sm:text-sm">
+                <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                   <span className="truncate">{eventData.date ? format(new Date(eventData.date), 'PPP') : ''}</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs sm:text-sm">
+                <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                   <span>{eventData.time}</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs sm:text-sm sm:col-span-2">
+                <div className={`flex items-center gap-2 text-xs sm:text-sm sm:col-span-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                   <span className="break-words">{eventData.location}</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs sm:text-sm sm:col-span-2">
+                <div className={`flex items-center gap-2 text-xs sm:text-sm sm:col-span-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                   <span>
                     {eventData.isPaid 
@@ -530,15 +531,15 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className={`flex flex-wrap gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 {eventData.isPrivate && (
-                  <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                  <Badge variant="outline" className={`flex items-center gap-1 text-xs ${isRTL ? 'flex-row-reverse' : ''}`}>
                     <Lock className="h-2 w-2 sm:h-3 sm:w-3" />
                     {t('createEvent.step3.private')}
                   </Badge>
                 )}
                 {eventData.isPaid && (
-                  <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                  <Badge variant="outline" className={`flex items-center gap-1 text-xs ${isRTL ? 'flex-row-reverse' : ''}`}>
                     <DollarSign className="h-2 w-2 sm:h-3 sm:w-3" />
                     {t('createEvent.step3.paid')}
                   </Badge>
@@ -550,14 +551,14 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
           {/* Services & Suppliers */}
           <Card>
             <CardHeader className="pb-2 sm:pb-3">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <CardTitle className={`flex items-center gap-2 text-base sm:text-lg ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                 {t('createEvent.step3.servicesSuppliers')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-3 sm:p-6">
               <div className="space-y-3 sm:space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-xs sm:text-sm">
+                <div className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-xs sm:text-sm ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
                   <span className="font-medium">{eventData.services?.length || 0} {t('createEvent.step3.servicesSelected')}</span>
                   <span className="font-medium">{getSelectedSuppliersCount()} {t('createEvent.step3.suppliersSelected')}</span>
                 </div>
@@ -569,18 +570,18 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
                     
                     return (
                       <div key={service} className="p-3 sm:p-4 bg-muted/50 rounded-lg">
-                        <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                        <div className={`flex items-center gap-2 sm:gap-3 mb-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                           <IconComponent className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
                           <span className="font-medium text-xs sm:text-sm">{t(`${service}`)}</span>
-                          <Badge variant="secondary" className="px-2 sm:px-3 py-1 text-xs ml-auto">
+                          <Badge variant="secondary" className={`px-2 sm:px-3 py-1 text-xs ${isRTL ? 'mr-auto' : 'ml-auto'}`}>
                             {Object.keys(serviceSuppliers).length} supplier{Object.keys(serviceSuppliers).length !== 1 ? 's' : ''}
                           </Badge>
                         </div>
                         
                         {Object.keys(serviceSuppliers).length > 0 && (
-                          <div className="ml-6 sm:ml-8 space-y-2">
+                          <div className={`space-y-2 ${isRTL ? 'mr-6 sm:mr-8' : 'ml-6 sm:ml-8'}`}>
                             {loadingSuppliers ? (
-                              <div className="text-xs text-gray-500 flex items-center gap-2">
+                              <div className={`text-xs text-muted-foreground flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                 <Loader2 className="w-3 h-3 animate-spin" />
                                 Loading supplier details...
                               </div>
@@ -591,14 +592,14 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
                                 const supplierLocation = supplier?.supplierDetails?.location?.city || 'Unknown Location';
                                 
                                 return (
-                                  <div key={supplierId} className="flex items-center justify-between p-2 bg-white rounded border border-gray-200">
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center">
-                                        <Users className="w-4 h-4 text-blue-600" />
+                                  <div key={supplierId} className={`flex items-center justify-between p-2 bg-card rounded border border-border ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                    <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                      <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900 dark:to-indigo-900 rounded-full flex items-center justify-center">
+                                        <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                       </div>
                                       <div>
-                                        <div className="text-xs font-medium text-gray-900">{supplierName}</div>
-                                        <div className="text-xs text-gray-500 flex items-center gap-1">
+                                        <div className="text-xs font-medium text-card-foreground">{supplierName}</div>
+                                        <div className={`text-xs text-muted-foreground flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
                                           <MapPin className="w-2 h-2" />
                                           {supplierLocation}
                                         </div>
@@ -625,7 +626,7 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
           {eventData.isPaid && eventData.tickets && eventData.tickets.length > 0 && (
             <Card>
               <CardHeader className="pb-2 sm:pb-3">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <CardTitle className={`flex items-center gap-2 text-base sm:text-lg ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
                   {t('createEvent.step3.ticketing')}
                 </CardTitle>
@@ -633,22 +634,22 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
               <CardContent className="p-3 sm:p-6">
                 <div className="space-y-3 sm:space-y-4">
                   {eventData.tickets.map((ticket) => (
-                    <div key={ticket.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-muted/50 rounded-lg gap-2 sm:gap-0">
+                    <div key={ticket.id} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-muted/50 rounded-lg gap-2 sm:gap-0 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
                       <div className="min-w-0 flex-1">
                         <span className="font-medium text-sm sm:text-base block truncate">{ticket.name}</span>
                         <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                           {ticket.quantity} {t('createEvent.step3.tickets')} × ₪{ticket.price}
                         </p>
                       </div>
-                      <span className="font-semibold text-base sm:text-lg text-right">₪{(ticket.quantity * ticket.price).toFixed(2)}</span>
+                      <span className={`font-semibold text-base sm:text-lg ${isRTL ? 'text-left' : 'text-right'}`}>₪{(ticket.quantity * ticket.price).toFixed(2)}</span>
                     </div>
                   ))}
                   
                   <Separator className="my-3 sm:my-4" />
                   
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between font-semibold text-base sm:text-lg p-3 bg-primary/10 rounded-lg gap-2 sm:gap-0">
+                  <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between font-semibold text-base sm:text-lg p-3 bg-primary/10 rounded-lg gap-2 sm:gap-0 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
                     <span>{t('createEvent.step3.totalRevenue')}</span>
-                    <span className="text-right">₪{getTotalRevenue().toFixed(2)}</span>
+                    <span className={`${isRTL ? 'text-left' : 'text-right'}`}>₪{getTotalRevenue().toFixed(2)}</span>
                   </div>
                 </div>
               </CardContent>

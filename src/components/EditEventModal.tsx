@@ -416,12 +416,10 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
         suppliers.push({ supplierId, services });
       });
 
-      // Valid service categories - All 21 categories
+      // Valid service categories - 13 categories
       const validServiceCategories = [
-        'photography', 'videography', 'catering', 'bar', 'music', 'musicians',
-        'decoration', 'scenery', 'lighting', 'sound', 'sounds_lights',
-        'transportation', 'security', 'first_aid', 'insurance', 
-        'furniture', 'tents', 'location', 'dj', 'other'
+        'dj', 'security', 'scenery', 'sounds_lights', 'catering', 'bar',
+        'first_aid', 'musicians', 'insurance', 'photography', 'location', 'transportation', 'other'
       ];
 
       const serviceMapping: { [key: string]: string } = {
@@ -945,28 +943,21 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                           <SelectTrigger className="flex-1">
                             <SelectValue placeholder={t('events.editEventModal.selectServiceCategory')} />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="photography">{t('categories.photography')}</SelectItem>
-                            <SelectItem value="videography">{t('categories.videography')}</SelectItem>
-                            <SelectItem value="catering">{t('categories.catering')}</SelectItem>
-                            <SelectItem value="bar">{t('categories.bar')}</SelectItem>
-                            <SelectItem value="music">{t('categories.music')}</SelectItem>
-                            <SelectItem value="musicians">{t('categories.musicians')}</SelectItem>
-                            <SelectItem value="decoration">{t('categories.decoration')}</SelectItem>
-                            <SelectItem value="scenery">{t('categories.scenery')}</SelectItem>
-                            <SelectItem value="lighting">{t('categories.lighting')}</SelectItem>
-                            <SelectItem value="sound">{t('categories.sound')}</SelectItem>
-                            <SelectItem value="sounds_lights">{t('categories.sounds_lights')}</SelectItem>
-                            <SelectItem value="transportation">{t('categories.transportation')}</SelectItem>
-                            <SelectItem value="security">{t('categories.security')}</SelectItem>
-                            <SelectItem value="first_aid">{t('categories.first_aid')}</SelectItem>
-                            <SelectItem value="insurance">{t('categories.insurance')}</SelectItem>
-                            <SelectItem value="furniture">{t('categories.furniture')}</SelectItem>
-                            <SelectItem value="tents">{t('categories.tents')}</SelectItem>
-                            <SelectItem value="location">{t('categories.location')}</SelectItem>
-                            <SelectItem value="dj">{t('categories.dj')}</SelectItem>
-                            <SelectItem value="other">{t('categories.other')}</SelectItem>
-                          </SelectContent>
+                        <SelectContent>
+                          <SelectItem value="dj">{t('categories.dj')}</SelectItem>
+                          <SelectItem value="security">{t('categories.security')}</SelectItem>
+                          <SelectItem value="scenery">{t('categories.scenery')}</SelectItem>
+                          <SelectItem value="sounds_lights">{t('categories.sounds_lights')}</SelectItem>
+                          <SelectItem value="catering">{t('categories.catering')}</SelectItem>
+                          <SelectItem value="bar">{t('categories.bar')}</SelectItem>
+                          <SelectItem value="first_aid">{t('categories.first_aid')}</SelectItem>
+                          <SelectItem value="musicians">{t('categories.musicians')}</SelectItem>
+                          <SelectItem value="insurance">{t('categories.insurance')}</SelectItem>
+                          <SelectItem value="photography">{t('categories.photography')}</SelectItem>
+                          <SelectItem value="location">{t('categories.location')}</SelectItem>
+                          <SelectItem value="transportation">{t('categories.transportation')}</SelectItem>
+                          <SelectItem value="other">{t('categories.other')}</SelectItem>
+                        </SelectContent>
                         </Select>
                         <Button 
                           onClick={fetchSuppliersForCategory}

@@ -89,12 +89,10 @@ export const EnhancedEventsSection: React.FC<EnhancedEventsSectionProps> = ({
     }, { upcomingEvents: [] as EnhancedEvent[], pastEvents: [] as EnhancedEvent[] });
   }, [events, currentDate]);
 
-  // Static list of all 21 service categories
+  // Static list of 13 service categories
   const uniqueCategories = [
-    'photography', 'videography', 'catering', 'bar', 'music', 'musicians',
-    'decoration', 'scenery', 'lighting', 'sound', 'sounds_lights',
-    'transportation', 'security', 'first_aid', 'insurance', 
-    'furniture', 'tents', 'location', 'dj', 'other'
+    'dj', 'security', 'scenery', 'sounds_lights', 'catering', 'bar',
+    'first_aid', 'musicians', 'insurance', 'photography', 'location', 'transportation', 'other'
   ];
 
   const uniqueStatuses = useMemo(() => {

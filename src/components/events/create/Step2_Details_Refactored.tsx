@@ -65,12 +65,6 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({ eventData, onUpdate, onNe
         newErrors.name = t("auth.validation.required");
       }
 
-      if (!eventData.description.trim()) {
-        newErrors.description = t("auth.validation.required");
-      } else if (eventData.description.trim().length < 10) {
-        newErrors.description = "Description must be at least 10 characters";
-      }
-
       if (!eventData.date) {
         newErrors.date = t("auth.validation.required");
       }
@@ -230,8 +224,6 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({ eventData, onUpdate, onNe
     const isFormValid = useMemo(() => {
       return (
         eventData.name.trim() &&
-        eventData.description.trim() &&
-        eventData.description.trim().length >= 10 &&
         eventData.date &&
         eventData.time &&
         eventData.location.trim() &&
@@ -383,16 +375,14 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({ eventData, onUpdate, onNe
               )}
             </div>
 
-            {/* Event Description */}
-            <MemoizedTextarea
-              label={t("createEvent.step2.description")}
-              placeholder={t("createEvent.step2.descriptionPlaceholder")}
-              value={eventData.description}
-              onChange={handleDescriptionChange}
-              required
-              error={errors.description}
-              minLength={10}
-            />
+          {/* Event Description */}
+          <MemoizedTextarea
+            label={t("createEvent.step2.description")}
+            placeholder={t("createEvent.step2.descriptionPlaceholder")}
+            value={eventData.description}
+            onChange={handleDescriptionChange}
+            error={errors.description}
+          />
           </div>
         </div>
 

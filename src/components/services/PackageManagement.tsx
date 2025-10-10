@@ -154,6 +154,16 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
       return;
     }
 
+    // Check if service is disabled
+    if (!service.available) {
+      toast({
+        title: t('common.error', 'Error'),
+        description: t('packages.serviceDisabledError', 'Cannot add or edit packages for a disabled service. Please enable the service first.'),
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       let packageId: string;
@@ -274,6 +284,27 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
             {t('packages.manageDescription', 'Add and manage packages for this service')}
           </DialogDescription>
         </DialogHeader>
+
+        {/* Service Disabled Warning */}
+        {!service.available && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-red-800">
+                  {t('packages.serviceDisabled', 'Service is Disabled')}
+                </h3>
+                <p className="mt-1 text-sm text-red-700">
+                  {t('packages.serviceDisabledMessage', 'This service is currently disabled. You cannot add, edit, or delete packages while the service is disabled. Please enable the service first to manage packages.')}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-6">
           {/* Add/Edit Package Form */}
@@ -445,7 +476,7 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
                     <Button type="button" variant="outline" onClick={resetForm}>
                       {t('common.cancel', 'Cancel')}
                     </Button>
-                    <Button type="submit" disabled={isLoading}>
+                    <Button type="submit" disabled={isLoading || !service.available}>
                       {isLoading 
                         ? t('common.saving', 'Saving...') 
                         : editingPackage 
@@ -462,7 +493,12 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
           {/* Add Package Button */}
           {!isAddingPackage && (
             <div className="flex justify-center">
-              <Button onClick={() => setIsAddingPackage(true)} className="flex items-center gap-2">
+              <Button 
+                onClick={() => setIsAddingPackage(true)} 
+                className="flex items-center gap-2"
+                disabled={!service.available}
+                title={!service.available ? t('packages.serviceDisabledTooltip', 'Enable the service to add packages') : ''}
+              >
                 <Plus className="h-4 w-4" />
                 {t('packages.addNewPackage', 'Add New Package')}
               </Button>
@@ -485,7 +521,11 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
                   <p className="text-muted-foreground text-center mb-4">
                     {t('packages.noPackagesDescription', 'Create packages to offer different service options to your clients')}
                   </p>
-                  <Button onClick={() => setIsAddingPackage(true)} className="flex items-center gap-2">
+                  <Button 
+                    onClick={() => setIsAddingPackage(true)} 
+                    className="flex items-center gap-2"
+                    disabled={!service.available}
+                  >
                     <Plus className="h-4 w-4" />
                     {t('packages.createFirstPackage', 'Create Your First Package')}
                   </Button>
@@ -553,6 +593,8 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
                           size="sm"
                           onClick={() => handleEditPackage(pkg)}
                           className="flex items-center gap-2"
+                          disabled={!service.available}
+                          title={!service.available ? t('packages.serviceDisabledTooltip', 'Enable the service to edit packages') : ''}
                         >
                           <Edit className="h-4 w-4" />
                           {t('common.edit', 'Edit')}
@@ -562,6 +604,8 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
                           size="sm"
                           onClick={() => handleDeletePackage(pkg._id)}
                           className="flex items-center gap-2"
+                          disabled={!service.available}
+                          title={!service.available ? t('packages.serviceDisabledTooltip', 'Enable the service to delete packages') : ''}
                         >
                           <Trash2 className="h-4 w-4" />
                           {t('common.delete', 'Delete')}

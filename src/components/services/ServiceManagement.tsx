@@ -14,10 +14,8 @@ import EditServiceModal from './EditServiceModal';
 import PackageManagement from './PackageManagement';
 
 const SERVICE_CATEGORIES = [
-  'all', 'photography', 'videography', 'catering', 'bar', 'music', 'musicians',
-  'decoration', 'scenery', 'lighting', 'sound', 'sounds_lights',
-  'transportation', 'security', 'first_aid', 'insurance', 
-  'furniture', 'tents', 'location', 'dj', 'other'
+  'all', 'dj', 'security', 'scenery', 'sounds_lights', 'catering', 'bar',
+  'first_aid', 'musicians', 'insurance', 'photography', 'location', 'transportation' ,'other'
 ];
 
 interface ServiceManagementProps {

@@ -48,27 +48,20 @@ import { cn } from '@/lib/utils';
 import apiService from '@/services/api';
 import { autoTranslate } from '@/utils/autoTranslate';
 
-// Service categories with icons - using translation keys (All 21 categories)
+// Service categories with icons - using translation keys (12 categories)
 const SERVICE_CATEGORIES = [
-  { key: 'photography', icon: Camera, labelKey: 'categories.photography', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
-  { key: 'videography', icon: Video, labelKey: 'categories.videography', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
+  { key: 'dj', icon: Disc3, labelKey: 'categories.dj', color: 'bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-300' },
+  { key: 'security', icon: Shield, labelKey: 'categories.security', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
+  { key: 'scenery', icon: Image, labelKey: 'categories.scenery', color: 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300' },
+  { key: 'sounds_lights', icon: Zap, labelKey: 'categories.sounds_lights', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300' },
   { key: 'catering', icon: UtensilsCrossed, labelKey: 'categories.catering', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
   { key: 'bar', icon: Wine, labelKey: 'categories.bar', color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' },
-  { key: 'music', icon: Music, labelKey: 'categories.music', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' },
-  { key: 'musicians', icon: Music2, labelKey: 'categories.musicians', color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' },
-  { key: 'decoration', icon: Palette, labelKey: 'categories.decoration', color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300' },
-  { key: 'scenery', icon: Image, labelKey: 'categories.scenery', color: 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300' },
-  { key: 'lighting', icon: Lightbulb, labelKey: 'categories.lighting', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' },
-  { key: 'sound', icon: Volume2, labelKey: 'categories.sound', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300' },
-  { key: 'sounds_lights', icon: Zap, labelKey: 'categories.sounds_lights', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300' },
-  { key: 'transportation', icon: Car, labelKey: 'categories.transportation', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' },
-  { key: 'security', icon: Shield, labelKey: 'categories.security', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
   { key: 'first_aid', icon: Heart, labelKey: 'categories.first_aid', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
+  { key: 'musicians', icon: Music2, labelKey: 'categories.musicians', color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' },
   { key: 'insurance', icon: ShieldCheck, labelKey: 'categories.insurance', color: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300' },
-  { key: 'furniture', icon: Armchair, labelKey: 'categories.furniture', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' },
-  { key: 'tents', icon: Home, labelKey: 'categories.tents', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
-  { key: 'location', icon: Building, labelKey: 'categories.location', color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' },
-  { key: 'dj', icon: Disc3, labelKey: 'categories.dj', color: 'bg-lime-100 text-lime-700 dark:bg-lime-900/30 dark:text-lime-300' },
+  { key: 'photography', icon: Camera, labelKey: 'categories.photography', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
+  { key: 'location', icon: MapPin, labelKey: 'categories.location', color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' },
+  { key: 'transportation', icon: Car, labelKey: 'categories.transportation', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300' },
   { key: 'other', icon: Grid3X3, labelKey: 'categories.other', color: 'bg-muted text-muted-foreground' }
 ];
 
@@ -217,7 +210,127 @@ const ServiceCategoryCard = React.memo(({
   );
 });
 
-// Supplier Card Component - Mobile Optimized
+// Enhanced Package Card Component - Fully Clickable with Complete Details
+const EnhancedPackageCard = React.memo(({ 
+  pkg,
+  service,
+  isSelected,
+  onSelect,
+  i18nLanguage
+}: {
+  pkg: any;
+  service: ServiceWithSupplier;
+  isSelected: boolean;
+  onSelect: () => void;
+  i18nLanguage: string;
+}) => {
+  const { t } = useTranslation();
+  const [showAllFeatures, setShowAllFeatures] = useState(false);
+
+  const formatPrice = (price: number, currency: string) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency || 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
+  };
+
+  return (
+    <div
+      onClick={onSelect}
+      className={cn(
+        "relative rounded-lg border-2 transition-all duration-300 cursor-pointer group",
+        "hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
+        isSelected
+          ? "border-primary bg-primary/10 shadow-md ring-2 ring-primary/20 dark:bg-primary/20"
+          : "border-border bg-card hover:border-primary/50 dark:bg-card"
+      )}
+    >
+      {/* Selected Indicator */}
+      {isSelected && (
+        <div className="absolute -top-2 -right-2 z-10">
+          <div className="bg-primary text-white rounded-full p-1 shadow-lg">
+            <CheckCircle className="w-5 h-5" />
+          </div>
+        </div>
+      )}
+
+      {/* Popular Badge */}
+      {pkg.isPopular && (
+        <div className="absolute -top-2 -left-2 z-10">
+          <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2 py-1 shadow-lg">
+            🔥 Popular
+          </Badge>
+        </div>
+      )}
+
+      <div className="p-4 space-y-3">
+        {/* Header: Name and Price */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1">
+            <h4 className="text-base md:text-lg font-bold text-foreground capitalize leading-tight">
+              {autoTranslate(pkg.name, i18nLanguage)}
+            </h4>
+            {pkg.description && (
+              <p className="text-xs md:text-sm text-muted-foreground mt-1 line-clamp-2">
+                {autoTranslate(pkg.description, i18nLanguage)}
+              </p>
+            )}
+          </div>
+          <div className="text-right flex-shrink-0">
+            <div className="text-xl md:text-2xl font-bold text-primary">
+              {formatPrice(pkg.price, service.price.currency)}
+            </div>
+            {pkg.duration && pkg.duration > 0 && (
+              <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground mt-1">
+                <Clock className="w-3 h-3" />
+                <span>{pkg.duration}h</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Features List */}
+        {pkg.features && pkg.features.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h5 className="text-xs font-semibold text-foreground uppercase tracking-wide">
+                {t('createEvent.step1.packageFeatures')}
+              </h5>
+              {pkg.features.length > 3 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowAllFeatures(!showAllFeatures);
+                  }}
+                  className="h-6 text-xs px-2"
+                >
+                  {showAllFeatures ? t('common.showLess') : `+${pkg.features.length - 3} ${t('common.more')}`}
+                </Button>
+              )}
+            </div>
+            <ul className="space-y-1.5">
+              {(showAllFeatures ? pkg.features : pkg.features.slice(0, 3)).map((feature: string, idx: number) => (
+                <li key={idx} className="flex items-start gap-2 text-xs md:text-sm">
+                  <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                  <span className="text-foreground">{autoTranslate(feature, i18nLanguage)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Selection Indicator */}
+        
+      </div>
+    </div>
+  );
+});
+
+// Supplier Card Component - Compact for Scalability
 const SupplierCard = React.memo(({ 
   service, 
   selectedSuppliers, 
@@ -232,8 +345,6 @@ const SupplierCard = React.memo(({
   onPackageSelect: (serviceId: string, packageId: string | null, packageDetails: any | null) => void;
 }) => {
   const { t, i18n } = useTranslation();
-
-  console.log("service.supplier.location?.city", service.location?.city);
   const [showPackages, setShowPackages] = useState(false);
 
   // Check if this supplier's service is selected
@@ -241,6 +352,13 @@ const SupplierCard = React.memo(({
   
   // Get selected package for this service from global state
   const selectedPackageId = globalSelectedPackages[service.serviceId]?.packageId || null;
+
+  // Auto-expand packages if supplier is selected
+  useEffect(() => {
+    if (isSupplierSelected && service.packages && service.packages.length > 0) {
+      setShowPackages(true);
+    }
+  }, [isSupplierSelected, service.packages]);
 
   const formatPrice = (price: number, currency: string) => {
     return new Intl.NumberFormat('en-US', {
@@ -255,7 +373,6 @@ const SupplierCard = React.memo(({
   const translatePricingType = (pricingType: string) => {
     const pricingKey = `pricing.${pricingType}`;
     const translated = t(pricingKey);
-    // If translation not found, return formatted original
     return translated !== pricingKey ? translated : pricingType.replace('_', ' ');
   };
 
@@ -306,198 +423,126 @@ const SupplierCard = React.memo(({
     }
   };
 
-  const handleSupplierToggle = () => {
-    onSupplierSelect(
-      service.category,
-      service.supplier.supplierId,
-      service.serviceId,
-      !isSupplierSelected
-    );
-  };
-
   return (
     <Card className={cn(
-      "overflow-hidden transition-all duration-200 border bg-card dark:bg-card mb-2",
+      "overflow-hidden transition-all duration-200 border-2 bg-card dark:bg-card mb-2 cursor-pointer",
       isSupplierSelected 
-        ? "border-primary bg-primary/5 shadow-md" 
-        : "border-border hover:shadow-md hover:border-primary/30"
+        ? "border-primary bg-primary/5 shadow-md ring-2 ring-primary/20" 
+        : "border-border hover:shadow-sm hover:border-primary/30"
     )}>
-      {/* Main Supplier Info - Mobile Optimized */}
-      <div className="flex items-center p-2 gap-2 min-h-[60px]">
-        {/* Selection Checkbox */}
-        <div className="flex-shrink-0">
-              
-        </div>
-
-        {/* Image Section */}
-        <div className="w-10 h-10 flex-shrink-0 relative overflow-hidden rounded-md">
-          {service.image ? (
-            <img 
-              src={service.image} 
-              alt={service.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
-              <Users className="w-6 h-6 text-indigo-600" />
-            </div>
-          )}
-          {service.featured && (
-            <div className="absolute -top-1 -left-1">
-              <div className="bg-orange-500 text-white text-xs px-1 py-0.5 rounded-br-md">
-                ⭐
+      {/* Compact Supplier Info - Fully Clickable */}
+      <div 
+        className="p-2"
+        onClick={() => {
+          if (service.packages && service.packages.length > 0) {
+            setShowPackages(!showPackages);
+          }
+        }}
+      >
+        <div className="flex items-center gap-2">
+          {/* Image Section - Compact */}
+          <div className="w-12 h-12 flex-shrink-0 relative overflow-hidden rounded-md">
+            {service.image ? (
+              <img 
+                src={service.image} 
+                alt={service.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900 dark:to-purple-900 flex items-center justify-center">
+                <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Service Info - Compact */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1 mb-1">
-            <h3 className="text-sm font-bold text-foreground truncate">{translatedTitle}</h3>
-            {service.supplier.isVerified && (
-              <CheckCircle className="w-3 h-3 text-green-500 dark:text-green-400 flex-shrink-0" />
+            )}
+            {service.featured && (
+              <div className="absolute -top-1 -left-1">
+                <div className="bg-orange-500 text-white text-xs px-1 rounded-br-md">⭐</div>
+              </div>
             )}
           </div>
-          
-          <div className="flex items-center gap-1 mb-1">
-            <div className="flex">
-              {Array.from({ length: 5 }, (_, i) => (
-                <Star
-                  key={i}
-                  className={cn(
-                    "w-3 h-3",
-                    i < Math.floor(service.rating.average) 
-                      ? "fill-yellow-400 text-yellow-400 dark:fill-yellow-500 dark:text-yellow-500" 
-                      : "text-muted-foreground/30"
-                  )}
-                />
-              ))}
+
+          {/* Service Info - Compact */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1 mb-1">
+              <h3 className="text-sm font-bold text-foreground truncate">{translatedTitle}</h3>
+              {service.supplier.isVerified && (
+                <CheckCircle className="w-3 h-3 text-green-500 dark:text-green-400 flex-shrink-0" />
+              )}
             </div>
-            <span className="text-xs font-medium text-foreground">
-              {service.rating.average.toFixed(1)}
-            </span>
-          </div>
-          
+            
+            {/* Rating - Compact */}
+            <div className="flex items-center gap-1 mb-1">
+              <div className="flex">
+                {Array.from({ length: 5 }, (_, i) => (
+                  <Star
+                    key={i}
+                    className={cn(
+                      "w-3 h-3",
+                      i < Math.floor(service.rating.average) 
+                        ? "fill-yellow-400 text-yellow-400 dark:fill-yellow-500 dark:text-yellow-500" 
+                        : "text-muted-foreground/30"
+                    )}
+                  />
+                ))}
+              </div>
+              <span className="text-xs font-medium text-foreground">
+                {service.rating.average.toFixed(1)}
+              </span>
+            </div>
 
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
-            <span className="font-medium truncate max-w-[60px]">{service.supplier.name}</span>
-            <span>•</span>
-            <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
-            <span className="truncate">{service.location?.city}</span>
+            {/* Supplier & Location - Compact */}
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="font-medium truncate max-w-[100px]">{service.supplier.name}</span>
+              <span>•</span>
+              <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+              <span className="truncate">{service.location?.city}</span>
+            </div>
           </div>
-          
-          <div className="text-sm font-bold text-primary">
-            {formatPrice(service.price.amount, service.price.currency)}
-            <span className="text-xs font-normal text-muted-foreground ml-1">
-              /{translatePricingType(service.price.pricingType)}
-            </span>
-          </div>
-        </div>
 
-        {/* Packages Button - Mobile Optimized with Dark Mode Support */}
-        <div className="flex-shrink-0">
-          {service.packages && service.packages.length > 0 && (
-            <Button
-              onClick={() => setShowPackages(!showPackages)}
-              className={cn(
-                "flex items-center gap-1 px-2 py-1 rounded-lg font-medium transition-all duration-200 text-xs h-8",
+          {/* Price - Compact */}
+          <div className="text-right flex-shrink-0">
+            <div className="text-xs text-muted-foreground">
+              {translatePricingType(service.price.pricingType)}
+            </div>
+          </div>
+
+          {/* Packages Indicator - Compact */}
+          <div className="flex-shrink-0">
+            {service.packages && service.packages.length > 0 && (
+              <div className={cn(
+                "flex items-center gap-1 px-2 py-1 h-7 text-xs font-medium rounded-md transition-all duration-200",
                 showPackages 
-                  ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-md dark:bg-indigo-500 dark:hover:bg-indigo-600" 
-                  : "bg-indigo-100 hover:bg-indigo-200 text-indigo-700 border border-indigo-300 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-300 dark:border-indigo-700"
-              )}
-            >
-              <Package className="w-3 h-3" />
-              <span className="font-semibold">{service.packages.length}</span>
-              {selectedPackageId && (
-                <span className="text-green-400 dark:text-green-300 font-bold">✓1</span>
-              )}
-              <ChevronDown className={cn(
-                "w-3 h-3 transition-transform duration-200",
-                showPackages ? "rotate-180" : ""
-              )} />
-            </Button>
-          )}
+                  ? "bg-indigo-600 text-white dark:bg-indigo-500" 
+                  : "bg-indigo-100 text-indigo-700 border border-indigo-300 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-700"
+              )}>
+                <Package className="w-3 h-3" />
+                <span>{service.packages.length}</span>
+                {selectedPackageId && (
+                  <span className="text-green-400 dark:text-green-300">✓</span>
+                )}
+                <ChevronDown className={cn(
+                  "w-3 h-3 transition-transform duration-200",
+                  showPackages ? "rotate-180" : ""
+                )} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Packages Accordion Content - Mobile Optimized */}
+      {/* Enhanced Packages Section - Full Details */}
       {showPackages && service.packages && service.packages.length > 0 && (
-        <div className="border-t border-border bg-muted/30 p-2">
-          {/* Info message about single package selection */}
-          <div className="mb-2 px-2 py-1.5 bg-primary/10 border border-primary/30 rounded-md">
-            <p className="text-xs text-primary flex items-center gap-1">
-              <AlertCircle className="w-3 h-3 flex-shrink-0" />
-              <span>Only one package can be selected per supplier</span>
-            </p>
-          </div>
-          <div className="space-y-2">
+        <div className="border-t-2 border-border bg-muted/30 dark:bg-muted/10 p-3 md:p-4">
+          {/* Package Grid - Full Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {service.packages.map((pkg) => (
-              <div 
-                key={pkg._id} 
-                  className={cn(
-                    "flex items-center justify-between p-2 rounded-md border transition-all duration-200 bg-card hover:shadow-sm",
-                    selectedPackageId === pkg._id
-                      ? "border-primary bg-primary/10 shadow-sm"
-                      : "border-border hover:border-primary/50"
-                  )}
-              >
-                <div className="flex-1 pr-2">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-1">
-                      <h4 className="text-xs font-bold text-foreground capitalize">
-                        {autoTranslate(pkg.name, i18n.language)}
-                      </h4>
-                      {pkg.isPopular && (
-                        <Badge className="bg-orange-500 text-white text-xs px-1 py-0.5">
-                          🔥
-                        </Badge>
-                      )}
-                    </div>
-                    <span className="text-xs font-bold text-indigo-600">
-                      {formatPrice(pkg.price, service.price.currency)}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    {pkg.duration && pkg.duration > 0 ? (
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-2.5 h-2.5 text-primary" />
-                        {pkg.duration}h
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">Flexible</span>
-                    )}
-                    
-                    {pkg.features && pkg.features.length > 0 && (
-                      <>
-                        <span>•</span>
-                        <span className="truncate">
-                          {pkg.features.slice(0, 1).join(', ')}
-                          {pkg.features.length > 1 && ` +${pkg.features.length - 1}`}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Select Package Checkbox */}
-                <div className="flex-shrink-0">
-                  <div
-                    onClick={() => handlePackageSelect(pkg._id)}
-                    className={cn(
-                      "w-4 h-4 rounded border-2 flex items-center justify-center cursor-pointer transition-all duration-200",
-                      selectedPackageId === pkg._id
-                        ? "bg-primary border-primary"
-                        : "border-border hover:border-primary bg-background"
-                    )}
-                  >
-                    {selectedPackageId === pkg._id && (
-                      <CheckCircle className="w-2.5 h-2.5 text-white" />
-                    )}
-                  </div>
-                </div>
-              </div>
+              <EnhancedPackageCard
+                key={pkg._id}
+                pkg={pkg}
+                service={service}
+                isSelected={selectedPackageId === pkg._id}
+                onSelect={() => handlePackageSelect(pkg._id)}
+                i18nLanguage={i18n.language}
+              />
             ))}
           </div>
         </div>
@@ -629,7 +674,8 @@ const Step1_ServicesAndSuppliers: React.FC<Step1Props> = ({
   onPackagesChange = () => {},
   onNext = () => {} 
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'he';
   const [activeTab, setActiveTab] = useState('services');
   const [suppliers, setSuppliers] = useState<ServiceWithSupplier[]>([]);
   const [loading, setLoading] = useState(false);
@@ -798,7 +844,7 @@ const Step1_ServicesAndSuppliers: React.FC<Step1Props> = ({
 
       {/* Content - Scrollable */}
       <div className="flex-1 overflow-hidden min-h-0">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full flex flex-col">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
           <TabsList className="grid w-full grid-cols-2 flex-shrink-0 mb-3">
             <TabsTrigger value="services" className="flex items-center gap-1 md:gap-2">
               <Palette className="w-3 h-3 md:w-4 md:h-4" />

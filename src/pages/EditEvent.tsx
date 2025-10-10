@@ -342,10 +342,10 @@ const EditEvent: React.FC<EditEventProps> = () => {
 
       console.log('Final suppliers array (backend format with nested services):', suppliers);
 
-      // Valid service categories based on actual backend validation
+      // Valid service categories - 12 categories
       const validServiceCategories = [
-        'photography', 'videography', 'catering', 'music', 
-        'decoration', 'transportation', 'security', 'other'
+        'dj', 'security', 'scenery', 'sounds_lights', 'catering', 'bar',
+        'first_aid', 'musicians', 'insurance', 'photography', 'location', 'transportation','other'
       ];
 
       // Filter and map services to valid categories

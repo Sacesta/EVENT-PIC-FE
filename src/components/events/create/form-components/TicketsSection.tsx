@@ -11,13 +11,15 @@ interface TicketsSectionProps {
   onUpdate: (id: string, updates: Partial<TicketType>) => void;
   onAdd: () => void;
   onRemove: (id: string) => void;
+  disabled?: boolean;
 }
 
 export const TicketsSection = React.memo<TicketsSectionProps>(({ 
   tickets, 
   onUpdate, 
   onAdd, 
-  onRemove 
+  onRemove,
+  disabled = false
 }) => {
   const { t } = useTranslation();
   
@@ -33,19 +35,23 @@ export const TicketsSection = React.memo<TicketsSectionProps>(({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="font-medium">{t('createEvent.step2.ticketTypes')}</h4>
-        <Button onClick={onAdd} size="sm" className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          {t('createEvent.step2.addTicket')}
-        </Button>
+        {!disabled && (
+          <Button onClick={onAdd} size="sm" className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            {t('createEvent.step2.addTicket')}
+          </Button>
+        )}
       </div>
       
       {tickets.length === 0 ? (
         <Card className="p-6 text-center">
           <Ticket className="w-12 h-12 text-gray-400 mx-auto mb-2" />
           <p className="text-gray-600 mb-3">{t('createEvent.step2.noTickets')}</p>
-          <Button onClick={onAdd} variant="outline">
-            {t('createEvent.step2.addTicket')}
-          </Button>
+          {!disabled && (
+            <Button onClick={onAdd} variant="outline">
+              {t('createEvent.step2.addTicket')}
+            </Button>
+          )}
         </Card>
       ) : (
         <>

@@ -132,6 +132,8 @@ export default function ServiceCard({
             size="sm"
             onClick={() => onEdit(service)}
             className="flex items-center gap-2"
+            disabled={!service.available}
+            title={!service.available ? t('services.enableToEdit', 'Enable the service to edit') : ''}
           >
             <Edit className="h-4 w-4" />
             {t('common.edit', 'Edit')}
@@ -142,6 +144,8 @@ export default function ServiceCard({
             size="sm"
             onClick={() => onManagePackages(service)}
             className="flex items-center gap-2"
+            disabled={!service.available}
+            title={!service.available ? t('services.enableToManagePackages', 'Enable the service to manage packages') : ''}
           >
             <Package className="h-4 w-4" />
             {t('services.managePackages', 'Packages')}
