@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { TIME_SLOTS } from '../constants';
 
-interface DateTimeSelectorProps {
+interface DateTimeFieldsProps {
   startDate: string;
   endDate: string;
   startTime: string;
@@ -25,7 +25,7 @@ interface DateTimeSelectorProps {
   endTimeError?: string;
 }
 
-export const DateTimeSelector = React.memo<DateTimeSelectorProps>(({ 
+export const DateTimeFields = React.memo<DateTimeFieldsProps>(({
   startDate,
   endDate,
   startTime,
@@ -42,10 +42,9 @@ export const DateTimeSelector = React.memo<DateTimeSelectorProps>(({
   const { t } = useTranslation();
   const [isStartCalendarOpen, setIsStartCalendarOpen] = useState(false);
   const [isEndCalendarOpen, setIsEndCalendarOpen] = useState(false);
-  
+
   const selectedStartDate = useMemo(() => startDate ? new Date(startDate) : undefined, [startDate]);
   const selectedEndDate = useMemo(() => endDate ? new Date(endDate) : undefined, [endDate]);
-  
   const today = useMemo(() => {
     const todayDate = new Date();
     todayDate.setHours(0, 0, 0, 0);
@@ -54,7 +53,7 @@ export const DateTimeSelector = React.memo<DateTimeSelectorProps>(({
 
   const now = useMemo(() => new Date(), []);
 
-  // Check if selected start date is today
+  // Check if selected date is today
   const isStartToday = useMemo(() => {
     if (!selectedStartDate) return false;
     const selected = new Date(selectedStartDate);
@@ -62,17 +61,14 @@ export const DateTimeSelector = React.memo<DateTimeSelectorProps>(({
     return selected.getTime() === today.getTime();
   }, [selectedStartDate, today]);
 
-  // Check if start and end dates are the same day
-  const isSameDay = useMemo(() => {
-    if (!selectedStartDate || !selectedEndDate) return false;
-    const start = new Date(selectedStartDate);
-    const end = new Date(selectedEndDate);
-    start.setHours(0, 0, 0, 0);
-    end.setHours(0, 0, 0, 0);
-    return start.getTime() === end.getTime();
-  }, [selectedStartDate, selectedEndDate]);
+  const isEndToday = useMemo(() => {
+    if (!selectedEndDate) return false;
+    const selected = new Date(selectedEndDate);
+    selected.setHours(0, 0, 0, 0);
+    return selected.getTime() === today.getTime();
+  }, [selectedEndDate, today]);
 
-  // Filter start time slots to only show future times if today is selected
+  // Filter time slots to only show future times if today is selected
   const availableStartTimeSlots = useMemo(() => {
     if (!isStartToday) {
       return TIME_SLOTS;
@@ -85,62 +81,36 @@ export const DateTimeSelector = React.memo<DateTimeSelectorProps>(({
       const [hours, minutes] = timeSlot.split(':').map(Number);
       const slotTime = hours * 60 + minutes;
       const currentTime = currentHour * 60 + currentMinute;
-      
+
       // Only show time slots that are at least 30 minutes in the future
       return slotTime > currentTime + 30;
     });
   }, [isStartToday, now]);
 
-  // Filter end time slots based on start time if same day
   const availableEndTimeSlots = useMemo(() => {
-    if (!isSameDay || !startTime) {
+    if (!isEndToday) {
       return TIME_SLOTS;
     }
 
-    const [startHours, startMinutes] = startTime.split(':').map(Number);
-    const startTimeInMinutes = startHours * 60 + startMinutes;
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
 
     return TIME_SLOTS.filter(timeSlot => {
       const [hours, minutes] = timeSlot.split(':').map(Number);
       const slotTime = hours * 60 + minutes;
-      
-      // End time must be at least 30 minutes after start time
-      return slotTime > startTimeInMinutes + 30;
+      const currentTime = currentHour * 60 + currentMinute;
+
+      // Only show time slots that are at least 30 minutes in the future
+      return slotTime > currentTime + 30;
     });
-  }, [isSameDay, startTime]);
+  }, [isEndToday, now]);
 
   const handleStartCalendarSelect = useCallback((selectedDate: Date | undefined) => {
     if (selectedDate) {
       onStartDateChange(selectedDate.toISOString());
       setIsStartCalendarOpen(false);
-      
-      // If selecting today and current time is already selected, clear it
-      const selected = new Date(selectedDate);
-      selected.setHours(0, 0, 0, 0);
-      if (selected.getTime() === today.getTime() && startTime) {
-        const [hours, minutes] = startTime.split(':').map(Number);
-        const slotTime = hours * 60 + minutes;
-        const currentTime = now.getHours() * 60 + now.getMinutes();
-        
-        if (slotTime <= currentTime + 30) {
-          onStartTimeChange('');
-        }
-      }
-
-      // If end date is before new start date, clear end date
-      if (endDate) {
-        const newStart = new Date(selectedDate);
-        const currentEnd = new Date(endDate);
-        newStart.setHours(0, 0, 0, 0);
-        currentEnd.setHours(0, 0, 0, 0);
-        
-        if (currentEnd < newStart) {
-          onEndDateChange('');
-          onEndTimeChange('');
-        }
-      }
     }
-  }, [onStartDateChange, today, startTime, now, onStartTimeChange, endDate, onEndDateChange, onEndTimeChange]);
+  }, [onStartDateChange]);
 
   const handleEndCalendarSelect = useCallback((selectedDate: Date | undefined) => {
     if (selectedDate) {
@@ -149,40 +119,35 @@ export const DateTimeSelector = React.memo<DateTimeSelectorProps>(({
     }
   }, [onEndDateChange]);
 
-  const handleStartCalendarOpen = useCallback((open: boolean) => {
-    setIsStartCalendarOpen(open);
+  const disabledStartDateCheck = useCallback((date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
   }, []);
 
-  const handleEndCalendarOpen = useCallback((open: boolean) => {
-    setIsEndCalendarOpen(open);
-  }, []);
-
-  const disabledStartDateCheck = useCallback((date: Date) => date < today, [today]);
-  
   const disabledEndDateCheck = useCallback((date: Date) => {
-    if (!selectedStartDate) return date < today;
-    const start = new Date(selectedStartDate);
-    start.setHours(0, 0, 0, 0);
-    return date < start;
-  }, [selectedStartDate, today]);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
+  }, []);
 
   return (
     <div className="space-y-4">
-      {/* Start Date & Time */}
+      {/* Start Date & Time Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Start Date Picker */}
+        {/* Start Date */}
         <div className="space-y-2">
           <Label className="text-sm font-medium">
             {t('createEvent.step2.startDate')} <span className="text-red-500">*</span>
           </Label>
-          <Popover open={isStartCalendarOpen} onOpenChange={handleStartCalendarOpen}>
+          <Popover open={isStartCalendarOpen} onOpenChange={setIsStartCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
                   "w-full justify-start text-left font-normal",
                   !startDate && "text-muted-foreground",
-                  startDateError ? "border-red-500" : ""
+                  startDateError && "border-red-500"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -207,13 +172,13 @@ export const DateTimeSelector = React.memo<DateTimeSelectorProps>(({
           )}
         </div>
 
-        {/* Start Time Picker */}
+        {/* Start Time */}
         <div className="space-y-2">
           <Label className="text-sm font-medium">
-            {t('createEvent.step2.startTime')} {startDate && <span className="text-red-500">*</span>}
+            {t('createEvent.step2.startTime')} <span className="text-red-500">*</span>
           </Label>
-          <Select 
-            value={startTime} 
+          <Select
+            value={startTime}
             onValueChange={onStartTimeChange}
             disabled={!startDate}
           >
@@ -252,23 +217,21 @@ export const DateTimeSelector = React.memo<DateTimeSelectorProps>(({
         </div>
       </div>
 
-      {/* End Date & Time */}
+      {/* End Date & Time Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* End Date Picker */}
+        {/* End Date */}
         <div className="space-y-2">
           <Label className="text-sm font-medium">
             {t('createEvent.step2.endDate')} <span className="text-red-500">*</span>
           </Label>
-          <Popover open={isEndCalendarOpen} onOpenChange={handleEndCalendarOpen}>
+          <Popover open={isEndCalendarOpen} onOpenChange={setIsEndCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                disabled={!startDate}
                 className={cn(
                   "w-full justify-start text-left font-normal",
                   !endDate && "text-muted-foreground",
-                  endDateError ? "border-red-500" : "",
-                  !startDate ? "opacity-50" : ""
+                  endDateError && "border-red-500"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -293,13 +256,13 @@ export const DateTimeSelector = React.memo<DateTimeSelectorProps>(({
           )}
         </div>
 
-        {/* End Time Picker */}
+        {/* End Time */}
         <div className="space-y-2">
           <Label className="text-sm font-medium">
-            {t('createEvent.step2.endTime')} {endDate && <span className="text-red-500">*</span>}
+            {t('createEvent.step2.endTime')} <span className="text-red-500">*</span>
           </Label>
-          <Select 
-            value={endTime} 
+          <Select
+            value={endTime}
             onValueChange={onEndTimeChange}
             disabled={!endDate}
           >
@@ -319,10 +282,7 @@ export const DateTimeSelector = React.memo<DateTimeSelectorProps>(({
                 ))
               ) : (
                 <div className="p-2 text-sm text-muted-foreground text-center">
-                  {isSameDay 
-                    ? t('createEvent.step2.endTimeMustBeAfterStart')
-                    : t('createEvent.step2.noTimeSlotsAvailable')
-                  }
+                  {t('createEvent.step2.noTimeSlotsAvailable')}
                 </div>
               )}
             </SelectContent>
@@ -333,15 +293,22 @@ export const DateTimeSelector = React.memo<DateTimeSelectorProps>(({
               {endTimeError}
             </p>
           )}
-          {isSameDay && availableEndTimeSlots.length > 0 && (
+          {isEndToday && availableEndTimeSlots.length > 0 && (
             <p className="text-xs text-muted-foreground">
-              {t('createEvent.step2.endTimeMustBeAfterStartTime')}
+              {t('createEvent.step2.onlyFutureTimesAvailable')}
             </p>
           )}
         </div>
       </div>
+
+      {/* Validation Message */}
+      {startDate && startTime && endDate && endTime && (
+        <div className="text-xs text-muted-foreground">
+          {t('createEvent.step2.endTimeMustBeAfterStart')}
+        </div>
+      )}
     </div>
   );
 });
 
-DateTimeSelector.displayName = 'DateTimeSelector';
+DateTimeFields.displayName = 'DateTimeFields';

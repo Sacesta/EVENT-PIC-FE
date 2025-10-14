@@ -30,8 +30,10 @@ const CreateEvent: React.FC = () => {
   const [currentTab, setCurrentTab] = useState('services');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [eventLocation, setEventLocation] = useState('');
   const [eventType, setEventType] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
@@ -44,14 +46,8 @@ const CreateEvent: React.FC = () => {
     name: string;
     quantity: number;
     price: number;
-  }>>([
-    {
-      id: Date.now().toString(),
-      name: 'General Admission',
-      quantity: 100,
-      price: 0
-    }
-  ]);
+    currency: string;
+  }>>([]);
   const [selectedPackages, setSelectedPackages] = useState<{ [serviceId: string]: { packageId: string; packageDetails: any } }>({});
   const [specialRequests, setSpecialRequests] = useState('');
   const [eventImage, setEventImage] = useState<File | null>(null);
@@ -59,7 +55,7 @@ const CreateEvent: React.FC = () => {
   // Create eventData object with stable reference but updated values
   const eventDataRef = useRef<EventData>({} as EventData);
   eventDataRef.current = {
-    name, description, date, time, location: eventLocation, eventType,
+    name, description, startDate, endDate, startTime, endTime, location: eventLocation, eventType,
     isPrivate, eventPassword, isPaid, isFree, freeTicketLimit, tickets, services,
     selectedSuppliers, selectedPackages, specialRequests, currentTab, eventImage
   };
@@ -94,8 +90,10 @@ const CreateEvent: React.FC = () => {
         setCurrentTab(parsedData.currentTab || 'services');
         setName(parsedData.name || '');
         setDescription(parsedData.description || '');
-        setDate(parsedData.date || '');
-        setTime(parsedData.time || '');
+        setStartDate(parsedData.startDate || '');
+        setEndDate(parsedData.endDate || '');
+        setStartTime(parsedData.startTime || '');
+        setEndTime(parsedData.endTime || '');
         setEventLocation(parsedData.location || '');
         setEventType(parsedData.eventType || '');
         setIsPrivate(parsedData.isPrivate || false);
@@ -103,15 +101,7 @@ const CreateEvent: React.FC = () => {
         setIsPaid(parsedData.isPaid || false);
         setIsFree(parsedData.isFree || false);
         setFreeTicketLimit(parsedData.freeTicketLimit || 0);
-        // If no saved tickets, use default ticket
-        setTickets(parsedData.tickets && parsedData.tickets.length > 0 ? parsedData.tickets : [
-          {
-            id: Date.now().toString(),
-            name: 'General Admission',
-            quantity: 100,
-            price: 0
-          }
-        ]);
+        setTickets(parsedData.tickets || []);
         setSpecialRequests(parsedData.specialRequests || '');
       } catch (error) {
         console.error('Error loading saved data:', error);
@@ -123,18 +113,20 @@ const CreateEvent: React.FC = () => {
   useEffect(() => {
     const dataToSave = {
       services, selectedSuppliers, selectedPackages, currentTab, name, description,
-      date, time, location: eventLocation, eventType, isPrivate,
+      startDate, endDate, startTime, endTime, location: eventLocation, eventType, isPrivate,
       eventPassword, isPaid, isFree, freeTicketLimit, tickets, specialRequests
     };
     sessionStorage.setItem('createEventData', JSON.stringify(dataToSave));
-  }, [services, selectedSuppliers, selectedPackages, currentTab, name, description, date, time, eventLocation, eventType, isPrivate, eventPassword, isPaid, isFree, freeTicketLimit, tickets, specialRequests]);
+  }, [services, selectedSuppliers, selectedPackages, currentTab, name, description, startDate, endDate, startTime, endTime, eventLocation, eventType, isPrivate, eventPassword, isPaid, isFree, freeTicketLimit, tickets, specialRequests]);
 
   const handleInputChange = useCallback((field: string, value: unknown) => {
     switch (field) {
       case 'name': setName(value as string); break;
       case 'description': setDescription(value as string); break;
-      case 'date': setDate(value as string); break;
-      case 'time': setTime(value as string); break;
+      case 'startDate': setStartDate(value as string); break;
+      case 'endDate': setEndDate(value as string); break;
+      case 'startTime': setStartTime(value as string); break;
+      case 'endTime': setEndTime(value as string); break;
       case 'location': setEventLocation(value as string); break;
       case 'eventType': setEventType(value as string); break;
       case 'isPrivate': setIsPrivate(value as boolean); break;

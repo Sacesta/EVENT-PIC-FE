@@ -101,7 +101,7 @@
       "ticketTypes": "סוגי כרטיסים",
       "createTicketTiers": "צור רמות כרטיסים עם מחירים שונים (לדוגמה, VIP, כניסה כללית, מוקדם)",
       "createTicketCategories": "צור קטגוריות כרטיסים. כל הכרטיסים חינם - אין צורך בתשלום מהמשתתפים.",
-      "addTicket": "הוסף כרטיס",
+      "addTicket": " הוסף אפשרות תמחור",
       "ticketName": "שם הכרטיס",
       "ticketNamePlaceholder": "לדוגמה, כניסה כללית",
       "quantity": "כמות",

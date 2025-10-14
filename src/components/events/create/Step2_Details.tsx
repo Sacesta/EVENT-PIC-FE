@@ -44,13 +44,16 @@ interface Ticket {
   name: string;
   quantity: number;
   price: number;
+  currency: string;
 }
 
 interface EventData {
   name: string;
   description: string;
-  date: string;
-  time: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
   location: string;
   eventType: string;
   isPrivate: boolean;
@@ -75,6 +78,7 @@ interface Step2_DetailsProps {
 // Import constants from the constants file
 import { EVENT_TYPES, POPULAR_LOCATIONS } from './constants';
 import { TicketsSection } from './form-components/TicketsSection';
+import { DateTimeFields } from './form-components/DateTimeFields';
 
 // Time slots - moved outside component
 const TIME_SLOTS = [
@@ -284,119 +288,6 @@ const LocationInput = React.memo<{
   );
 });
 
-// Date Time Selector Component
-const DateTimeSelector = React.memo<{
-  date: string;
-  time: string;
-  onDateChange: (date: string) => void;
-  onTimeChange: (time: string) => void;
-  dateError?: string;
-  timeError?: string;
-}>(({ date, time, onDateChange, onTimeChange, dateError, timeError }) => {
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
-  const selectedDate = useMemo(
-    () => (date ? new Date(date) : undefined),
-    [date]
-  );
-  const today = useMemo(() => {
-    const todayDate = new Date();
-    todayDate.setHours(0, 0, 0, 0);
-    return todayDate;
-  }, []);
-
-  const handleCalendarSelect = useCallback(
-    (selectedDate: Date | undefined) => {
-      if (selectedDate) {
-        onDateChange(selectedDate.toISOString());
-        setIsCalendarOpen(false);
-      }
-    },
-    [onDateChange]
-  );
-
-  const handleCalendarOpen = useCallback((open: boolean) => {
-    setIsCalendarOpen(open);
-  }, []);
-
-  const disabledDateCheck = useCallback((date: Date) => date < today, [today]);
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {/* Date Picker */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">
-          Event Date <span className="text-red-500">*</span>
-        </Label>
-        <Popover open={isCalendarOpen} onOpenChange={handleCalendarOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !date && "text-muted-foreground",
-                dateError ? "border-red-500" : ""
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {date && selectedDate
-                ? format(selectedDate, "PPP")
-                : "Select date"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleCalendarSelect}
-              disabled={disabledDateCheck}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-        {dateError && (
-          <p className="text-sm text-red-500 flex items-center gap-1">
-            <AlertCircle className="w-3 h-3" />
-            {dateError}
-          </p>
-        )}
-      </div>
-
-      {/* Time Picker */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">
-          Event Time {date && <span className="text-red-500">*</span>}
-        </Label>
-        <Select value={time} onValueChange={onTimeChange} disabled={!date}>
-          <SelectTrigger
-            className={cn(
-              timeError ? "border-red-500" : "",
-              !date ? "opacity-50" : ""
-            )}
-          >
-            <Clock className="mr-2 h-4 w-4" />
-            <SelectValue
-              placeholder={date ? "Select time" : "Select date first"}
-            />
-          </SelectTrigger>
-          <SelectContent>
-            {TIME_SLOTS.map((timeSlot) => (
-              <SelectItem key={timeSlot} value={timeSlot}>
-                {timeSlot}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {timeError && (
-          <p className="text-sm text-red-500 flex items-center gap-1">
-            <AlertCircle className="w-3 h-3" />
-            {timeError}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-});
 
 // Toggle Card Component
 const ToggleCard = React.memo<{
@@ -483,6 +374,13 @@ const TicketItem = React.memo<{
     [ticket.id, onUpdate]
   );
 
+  const handleCurrencyChange = useCallback(
+    (value: string) => {
+      onUpdate(ticket.id, { currency: value });
+    },
+    [ticket.id, onUpdate]
+  );
+
   const handleRemove = useCallback(() => {
     onRemove(ticket.id);
   }, [ticket.id, onRemove]);
@@ -509,7 +407,7 @@ const TicketItem = React.memo<{
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div>
             <Label className="text-xs text-gray-500">Ticket Name</Label>
             <Input
@@ -534,7 +432,7 @@ const TicketItem = React.memo<{
             />
           </div>
           <div>
-            <Label className="text-xs text-gray-500">Price (₪)</Label>
+            <Label className="text-xs text-gray-500">Price</Label>
             <Input
               type="number"
               min="0"
@@ -549,10 +447,23 @@ const TicketItem = React.memo<{
               }}
             />
           </div>
+          <div>
+            <Label className="text-xs text-gray-500">Currency</Label>
+            <Select value={ticket.currency || 'ILS'} onValueChange={handleCurrencyChange}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USD">USD ($)</SelectItem>
+                <SelectItem value="EUR">EUR (€)</SelectItem>
+                <SelectItem value="ILS">ILS (₪)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-          Total Revenue: ₪{totalRevenue}
+          Total Revenue: {ticket.currency === 'USD' ? '$' : ticket.currency === 'EUR' ? '€' : '₪'}{totalRevenue}
         </div>
       </div>
     </Card>
@@ -608,12 +519,30 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
       newErrors.name = "Event name is required";
     }
 
-    if (!eventData.date) {
-      newErrors.date = "Event date is required";
+    if (!eventData.startDate) {
+      newErrors.startDate = "Start date is required";
     }
 
-    if (eventData.date && !eventData.time) {
-      newErrors.time = "Event time is required when date is selected";
+    if (!eventData.startTime) {
+      newErrors.startTime = "Start time is required";
+    }
+
+    if (!eventData.endDate) {
+      newErrors.endDate = "End date is required";
+    }
+
+    if (!eventData.endTime) {
+      newErrors.endTime = "End time is required";
+    }
+
+    // Validate that end date/time is after start date/time
+    if (eventData.startDate && eventData.startTime && eventData.endDate && eventData.endTime) {
+      const startDateTime = new Date(`${eventData.startDate}T${eventData.startTime}`);
+      const endDateTime = new Date(`${eventData.endDate}T${eventData.endTime}`);
+
+      if (endDateTime <= startDateTime) {
+        newErrors.endDate = "End date/time must be after start date/time";
+      }
     }
 
     if (!eventData.location.trim()) {
@@ -637,8 +566,10 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
     return Object.keys(newErrors).length === 0;
   }, [
     eventData.name,
-    eventData.date,
-    eventData.time,
+    eventData.startDate,
+    eventData.startTime,
+    eventData.endDate,
+    eventData.endTime,
     eventData.location,
     eventData.eventType,
     eventData.isPrivate,
@@ -686,6 +617,7 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
       name: "",
       quantity: 0,
       price: 0,
+      currency: 'ILS',
     };
     const newTickets = [...eventData.tickets, newTicket];
     handleUpdate("tickets", newTickets);
@@ -732,16 +664,30 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
     [handleUpdate]
   );
 
-  const handleDateChange = useCallback(
+  const handleStartDateChange = useCallback(
     (value: string) => {
-      handleUpdate("date", value);
+      handleUpdate("startDate", value);
     },
     [handleUpdate]
   );
 
-  const handleTimeChange = useCallback(
+  const handleStartTimeChange = useCallback(
     (value: string) => {
-      handleUpdate("time", value);
+      handleUpdate("startTime", value);
+    },
+    [handleUpdate]
+  );
+
+  const handleEndDateChange = useCallback(
+    (value: string) => {
+      handleUpdate("endDate", value);
+    },
+    [handleUpdate]
+  );
+
+  const handleEndTimeChange = useCallback(
+    (value: string) => {
+      handleUpdate("endTime", value);
     },
     [handleUpdate]
   );
@@ -771,8 +717,10 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
   const isFormValid = useMemo(() => {
     return (
       eventData.name.trim() &&
-      eventData.date &&
-      eventData.time &&
+      eventData.startDate &&
+      eventData.startTime &&
+      eventData.endDate &&
+      eventData.endTime &&
       eventData.location.trim() &&
       eventData.eventType &&
       (!eventData.isPrivate || eventData.eventPassword?.trim()) &&
@@ -780,8 +728,10 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
     );
   }, [
     eventData.name,
-    eventData.date,
-    eventData.time,
+    eventData.startDate,
+    eventData.startTime,
+    eventData.endDate,
+    eventData.endTime,
     eventData.location,
     eventData.eventType,
     eventData.isPrivate,
@@ -816,13 +766,19 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
           />
 
           {/* Date & Time */}
-          <DateTimeSelector
-            date={eventData.date}
-            time={eventData.time}
-            onDateChange={handleDateChange}
-            onTimeChange={handleTimeChange}
-            dateError={errors.date}
-            timeError={errors.time}
+          <DateTimeFields
+            startDate={eventData.startDate}
+            endDate={eventData.endDate}
+            startTime={eventData.startTime}
+            endTime={eventData.endTime}
+            onStartDateChange={handleStartDateChange}
+            onEndDateChange={handleEndDateChange}
+            onStartTimeChange={handleStartTimeChange}
+            onEndTimeChange={handleEndTimeChange}
+            startDateError={errors.startDate}
+            endDateError={errors.endDate}
+            startTimeError={errors.startTime}
+            endTimeError={errors.endTime}
           />
 
           {/* Event Type */}

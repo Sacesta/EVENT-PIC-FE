@@ -53,6 +53,7 @@ const EditEvent: React.FC<EditEventProps> = () => {
     name: string;
     quantity: number;
     price: number;
+    currency: string;
   }>>([]);
   const [specialRequests, setSpecialRequests] = useState('');
 
@@ -138,7 +139,8 @@ const EditEvent: React.FC<EditEventProps> = () => {
           id: 'general',
           name: 'General Admission',
           quantity: eventData.ticketInfo.availableTickets || 0,
-          price: eventData.ticketInfo.priceRange?.min || 0
+          price: eventData.ticketInfo.priceRange?.min || 0,
+          currency: 'ILS'
         }] : [];
         setTickets(formattedTickets);
         

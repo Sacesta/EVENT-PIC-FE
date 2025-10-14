@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import Step2_Details from '@/components/events/create/Step2_Details_Refactored';
 import { EventData, Ticket } from '@/components/events/create/types';
+import { DateTimeFields } from '@/components/events/create/form-components/DateTimeFields';
 import apiService, { type Event as ApiEvent } from '@/services/api';
 
 interface EditEventModalProps {
@@ -44,8 +45,10 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
   const [currentTab, setCurrentTab] = useState('services');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [eventLocation, setEventLocation] = useState('');
   const [eventType, setEventType] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
@@ -89,8 +92,8 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
   // Create eventData object with stable reference
   const eventDataRef = useRef<EventData>({} as EventData);
   eventDataRef.current = {
-    name, description, date, time, location: eventLocation, eventType,
-    isPrivate, eventPassword, isPaid, tickets, services,
+    name, description, startDate, endDate, startTime, endTime, location: eventLocation, eventType,
+    isPrivate, eventPassword, isPaid, isFree: false, freeTicketLimit: 0, tickets, services,
     selectedSuppliers, selectedPackages, specialRequests, currentTab
   };
 
@@ -112,8 +115,13 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
         // Handle date formatting
         if (event.startDate) {
           const startDate = new Date(event.startDate);
-          setDate(startDate.toISOString().split('T')[0]);
-          setTime(startDate.toTimeString().slice(0, 5));
+          setStartDate(startDate.toISOString().split('T')[0]);
+          setStartTime(startDate.toTimeString().slice(0, 5));
+        }
+        if (event.endDate) {
+          const endDate = new Date(event.endDate);
+          setEndDate(endDate.toISOString().split('T')[0]);
+          setEndTime(endDate.toTimeString().slice(0, 5));
         }
         
         // Handle location
@@ -289,8 +297,10 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
     switch (field) {
       case 'name': setName(value as string); break;
       case 'description': setDescription(value as string); break;
-      case 'date': setDate(value as string); break;
-      case 'time': setTime(value as string); break;
+      case 'startDate': setStartDate(value as string); break;
+      case 'endDate': setEndDate(value as string); break;
+      case 'startTime': setStartTime(value as string); break;
+      case 'endTime': setEndTime(value as string); break;
       case 'location': setEventLocation(value as string); break;
       case 'eventType': setEventType(value as string); break;
       case 'isPrivate': setIsPrivate(value as boolean); break;
@@ -322,15 +332,12 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
       console.log('Tickets:', eventDataRef.current.tickets);
       console.log('isPaid:', eventDataRef.current.isPaid);
       
-      // Create start and end dates
-      const eventDate = new Date(eventDataRef.current.date);
-      const [hours, minutes] = eventDataRef.current.time.split(':').map(Number);
-      
-      const startDate = new Date(eventDate);
-      startDate.setHours(hours, minutes, 0, 0);
-      
-      const endDate = new Date(startDate);
-      endDate.setHours(startDate.getHours() + 4);
+      // Create start and end dates from separate fields
+      const startDateTime = new Date(`${eventDataRef.current.startDate}T${eventDataRef.current.startTime}`);
+      const endDateTime = new Date(`${eventDataRef.current.endDate}T${eventDataRef.current.endTime}`);
+
+      console.log('Start DateTime:', startDateTime.toISOString());
+      console.log('End DateTime:', endDateTime.toISOString());
 
       // Transform suppliers WITH PACKAGE DETAILS
       const suppliers: Array<{
@@ -1029,7 +1036,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                                     className="cursor-pointer mt-1"
                                     onClick={() => handleSupplierToggle(service.serviceId, service.supplier.supplierId)}
                                   >
-                                    {isSelected && <CheckCircle className="w-4 h-4 sm:w-3 sm:h-3 text-primary" />}
+                                    {isSelected && <CheckCircle className="w-4 h-4 sm:w-3 sm:h-3 text-[#31A7FF]" />}
                                     {!isSelected && <div className="w-4 h-4 sm:w-3 sm:h-3 rounded border-2 border-border" />}
                                   </div>
                                   
@@ -1131,7 +1138,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                                                   isAlreadySelected
                                                     ? "bg-green-500 border-green-500"
                                                     : isCurrentlySelected
-                                                      ? "bg-primary border-primary"
+                                                      ? "bg-[#31A7FF] border-[#31A7FF]"
                                                       : "border-border"
                                                 )}>
                                                   {(isAlreadySelected || isCurrentlySelected) && (

@@ -202,7 +202,7 @@ const ServiceCategoryCard = React.memo(({
         <h3 className="font-semibold text-xs sm:text-sm mb-1">{t(category.labelKey)}</h3>
         <div className="flex justify-center">
           {isSelected && (
-            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-[#31A7FF]" />
           )}
         </div>
       </CardContent>
@@ -250,7 +250,7 @@ const EnhancedPackageCard = React.memo(({
       {/* Selected Indicator */}
       {isSelected && (
         <div className="absolute -top-2 -right-2 z-10">
-          <div className="bg-primary text-white rounded-full p-1 shadow-lg">
+          <div className="bg-[#31A7FF] text-white rounded-full p-1 shadow-lg">
             <CheckCircle className="w-5 h-5" />
           </div>
         </div>

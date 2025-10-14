@@ -4,6 +4,7 @@ export interface Ticket {
   name: string;
   quantity: number;
   price: number;
+  currency: string;
 }
 
 // Package details interface matching backend requirements
@@ -24,8 +25,10 @@ export interface SelectedPackageInfo {
 export interface EventData {
   name: string;
   description: string;
-  date: string;
-  time: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
   location: string;
   eventType: string;
   isPrivate: boolean;

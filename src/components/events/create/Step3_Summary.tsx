@@ -30,10 +30,13 @@ interface SupplierData {
 
 interface Step3_SummaryProps {
   eventData: {
-    name: string;
-    description: string;
-    date: string;
-    time: string;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+   
     location: string;
     eventType: string;
     isPrivate: boolean;
@@ -91,16 +94,31 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
     console.log('Selected Suppliers:', eventData.selectedSuppliers);
     console.log('Selected Packages:', eventData.selectedPackages);
     
-    // Create start and end dates
-    const eventDate = new Date(eventData.date);
-    const [hours, minutes] = eventData.time.split(':').map(Number);
-    
-    const startDate = new Date(eventDate);
-    startDate.setHours(hours, minutes, 0, 0);
-    
-    // Assume event duration of 4 hours if not specified
-    const endDate = new Date(startDate);
-    endDate.setHours(startDate.getHours() + 4);
+    // Create start and end dates from separate date/time fields
+    // Handle both formats: YYYY-MM-DD and date objects
+    const formatDate = (date: string) => {
+      const d = new Date(date);
+      return d.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+    };
+
+    const startDateStr = typeof eventData.startDate === 'string'
+      ? eventData.startDate
+      : formatDate(eventData.startDate);
+    const endDateStr = typeof eventData.endDate === 'string'
+      ? eventData.endDate
+      : formatDate(eventData.endDate);
+
+    const startDate = new Date(`${startDateStr}T${eventData.startTime}:00`);
+    const endDate = new Date(`${endDateStr}T${eventData.endTime}:00`);
+
+    console.log('Date Time Debug:', {
+      startDateStr,
+      endDateStr,
+      startTime: eventData.startTime,
+      endTime: eventData.endTime,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString()
+    });
 
     // Transform suppliers from nested object to backend expected format (nested services structure)
     const suppliers: Array<{
@@ -242,8 +260,11 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
     const transformedData = {
       name: eventData.name,
       description: eventData.description || '',
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
+startDate: startDateStr,      // YYYY-MM-DD
+  endDate: endDateStr,          // YYYY-MM-DD
+  startTime: eventData.startTime, // HH:mm
+  endTime: eventData.endTime,     // HH:mm
+
       location: {
         address: address,
         city: city
@@ -308,8 +329,10 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
       const currentEventData = {
         name: eventData.name,
         description: eventData.description,
-        date: eventData.date,
-        time: eventData.time,
+        startDate: eventData.startDate,
+        endDate: eventData.endDate,
+        startTime: eventData.startTime,
+        endTime: eventData.endTime,
         location: eventData.location,
         eventType: eventData.eventType,
         isPrivate: eventData.isPrivate,
@@ -510,11 +533,29 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                 <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="truncate">{eventData.date ? format(new Date(eventData.date), 'PPP') : ''}</span>
+                  <span className="truncate">
+                    {eventData.startDate && eventData.endDate
+                      ? (() => {
+                          try {
+                            const start = new Date(eventData.startDate);
+                            const end = new Date(eventData.endDate);
+                            return `${format(start, 'PPP')} - ${format(end, 'PPP')}`;
+                          } catch (e) {
+                            return `${eventData.startDate} - ${eventData.endDate}`;
+                          }
+                        })()
+                      : eventData.startDate || ''
+                    }
+                  </span>
                 </div>
                 <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                  <span>{eventData.time}</span>
+                  <span>
+                    {eventData.startTime && eventData.endTime
+                      ? `${eventData.startTime} - ${eventData.endTime}`
+                      : eventData.startTime || ''
+                    }
+                  </span>
                 </div>
                 <div className={`flex items-center gap-2 text-xs sm:text-sm sm:col-span-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
