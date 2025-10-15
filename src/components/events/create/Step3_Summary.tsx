@@ -31,6 +31,7 @@ interface SupplierData {
 interface Step3_SummaryProps {
   eventData: {
   name: string;
+  eventImage?: File | null;
   description: string;
   startDate: string;
   endDate: string;
@@ -322,96 +323,114 @@ startDate: startDateStr,      // YYYY-MM-DD
   };
 
   // Handle event creation or update
-  const handleCreateEvent = async () => {
-    // Check if user is authenticated and is a producer
-    if (!isLoadingUser && (!user || user.role !== 'producer')) {
-      // Save current form data to sessionStorage for restoration after login
-      const currentEventData = {
-        name: eventData.name,
-        description: eventData.description,
-        startDate: eventData.startDate,
-        endDate: eventData.endDate,
-        startTime: eventData.startTime,
-        endTime: eventData.endTime,
-        location: eventData.location,
-        eventType: eventData.eventType,
-        isPrivate: eventData.isPrivate,
-        isPaid: eventData.isPaid,
-        tickets: eventData.tickets,
-        services: eventData.services,
-        selectedSuppliers: eventData.selectedSuppliers,
-        pendingSubmission: true // Flag to indicate this should be auto-submitted after login
-      };
-      
-      sessionStorage.setItem('createEventData', JSON.stringify(currentEventData));
-      
-      // Show message to user about needing to sign in
-      toast({
-        title: "Sign In Required",
-        description: "Please sign in as a producer to create your event. Your details will be saved.",
-        variant: "default"
-      });
-      
-      // Redirect to producer login with return URL
-      const returnUrl = encodeURIComponent('/create-event/step/3');
-      navigate(`/producer-login?returnUrl=${returnUrl}`);
-      return;
-    }
+ const handleCreateEvent = async () => {
+  // Check if user is authenticated and is a producer
+  if (!isLoadingUser && (!user || user.role !== 'producer')) {
+    // Save current form data to sessionStorage for restoration after login
+    const currentEventData = {
+      name: eventData.name,
+      description: eventData.description,
+      startDate: eventData.startDate,
+      endDate: eventData.endDate,
+      startTime: eventData.startTime,
+      endTime: eventData.endTime,
+      location: eventData.location,
+      eventType: eventData.eventType,
+      isPrivate: eventData.isPrivate,
+      isPaid: eventData.isPaid,
+      tickets: eventData.tickets,
+      services: eventData.services,
+      selectedSuppliers: eventData.selectedSuppliers,
+      pendingSubmission: true, // Flag to indicate auto-submission after login
+    };
 
-    setIsCreating(true);
-    
-    try {
-      if (isEditMode && eventId) {
-        // For edit mode, let the parent handle the update logic
-        // since it has the proper data transformation for the update API
+    sessionStorage.setItem('createEventData', JSON.stringify(currentEventData));
+
+    toast({
+      title: "Sign In Required",
+      description: "Please sign in as a producer to create your event. Your details will be saved.",
+      variant: "default",
+    });
+
+    const returnUrl = encodeURIComponent('/create-event/step/3');
+    navigate(`/producer-login?returnUrl=${returnUrl}`);
+    return;
+  }
+
+  setIsCreating(true);
+
+  try {
+    if (isEditMode && eventId) {
+      // Edit mode: let parent handle update logic
+      onCreateEvent();
+    } else {
+      // Create mode
+      const transformedData = transformEventData();
+      console.log('Transformed event data:', transformedData);
+
+      // ✅ Create FormData for multipart/form-data
+      const formData = new FormData();
+
+      console.log('Event image before upload:', eventData.eventImage);
+
+
+      // Append image file (if exists)
+      if (eventData.eventImage) {
+        console.log('Attaching image file:', eventData.eventImage);
+        formData.append('image', eventData.eventImage); // File object (from input)
+      }
+
+      // Append transformed event data as JSON string
+      formData.append('data', JSON.stringify(transformedData));
+
+      
+for (let [key, value] of formData.entries()) {
+  console.log('✅ FormData entry:', key, value);
+}
+
+      // ✅ Send FormData to backend (Multer will handle it)
+      const response = await apiService.createEvent(formData);
+
+      if (response.success) {
+        toast({
+          title: t('createEvent.successTitle'),
+          description: `${eventData.name} ${t('createEvent.successMessage')}`,
+          variant: "default",
+        });
+
+        // Clear saved data
+        sessionStorage.removeItem('createEventData');
+
+        // Trigger navigation/cleanup
         onCreateEvent();
       } else {
-        // For create mode, use the original logic
-        const transformedData = transformEventData();
-        console.log('Transformed event data:', transformedData);
-        
-        const response = await apiService.createEvent(transformedData);
-        
-        if (response.success) {
-          toast({
-            title: t('createEvent.successTitle'),
-            description: `${eventData.name} ${t('createEvent.successMessage')}`,
-            variant: "default"
-          });
-          
-          // Clear the saved data since event was created successfully
-          sessionStorage.removeItem('createEventData');
-          
-          // Call the parent's onCreateEvent to handle navigation/cleanup
-          onCreateEvent();
-        } else {
-          throw new Error(response.message || 'Failed to create event');
-        }
+        throw new Error(response.message || 'Failed to create event');
       }
-    } catch (error) {
-      console.error('Error creating/updating event:', error);
-      
-      let errorMessage = t('createEvent.errorMessage');
-      
-      // Try to parse error message if it's a JSON string
-      if (error instanceof Error) {
-        try {
-          const errorData = JSON.parse(error.message);
-          errorMessage = errorData.message || errorMessage;
-        } catch {
-          errorMessage = error.message || errorMessage;
-        }
-      }
-      
-      toast({
-        title: t('createEvent.errorTitle'),
-        description: errorMessage,
-        variant: "destructive"
-      });
-    } finally {
-      setIsCreating(false);
     }
-  };
+  } catch (error) {
+    console.error('Error creating/updating event:', error);
+
+    let errorMessage = t('createEvent.errorMessage');
+
+    if (error instanceof Error) {
+      try {
+        const errorData = JSON.parse(error.message);
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        errorMessage = error.message || errorMessage;
+      }
+    }
+
+    toast({
+      title: t('createEvent.errorTitle'),
+      description: errorMessage,
+      variant: "destructive",
+    });
+  } finally {
+    setIsCreating(false);
+  }
+};
+
 
   const formatEventType = (type: string) => {
     return t(`createEvent.eventTypes.${type.replace('-', '')}`) || type;

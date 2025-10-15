@@ -142,97 +142,86 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
     }));
   };
 
-  const handleSubmitPackage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!service || !formData.name || formData.price <= 0) {
+const handleSubmitPackage = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!service || !formData.name || formData.price <= 0) {
+    toast({
+      title: t('common.error', 'Error'),
+      description: t('packages.fillRequiredFields', 'Please fill in all required fields'),
+      variant: 'destructive'
+    });
+    return;
+  }
+
+  if (!service.available) {
+    toast({
+      title: t('common.error', 'Error'),
+      description: t('packages.serviceDisabledError', 'Cannot add or edit packages for a disabled service. Please enable the service first.'),
+      variant: 'destructive'
+    });
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    let packageId: string;
+
+    if (editingPackage && formData._id) {
+      const { _id, ...data } = formData;
+      await apiService.updateServicePackage(service._id, _id, data);
+      packageId = _id;
+
       toast({
-        title: t('common.error', 'Error'),
-        description: t('packages.fillRequiredFields', 'Please fill in all required fields'),
-        variant: 'destructive'
+        title: t('common.success', 'Success'),
+        description: t('packages.packageUpdated', 'Package updated successfully')
       });
-      return;
+    } else {
+      const { _id, ...data } = formData;
+      const response = await apiService.addPackageToService(service._id, data);
+
+      const responseData = response.data as Record<string, unknown>;
+      const pkgData = responseData?.package as { _id?: string } | undefined;
+      const packagesArray = responseData?.packages as Array<{ _id?: string }> | undefined;
+
+      packageId = pkgData?._id ||
+                  (responseData?._id as string) ||
+                  (packagesArray && packagesArray.length > 0 ? packagesArray[packagesArray.length - 1]?._id : undefined) ||
+                  '';
+
+      if (!packageId) console.warn('Could not extract package ID from response');
+      toast({
+        title: t('common.success', 'Success'),
+        description: t('packages.packageAdded', 'Package added successfully')
+      });
     }
 
-    // Check if service is disabled
-    if (!service.available) {
-      toast({
-        title: t('common.error', 'Error'),
-        description: t('packages.serviceDisabledError', 'Cannot add or edit packages for a disabled service. Please enable the service first.'),
-        variant: 'destructive'
-      });
-      return;
+    // Save image in localStorage for preview
+    if (formData.image && packageId) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageDataUrl = reader.result as string;
+        savePackageImage(service._id, packageId, imageDataUrl);
+        setPackageImages(prev => ({ ...prev, [packageId]: imageDataUrl }));
+      };
+      reader.readAsDataURL(formData.image);
     }
 
-    setIsLoading(true);
-    try {
-      let packageId: string;
-      
-      if (editingPackage && formData._id) {
-        // Update existing package - exclude _id and image from request body
-        const { _id, image, ...packageDataWithoutId } = formData;
-        await apiService.updateServicePackage(service._id, _id, packageDataWithoutId);
-        packageId = _id;
-        
-        toast({
-          title: t('common.success', 'Success'),
-          description: t('packages.packageUpdated', 'Package updated successfully')
-        });
-      } else {
-        // Add new package - exclude _id and image from request body
-        const { _id, image, ...packageDataWithoutId } = formData;
-        const response = await apiService.addPackageToService(service._id, packageDataWithoutId);
-        
-        // Extract package ID from response
-        // The response structure may vary, so we try different possible locations
-        const responseData = response.data as Record<string, unknown>;
-        const pkgData = responseData?.package as { _id?: string } | undefined;
-        const packagesArray = responseData?.packages as Array<{ _id?: string }> | undefined;
-        
-        packageId = pkgData?._id || 
-                   (responseData?._id as string) || 
-                   (packagesArray && packagesArray.length > 0 ? packagesArray[packagesArray.length - 1]?._id : undefined) || 
-                   '';
-        
-        if (!packageId) {
-          console.warn('Could not extract package ID from response, image will not be saved');
-        }
-        
-        toast({
-          title: t('common.success', 'Success'),
-          description: t('packages.packageAdded', 'Package added successfully')
-        });
-      }
-      
-      // Save image to localStorage if provided
-      if (formData.image && packageId) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const imageDataUrl = reader.result as string;
-          savePackageImage(service._id, packageId, imageDataUrl);
-          
-          // Update local state
-          setPackageImages(prev => ({
-            ...prev,
-            [packageId]: imageDataUrl
-          }));
-        };
-        reader.readAsDataURL(formData.image);
-      }
-      
-      onPackagesUpdated();
-      resetForm();
-    } catch (error) {
-      console.error('Error saving package:', error);
-      toast({
-        title: t('common.error', 'Error'),
-        description: t('packages.saveError', 'Failed to save package'),
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    onPackagesUpdated();
+    resetForm();
+
+  } catch (error) {
+    console.error('Error saving package:', error);
+    toast({
+      title: t('common.error', 'Error'),
+      description: t('packages.saveError', 'Failed to save package'),
+      variant: 'destructive'
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const handleDeletePackage = async (packageId: string) => {
     if (!service || !confirm(t('packages.confirmDelete', 'Are you sure you want to delete this package?'))) {

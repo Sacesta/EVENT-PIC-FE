@@ -10,7 +10,8 @@ import {
   Settings,
   BarChart3,
   UserCheck,
-  AlertTriangle
+  AlertTriangle,
+  MessageCircle
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,9 @@ import apiService from '@/services/api';
 import UserManagement from '@/components/admin/UserManagement';
 import CreateUserModal from '@/components/admin/CreateUserModal';
 import OrdersManagement from '@/components/admin/OrdersManagement';
+import { ChatList } from '@/components/chat/ChatList';
+import { ChatMessages } from '@/components/chat/ChatMessages';
+import { useChat, Chat } from '@/hooks/use-chat';
 
 interface DashboardStats {
   totalUsers: number;
@@ -113,6 +117,61 @@ const AdminDashboard = () => {
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+
+  // Chat functionality
+  const {
+    chats,
+    currentChat,
+    messages,
+    loading: chatLoading,
+    error: chatError,
+    typingUsers,
+    isConnected,
+    fetchChats,
+    sendMessage,
+    joinChat,
+    markAsRead,
+    startTyping,
+    stopTyping,
+    addReaction,
+    editMessage,
+    deleteMessage,
+    messagesEndRef
+  } = useChat();
+
+  // Local state for managing chats to update unread counts
+  const [localChats, setLocalChats] = useState<Chat[]>([]);
+
+  // Sync local chats with hook chats
+  useEffect(() => {
+    setLocalChats(chats);
+  }, [chats]);
+
+  // Fetch chats when Chats tab is active
+  useEffect(() => {
+    if (activeTab === 'chats') {
+      console.log('🔍 Admin Dashboard - Fetching all chats');
+      fetchChats();
+    }
+  }, [activeTab, fetchChats]);
+
+  // Auto-refresh chat list every 5 seconds when on chats tab
+  useEffect(() => {
+    if (activeTab !== 'chats') return;
+    
+    console.log('🔄 Starting chat list auto-refresh for admin');
+    
+    const refreshInterval = setInterval(() => {
+      console.log('📡 Auto-refreshing admin chat list...');
+      fetchChats();
+    }, 5000);
+    
+    return () => {
+      console.log('🛑 Stopping admin chat list auto-refresh');
+      clearInterval(refreshInterval);
+    };
+  }, [activeTab, fetchChats]);
 
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true);
@@ -198,6 +257,33 @@ const AdminDashboard = () => {
       });
     }
   };
+
+  // Chat handlers
+  const handleSelectChat = async (chat: Chat) => {
+    console.log('🎯 Admin selecting chat:', chat._id);
+    try {
+      // Join the chat (this will also fetch messages)
+      await joinChat(chat._id, chat);
+      
+      // Mark as read
+      await markAsRead(chat._id);
+      
+      // Update the chat's unread count to 0 in local state immediately
+      setLocalChats(prev => prev.map(c => 
+        c._id === chat._id ? { ...c, unreadCount: 0 } : c
+      ));
+      
+      console.log('✅ Chat marked as read, unread count reset to 0');
+    } catch (error) {
+      console.error('Error selecting chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load chat messages",
+        variant: "destructive"
+      });
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -289,13 +375,14 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="overview">{t('dashboard.admin.overview', 'Overview')}</TabsTrigger>
           <TabsTrigger value="users">{t('dashboard.admin.users', 'Users')}</TabsTrigger>
           <TabsTrigger value="orders">{t('dashboard.admin.orders', 'Orders')}</TabsTrigger>
           <TabsTrigger value="events">{t('dashboard.admin.events', 'Events')}</TabsTrigger>
           <TabsTrigger value="analytics">{t('dashboard.admin.analytics', 'Analytics')}</TabsTrigger>
+          <TabsTrigger value="chats">{t('dashboard.admin.chats', 'Chats')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -442,6 +529,56 @@ const AdminDashboard = () => {
               </p>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="chats" className="space-y-6">
+          {/* Connection Status */}
+          {!isConnected && (
+            <Card className="glass-card border-yellow-200 bg-yellow-50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-yellow-800">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+                  <span className="text-sm">{t('chat.connecting', 'Connecting to chat server...')}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Chat Interface */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-350px)] max-h-[700px]">
+            {/* Conversations List */}
+            <div className="space-y-4 h-full flex flex-col">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5" />
+                  {t('dashboard.admin.allChats', 'All Platform Chats')}
+                </h2>
+              </div>
+              <ChatList
+                chats={localChats}
+                selectedChatId={currentChat?._id}
+                onSelectChat={handleSelectChat}
+                loading={chatLoading}
+              />
+            </div>
+
+            {/* Chat Messages */}
+            <div className="lg:col-span-2">
+              <ChatMessages
+                chat={currentChat}
+                messages={messages}
+                onSendMessage={sendMessage}
+                onStartTyping={startTyping}
+                onStopTyping={stopTyping}
+                onEditMessage={editMessage}
+                onDeleteMessage={deleteMessage}
+                onAddReaction={addReaction}
+                typingUsers={typingUsers}
+                loading={chatLoading}
+                messagesEndRef={messagesEndRef}
+              />
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
 

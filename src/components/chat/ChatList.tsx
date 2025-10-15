@@ -120,7 +120,7 @@ export const ChatList: React.FC<ChatListProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 flex-1 overflow-hidden">
-        <ScrollArea className="h-full">
+        <ScrollArea className="h-[600px]">
           <div className="space-y-2 p-4">
             {chats?.length === 0 ? (
               <div className="text-center py-8">

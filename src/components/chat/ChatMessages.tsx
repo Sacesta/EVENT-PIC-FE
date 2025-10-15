@@ -169,10 +169,22 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
               messages?.map((message) => {
                 const sender = getMessageSender(message);
                 const isUser = isCurrentUser(message);
+                const isAdmin = user?.role === "admin";
+
+                // For admin: producer messages right, others left
+// For others: current user's messages right, others left
+let alignRight = false;
+
+
+if (isAdmin) {
+  alignRight = sender?.role === "producer";
+} else {
+  alignRight = isUser;
+}
                 
                 return (
-                  <div key={message._id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[70%] group ${isUser ? 'flex flex-col items-end' : 'flex flex-col items-start'}`}>
+                  <div key={message._id} className={`flex ${alignRight ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[70%] group ${alignRight ? 'flex flex-col items-end' : 'flex flex-col items-start'}`}>
                       {!isUser && (
                         <div className="flex items-center gap-2 mb-1">
                           <Avatar className="w-6 h-6">
@@ -247,7 +259,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
                         </div>
                         
                         {/* Reactions - Group by emoji and show count */}
-                        {message.reactions && message.reactions.length > 0 && (
+                        {user?.role !== "admin" && message.reactions && message.reactions.length > 0 && (
                           <div className="flex gap-1 mt-1">
                             {(() => {
                               // Group reactions by emoji
@@ -330,50 +342,55 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
             </div>
           )}
           
-          {editingMessage ? (
-            <div className="flex gap-2">
-              <Input
-                ref={inputRef}
-                value={editingMessage.content}
-                onChange={(e) => setEditingMessage({ ...editingMessage, content: e.target.value })}
-                onKeyPress={(e) => e.key === 'Enter' && handleSaveEdit()}
-                placeholder="Edit message..."
-                className="flex-1"
-              />
-              <Button onClick={handleSaveEdit} size="sm">
-                Save
-              </Button>
-              <Button onClick={handleCancelEdit} variant="outline" size="sm">
-                Cancel
-              </Button>
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <Input
-                ref={inputRef}
-                placeholder="Type your message..."
-                value={newMessage}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
-                className="flex-1"
-                disabled={sending}
-              />
-              <Button 
-                onClick={handleSendMessage} 
-                disabled={!newMessage.trim() || sending}
-              >
-                {sending ? (
-                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </Button>
-            </div>
-          )}
+         {user?.role !== "admin" && (
+  editingMessage ? (
+    <div className="flex gap-2">
+      <Input
+        ref={inputRef}
+        value={editingMessage.content}
+        onChange={(e) =>
+          setEditingMessage({ ...editingMessage, content: e.target.value })
+        }
+        onKeyPress={(e) => e.key === "Enter" && handleSaveEdit()}
+        placeholder="Edit message..."
+        className="flex-1"
+      />
+      <Button onClick={handleSaveEdit} size="sm">
+        Save
+      </Button>
+      <Button onClick={handleCancelEdit} variant="outline" size="sm">
+        Cancel
+      </Button>
+    </div>
+  ) : (
+    <div className="flex gap-2">
+      <Input
+        ref={inputRef}
+        placeholder="Type your message..."
+        value={newMessage}
+        onChange={handleInputChange}
+        onKeyPress={handleKeyPress}
+        className="flex-1"
+        disabled={sending}
+      />
+      <Button
+        onClick={handleSendMessage}
+        disabled={!newMessage.trim() || sending}
+      >
+        {sending ? (
+          <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <Send className="w-4 h-4" />
+        )}
+      </Button>
+    </div>
+  )
+)}
+
           
           {/* Quick reactions */}
           <div className="flex gap-1 mt-2">
-            {commonReactions.map((emoji) => (
+            {user?.role !== "admin" && commonReactions.map((emoji) => (
               <Button
                 key={emoji}
                 variant="ghost"

@@ -802,21 +802,22 @@ class ApiService {
     return this.request(`/events?${queryParams}`);
   }
 
-  async createEvent(eventData: EventData) {
+  async createEvent(formData: FormData) {
     const token = localStorage.getItem('token');
     if (!token) {
       throw new Error('No authentication token found');
     }
     
-    console.log('Creating event with data:', eventData);
+    console.log('Creating event with data:', formData);
     
     return this.request('/events', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        // 'Content-Type': 'application/json',
+        // 'Content-Type': 'multipart/form-data' 
       },
-      body: JSON.stringify(eventData),
+      body: formData,
     });
   }
 
@@ -1280,41 +1281,59 @@ class ApiService {
     return this.request(`/services/${serviceId}/packages`);
   }
 
-  async addPackageToService(serviceId: string, packageData: PackageData) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-    
-    console.log('Adding package with data:', packageData);
-    
-    return this.request(`/services/${serviceId}/packages`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(packageData),
-    });
+async addPackageToService(serviceId: string, packageData: PackageData & { image?: File }) {
+  const token = localStorage.getItem('token');
+  if (!token) throw new Error('No authentication token found');
+
+  const formData = new FormData();
+  formData.append('name', packageData.name);
+  formData.append('description', packageData.description || '');
+  formData.append('price', packageData.price.toString());
+  formData.append('duration', (packageData.duration ?? 0).toString());
+  formData.append('isPopular', packageData.isPopular ? 'true' : 'false');
+
+  // Append features correctly for backend parsing
+  packageData.features?.forEach((f) => formData.append('features[]', f));
+
+  if (packageData.image) {
+    formData.append('image', packageData.image);
   }
 
-  async updateServicePackage(serviceId: string, packageId: string, packageData: PackageData) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-    
-    console.log('Updating package with data:', packageData);
-    
-    return this.request(`/services/${serviceId}/packages/${packageId}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(packageData),
-    });
+  return this.request(`/services/${serviceId}/packages`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      // No Content-Type — browser will handle multipart
+    },
+    body: formData,
+  });
+}
+
+async updateServicePackage(serviceId: string, packageId: string, packageData: PackageData & { image?: File }) {
+  const token = localStorage.getItem('token');
+  if (!token) throw new Error('No authentication token found');
+
+  const formData = new FormData();
+  formData.append('name', packageData.name);
+  formData.append('description', packageData.description || '');
+  formData.append('price', packageData.price.toString());
+  formData.append('duration', (packageData.duration ?? 0).toString());
+  formData.append('isPopular', packageData.isPopular ? 'true' : 'false');
+
+  packageData.features?.forEach((f) => formData.append('features[]', f));
+  if (packageData.image) {
+    formData.append('image', packageData.image);
   }
+
+  return this.request(`/services/${serviceId}/packages/${packageId}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData,
+  });
+}
+
 
   async deleteServicePackage(serviceId: string, packageId: string) {
     const token = localStorage.getItem('token');

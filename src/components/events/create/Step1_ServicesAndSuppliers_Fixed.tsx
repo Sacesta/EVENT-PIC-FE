@@ -378,6 +378,7 @@ const SupplierCard = React.memo(({
 
   // Auto-translate service title from backend
   const translatedTitle = autoTranslate(service.title, i18n.language);
+  const translatedCategory = autoTranslate(service.category, i18n.language);
 
   const handlePackageSelect = (packageId: string) => {
     const isCurrentlySelected = selectedPackageId === packageId;
@@ -467,6 +468,10 @@ const SupplierCard = React.memo(({
               {service.supplier.isVerified && (
                 <CheckCircle className="w-3 h-3 text-green-500 dark:text-green-400 flex-shrink-0" />
               )}
+
+              <span className="bg-[#31A7FF] text-white text-xs font-semibold px-3 py-1 rounded-full ">
+  {translatedCategory}
+</span>
             </div>
             
             {/* Rating - Compact */}

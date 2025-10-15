@@ -116,18 +116,38 @@ export const useChat = (options: UseChatOptions = {}) => {
   const fetchChats = useCallback(async (eventId?: string) => {
     try {
       setLoading(true);
-      console.log('🔍 fetchChats called with eventId:', eventId);
-      const response = await apiService.getChats(eventId) as ApiResponse<Chat[]>;
+      console.log('🔍 fetchChats called with eventId:', eventId, 'user role:', user?.role);
+
+      let response: ApiResponse<Chat[]>;
+
+      console.log("User role : ",user.role);
+
+      // Use admin endpoint if user is admin and no eventId is specified
+      if (user?.role === 'admin' && !eventId) {
+        console.log('👑 Admin user detected, using admin chats endpoint');
+        response = await apiService.getAllChatsForAdmin() as ApiResponse<Chat[]>;
+      } else {
+        console.log("normal call")
+        response = await apiService.getChats(eventId) as ApiResponse<Chat[]>;
+      }
+
       console.log('📦 fetchChats raw response:', response);
-      
+
       // Handle different response structures and remove duplicates
       let chatsData: Chat[] = [];
-      if (response.data?.data && Array.isArray(response.data.data)) {
+      if (user?.role === 'admin' && !eventId) {
+        // Admin endpoint returns data directly in response.data
+        if (Array.isArray(response.data)) {
+          chatsData = response.data as unknown as Chat[];
+        } else if (response.data?.data && Array.isArray(response.data.data)) {
+          chatsData = response.data.data;
+        }
+      } else if (response.data?.data && Array.isArray(response.data.data)) {
         chatsData = response.data.data;
       } else if (Array.isArray(response.data)) {
         chatsData = response.data as unknown as Chat[];
       }
-      
+
       // Remove duplicates by chatId
       const uniqueChats = chatsData.reduce((acc: Chat[], chat: Chat) => {
         if (!acc.find(c => c._id === chat._id)) {
@@ -135,17 +155,18 @@ export const useChat = (options: UseChatOptions = {}) => {
         }
         return acc;
       }, []);
-      
+
       console.log('✅ Unique chats:', uniqueChats.length, uniqueChats);
       setChats(uniqueChats);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
+      console.log("error is here : ",error);
       console.error('❌ Error fetching chats:', err);
       setError(error.response?.data?.message || 'Failed to fetch chats');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.role]);
 
   // Fetch chats for a specific event using the dedicated endpoint
   const fetchEventChats = useCallback(async (eventId: string, page = 1, limit = 50) => {
