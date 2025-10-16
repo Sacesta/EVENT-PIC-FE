@@ -13,17 +13,19 @@ interface MemoizedInputProps {
   type?: string;
   icon?: LucideIcon;
   error?: string;
+  min?: string;
 }
 
-export const MemoizedInput = React.memo<MemoizedInputProps>(({ 
-  label, 
-  placeholder, 
-  value, 
-  onChange, 
-  required = false, 
+export const MemoizedInput = React.memo<MemoizedInputProps>(({
+  label,
+  placeholder,
+  value,
+  onChange,
+  required = false,
   type = 'text',
   icon: Icon,
-  error
+  error,
+  min
 }) => (
   <div className="space-y-2">
     <Label className="text-sm font-medium">
@@ -38,6 +40,7 @@ export const MemoizedInput = React.memo<MemoizedInputProps>(({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        min={min}
         className={cn(
           Icon ? "pl-10" : "",
           error ? "border-red-500 focus:border-red-500" : ""

@@ -7,10 +7,10 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { Calendar, Clock, MapPin, Users, DollarSign, Lock, Camera, Video, UtensilsCrossed, Music, Palette, MapPinIcon, Shield, Car, Loader2, CheckCircle, Lightbulb, Volume2, Armchair, Home, Grid3X3 } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, DollarSign, Lock, Camera, Video, UtensilsCrossed, Music, Palette, MapPinIcon, Shield, Car, Loader2, CheckCircle, Lightbulb, Volume2, Armchair, Home, Grid3X3, Building2, CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import apiService from '@/services/api';
+import apiService from '@/services/api';  
 
 interface SupplierData {
   _id: string;
@@ -31,6 +31,12 @@ interface SupplierData {
 interface Step3_SummaryProps {
   eventData: {
   name: string;
+  bankDetails: {
+  bankName: string;
+  branch: string;
+  accountNumber: string;
+  accountHolderName: string;
+};
   eventImage?: File | null;
   description: string;
   startDate: string;
@@ -65,7 +71,7 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
   const navigate = useNavigate();
   const { user, isLoadingUser } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
-  const [supplierDetails, setSupplierDetails] = useState<{ [key: string]: SupplierData }>({});
+  const [supplierDetails, setSupplierDetails] = useState<Record<string, SupplierData>>({});
   const [loadingSuppliers, setLoadingSuppliers] = useState(false);
   const isRTL = i18n.language === 'he';
 
@@ -88,62 +94,43 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
   };
 
   // Transform frontend data to backend format
-  const transformEventData = () => {
-    console.log('=== TRANSFORM EVENT DATA DEBUG ===');
-    console.log('Raw eventData:', eventData);
-    console.log('Selected Services:', eventData.services);
-    console.log('Selected Suppliers:', eventData.selectedSuppliers);
-    console.log('Selected Packages:', eventData.selectedPackages);
-    
-    // Create start and end dates from separate date/time fields
-    // Handle both formats: YYYY-MM-DD and date objects
-    const formatDate = (date: string) => {
-      const d = new Date(date);
-      return d.toISOString().split('T')[0]; // Returns YYYY-MM-DD
-    };
+const transformEventData = () => {
+  console.log('=== TRANSFORM EVENT DATA DEBUG ===');
+  console.log('Raw eventData:', eventData);
+  console.log('Selected Services:', eventData.services);
+  console.log('Selected Suppliers:', eventData.selectedSuppliers);
+  console.log('Selected Packages:', eventData.selectedPackages);
+  console.log('Bank Details:', eventData.bankDetails);
+  
+  // Create start and end dates from separate date/time fields
+  // Handle both formats: YYYY-MM-DD and date objects
+  const formatDate = (date: string) => {
+    const d = new Date(date);
+    return d.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+  };
 
-    const startDateStr = typeof eventData.startDate === 'string'
-      ? eventData.startDate
-      : formatDate(eventData.startDate);
-    const endDateStr = typeof eventData.endDate === 'string'
-      ? eventData.endDate
-      : formatDate(eventData.endDate);
+  const startDateStr = typeof eventData.startDate === 'string'
+    ? eventData.startDate
+    : formatDate(eventData.startDate);
+  const endDateStr = typeof eventData.endDate === 'string'
+    ? eventData.endDate
+    : formatDate(eventData.endDate);
 
-    const startDate = new Date(`${startDateStr}T${eventData.startTime}:00`);
-    const endDate = new Date(`${endDateStr}T${eventData.endTime}:00`);
+  const startDate = new Date(`${startDateStr}T${eventData.startTime}:00`);
+  const endDate = new Date(`${endDateStr}T${eventData.endTime}:00`);
 
-    console.log('Date Time Debug:', {
-      startDateStr,
-      endDateStr,
-      startTime: eventData.startTime,
-      endTime: eventData.endTime,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString()
-    });
+  console.log('Date Time Debug:', {
+    startDateStr,
+    endDateStr,
+    startTime: eventData.startTime,
+    endTime: eventData.endTime,
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString()
+  });
 
-    // Transform suppliers from nested object to backend expected format (nested services structure)
-    const suppliers: Array<{
-      services: Array<{
-        serviceId: string;
-        selectedPackageId?: string;
-        packageDetails?: {
-          name: string;
-          description: string;
-          price: number;
-          features: string[];
-          duration?: number;
-        };
-        requestedPrice?: number;
-        notes?: string;
-        priority?: 'low' | 'medium' | 'high';
-      }>;
-      supplierId: string;
-    }> = [];
-
-    console.log('Processing selectedSuppliers:', eventData.selectedSuppliers);
-
-    // Create a map to group services by supplier
-    const supplierServicesMap = new Map<string, Array<{
+  // Transform suppliers from nested object to backend expected format (nested services structure)
+  const suppliers: Array<{
+    services: Array<{
       serviceId: string;
       selectedPackageId?: string;
       packageDetails?: {
@@ -156,177 +143,213 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
       requestedPrice?: number;
       notes?: string;
       priority?: 'low' | 'medium' | 'high';
-    }>>();
+    }>;
+    supplierId: string;
+  }> = [];
 
-    if (eventData.selectedSuppliers && typeof eventData.selectedSuppliers === 'object') {
-      Object.entries(eventData.selectedSuppliers).forEach(([serviceCategory, serviceSuppliers]) => {
-        console.log(`Processing service category: ${serviceCategory}`, serviceSuppliers);
-        
-        if (serviceSuppliers && typeof serviceSuppliers === 'object') {
-          Object.entries(serviceSuppliers).forEach(([supplierId, serviceIds]) => {
-            console.log(`Processing supplier: ${supplierId}`, serviceIds);
-            
-            if (Array.isArray(serviceIds)) {
-              serviceIds.forEach((serviceId) => {
-                // Check if this service has a selected package
-                const packageInfo = eventData.selectedPackages?.[serviceId];
-                
-                const serviceEntry: {
-                  serviceId: string;
-                  selectedPackageId?: string;
-                  packageDetails?: {
-                    name: string;
-                    description: string;
-                    price: number;
-                    features: string[];
-                    duration?: number;
-                  };
-                  requestedPrice?: number;
-                  notes?: string;
-                  priority: 'low' | 'medium' | 'high';
-                } = {
-                  serviceId,
-                  priority: 'medium' as const,
-                  notes: `Selected for ${serviceCategory} service`,
-                };
+  console.log('Processing selectedSuppliers:', eventData.selectedSuppliers);
 
-                // Add package information if available
-                if (packageInfo && packageInfo.packageId && packageInfo.packageDetails) {
-                  serviceEntry.selectedPackageId = packageInfo.packageId;
-                  serviceEntry.packageDetails = packageInfo.packageDetails;
-                  serviceEntry.requestedPrice = packageInfo.packageDetails.price;
-                  
-                  console.log(`Package info added for service ${serviceId}:`, {
-                    packageId: packageInfo.packageId,
-                    packageDetails: packageInfo.packageDetails
-                  });
-                }
-                
-                // Add to supplier's services array
-                if (!supplierServicesMap.has(supplierId)) {
-                  supplierServicesMap.set(supplierId, []);
-                }
-                supplierServicesMap.get(supplierId)!.push(serviceEntry);
-                
-                console.log('Adding service entry for supplier:', supplierId, serviceEntry);
-              });
-            } else {
-              console.warn('serviceIds is not an array:', serviceIds);
-            }
-          });
-        } else {
-          console.warn('serviceSuppliers is not an object:', serviceSuppliers);
-        }
-      });
-    } else {
-      console.warn('selectedSuppliers is not an object or is null/undefined:', eventData.selectedSuppliers);
-    }
-
-    // Convert map to final suppliers array format
-    supplierServicesMap.forEach((services, supplierId) => {
-      suppliers.push({
-        supplierId,
-        services
-      });
-    });
-
-    console.log('Final suppliers array (backend format with nested services and packages):', suppliers);
-
-    // Calculate ticket info
-    const totalTickets = eventData.tickets?.reduce((sum, ticket) => sum + ticket.quantity, 0) || 0;
-    const totalRevenue = eventData.tickets?.reduce((sum, ticket) => sum + (ticket.quantity * ticket.price), 0) || 0;
-    const minPrice = eventData.tickets && eventData.tickets.length > 0 ? Math.min(...eventData.tickets.map(t => t.price)) : 0;
-    const maxPrice = eventData.tickets && eventData.tickets.length > 0 ? Math.max(...eventData.tickets.map(t => t.price)) : 0;
-
-    // Extract city from location (assume format "Address, City" or just "City")
-    const locationParts = eventData.location.split(',');
-    const city = locationParts.length > 1 ? locationParts[locationParts.length - 1].trim() : eventData.location;
-    const address = locationParts.length > 1 ? locationParts.slice(0, -1).join(',').trim() : eventData.location;
-
-    // Transform tickets to backend format (simplified - backend will handle defaults)
-    const transformedTickets = eventData.tickets && eventData.tickets.length > 0 ? eventData.tickets.map(ticket => ({
-      title: ticket.name,
-      description: `${ticket.name} ticket for ${eventData.name}`,
-      type: ticket.name.toLowerCase().replace(/\s+/g, '-'),
-      price: {
-        amount: ticket.price,
-        currency: 'ILS'
-      },
-      quantity: {
-        total: ticket.quantity,
-        available: ticket.quantity
-      }
-    })) : [];
-
-    const transformedData = {
-      name: eventData.name,
-      description: eventData.description || '',
-startDate: startDateStr,      // YYYY-MM-DD
-  endDate: endDateStr,          // YYYY-MM-DD
-  startTime: eventData.startTime, // HH:mm
-  endTime: eventData.endTime,     // HH:mm
-
-      location: {
-        address: address,
-        city: city
-      },
-      language: 'en' as const,
-      category: eventData.eventType,
-      requiredServices: eventData.services || [],
-      suppliers: suppliers,
-      status: 'draft' as const,
-      isPublic: !eventData.isPrivate,
-      // Include password for private events (when isPublic is false)
-      ...(eventData.isPrivate && eventData.eventPassword && {
-        password: eventData.eventPassword
-      }),
-      // Include tickets array for backend to create ticket documents
-      ...(transformedTickets.length > 0 && {
-        tickets: transformedTickets
-      }),
-      // Include ticketInfo for event metadata
-      ticketInfo: eventData.isPaid && totalTickets > 0 ? {
-        availableTickets: totalTickets,
-        soldTickets: 0,
-        reservedTickets: 0,
-        isFree: false,
-        priceRange: {
-          min: minPrice,
-          max: maxPrice
-        }
-      } : {
-        availableTickets: totalTickets || 0,
-        soldTickets: 0,
-        reservedTickets: 0,
-        isFree: true,
-        priceRange: {
-          min: 0,
-          max: 0
-        }
-      },
-      ...(eventData.isPaid && totalRevenue > 0 && {
-        budget: {
-          total: totalRevenue,
-          spent: 0
-        }
-      }),
-      tags: eventData.services || [],
+  // Create a map to group services by supplier
+  const supplierServicesMap = new Map<string, Array<{
+    serviceId: string;
+    selectedPackageId?: string;
+    packageDetails?: {
+      name: string;
+      description: string;
+      price: number;
+      features: string[];
+      duration?: number;
     };
+    requestedPrice?: number;
+    notes?: string;
+    priority?: 'low' | 'medium' | 'high';
+  }>>();
 
-    console.log('=== FINAL TRANSFORMED DATA ===');
-    console.log('Transformed data:', transformedData);
-    console.log('Suppliers count:', suppliers.length);
-    console.log('Required services:', eventData.services);
-    console.log('===================================');
-    
-    return transformedData;
+  if (eventData.selectedSuppliers && typeof eventData.selectedSuppliers === 'object') {
+    Object.entries(eventData.selectedSuppliers).forEach(([serviceCategory, serviceSuppliers]) => {
+      console.log(`Processing service category: ${serviceCategory}`, serviceSuppliers);
+      
+      if (serviceSuppliers && typeof serviceSuppliers === 'object') {
+        Object.entries(serviceSuppliers).forEach(([supplierId, serviceIds]) => {
+          console.log(`Processing supplier: ${supplierId}`, serviceIds);
+          
+          if (Array.isArray(serviceIds)) {
+            serviceIds.forEach((serviceId) => {
+              // Check if this service has a selected package
+              const packageInfo = eventData.selectedPackages?.[serviceId];
+              
+              const serviceEntry: {
+                serviceId: string;
+                selectedPackageId?: string;
+                packageDetails?: {
+                  name: string;
+                  description: string;
+                  price: number;
+                  features: string[];
+                  duration?: number;
+                };
+                requestedPrice?: number;
+                notes?: string;
+                priority: 'low' | 'medium' | 'high';
+              } = {
+                serviceId,
+                priority: 'medium' as const,
+                notes: `Selected for ${serviceCategory} service`,
+              };
+
+              // Add package information if available
+              if (packageInfo && packageInfo.packageId && packageInfo.packageDetails) {
+                serviceEntry.selectedPackageId = packageInfo.packageId;
+                serviceEntry.packageDetails = packageInfo.packageDetails;
+                serviceEntry.requestedPrice = packageInfo.packageDetails.price;
+                
+                console.log(`Package info added for service ${serviceId}:`, {
+                  packageId: packageInfo.packageId,
+                  packageDetails: packageInfo.packageDetails
+                });
+              }
+              
+              // Add to supplier's services array
+              if (!supplierServicesMap.has(supplierId)) {
+                supplierServicesMap.set(supplierId, []);
+              }
+              supplierServicesMap.get(supplierId)!.push(serviceEntry);
+              
+              console.log('Adding service entry for supplier:', supplierId, serviceEntry);
+            });
+          } else {
+            console.warn('serviceIds is not an array:', serviceIds);
+          }
+        });
+      } else {
+        console.warn('serviceSuppliers is not an object:', serviceSuppliers);
+      }
+    });
+  } else {
+    console.warn('selectedSuppliers is not an object or is null/undefined:', eventData.selectedSuppliers);
+  }
+
+  // Convert map to final suppliers array format
+  supplierServicesMap.forEach((services, supplierId) => {
+    suppliers.push({
+      supplierId,
+      services
+    });
+  });
+
+  console.log('Final suppliers array (backend format with nested services and packages):', suppliers);
+
+  // Calculate ticket info
+  const totalTickets = eventData.tickets?.reduce((sum, ticket) => sum + ticket.quantity, 0) || 0;
+  const totalRevenue = eventData.tickets?.reduce((sum, ticket) => sum + (ticket.quantity * ticket.price), 0) || 0;
+  const minPrice = eventData.tickets && eventData.tickets.length > 0 ? Math.min(...eventData.tickets.map(t => t.price)) : 0;
+  const maxPrice = eventData.tickets && eventData.tickets.length > 0 ? Math.max(...eventData.tickets.map(t => t.price)) : 0;
+
+  // Extract city from location (assume format "Address, City" or just "City")
+  const locationParts = eventData.location.split(',');
+  const city = locationParts.length > 1 ? locationParts[locationParts.length - 1].trim() : eventData.location;
+  const address = locationParts.length > 1 ? locationParts.slice(0, -1).join(',').trim() : eventData.location;
+
+  // Transform tickets to backend format (simplified - backend will handle defaults)
+  const transformedTickets = eventData.tickets && eventData.tickets.length > 0 ? eventData.tickets.map(ticket => ({
+    title: ticket.name,
+    description: `${ticket.name} ticket for ${eventData.name}`,
+    type: ticket.name.toLowerCase().replace(/\s+/g, '-'),
+    price: {
+      amount: ticket.price,
+      currency: 'ILS'
+    },
+    quantity: {
+      total: ticket.quantity,
+      available: ticket.quantity
+    }
+  })) : [];
+
+  // Prepare bank details for backend
+  const bankDetails = eventData.bankDetails ? {
+    bankName: eventData.bankDetails.bankName || '',
+    branch: eventData.bankDetails.branch || '',
+    accountNumber: eventData.bankDetails.accountNumber || '',
+    accountHolderName: eventData.bankDetails.accountHolderName || ''
+  } : undefined;
+
+  console.log('Bank details to be sent:', bankDetails);
+
+  const transformedData = {
+    name: eventData.name,
+    description: eventData.description || '',
+    startDate: startDateStr,      // YYYY-MM-DD
+    endDate: endDateStr,          // YYYY-MM-DD
+    startTime: eventData.startTime, // HH:mm
+    endTime: eventData.endTime,     // HH:mm
+    location: {
+      address: address,
+      city: city
+    },
+    language: 'en' as const,
+    category: eventData.eventType,
+    requiredServices: eventData.services || [],
+    suppliers: suppliers,
+    status: 'draft' as const,
+    isPublic: !eventData.isPrivate,
+    // Include bank details if available
+    ...(bankDetails && {
+      bankDetails: bankDetails
+    }),
+    // Include password for private events (when isPublic is false)
+    ...(eventData.isPrivate && eventData.eventPassword && {
+      password: eventData.eventPassword
+    }),
+    // Include tickets array for backend to create ticket documents
+    ...(transformedTickets.length > 0 && {
+      tickets: transformedTickets
+    }),
+    // Include ticketInfo for event metadata
+    ticketInfo: eventData.isPaid && totalTickets > 0 ? {
+      availableTickets: totalTickets,
+      soldTickets: 0,
+      reservedTickets: 0,
+      isFree: false,
+      priceRange: {
+        min: minPrice,
+        max: maxPrice
+      }
+    } : {
+      availableTickets: totalTickets || 0,
+      soldTickets: 0,
+      reservedTickets: 0,
+      isFree: true,
+      priceRange: {
+        min: 0,
+        max: 0
+      }
+    },
+    ...(eventData.isPaid && totalRevenue > 0 && {
+      budget: {
+        total: totalRevenue,
+        spent: 0
+      }
+    }),
+    tags: eventData.services || [],
   };
 
+  console.log('=== FINAL TRANSFORMED DATA ===');
+  console.log('Transformed data:', transformedData);
+  console.log('Suppliers count:', suppliers.length);
+  console.log('Required services:', eventData.services);
+  console.log('Bank details included:', !!bankDetails);
+  console.log('===================================');
+  
+  return transformedData;
+};
+
   // Handle event creation or update
- const handleCreateEvent = async () => {
+const handleCreateEvent = async () => {
   // Check if user is authenticated and is a producer
   if (!isLoadingUser && (!user || user.role !== 'producer')) {
     // Save current form data to sessionStorage for restoration after login
+    console.log("1 event data -> ", eventData);
+    
     const currentEventData = {
       name: eventData.name,
       description: eventData.description,
@@ -352,7 +375,7 @@ startDate: startDateStr,      // YYYY-MM-DD
       variant: "default",
     });
 
-    const returnUrl = encodeURIComponent('/create-event/step/3');
+    const returnUrl = encodeURIComponent('/create-event/step/4');
     navigate(`/producer-login?returnUrl=${returnUrl}`);
     return;
   }
@@ -371,22 +394,37 @@ startDate: startDateStr,      // YYYY-MM-DD
       // ✅ Create FormData for multipart/form-data
       const formData = new FormData();
 
-      console.log('Event image before upload:', eventData.eventImage);
-
+      console.log('Event image before upload:', eventData);
 
       // Append image file (if exists)
       if (eventData.eventImage) {
-        console.log('Attaching image file:', eventData.eventImage);
-        formData.append('image', eventData.eventImage); // File object (from input)
+        if (eventData.eventImage instanceof File) {
+          console.log('Attaching image file:', eventData.eventImage.name, 'size:', eventData.eventImage.size);
+          formData.append('image', eventData.eventImage); // File object (from input)
+        } else {
+          console.warn('eventImage is not a File object:', eventData.eventImage);
+        }
       }
 
-      // Append transformed event data as JSON string
+      // ✅ Append the complete transformed data as JSON to match backend expectations
+      console.log('Appending transformed data as JSON to FormData:');
       formData.append('data', JSON.stringify(transformedData));
+      console.log('Appended data:', JSON.stringify(transformedData).substring(0, 100));
 
-      
-for (let [key, value] of formData.entries()) {
-  console.log('✅ FormData entry:', key, value);
-}
+      // Log FormData entries for verification
+      console.log('✅ FormData entries:');
+      let entryCount = 0;
+      for (let [key, value] of formData.entries()) {
+        if (typeof value === 'string') {
+          console.log(`Entry ${entryCount + 1}: ${key} = ${value.substring(0, 100)}${value.length > 100 ? '...' : ''}`);
+        } else {
+          console.log(`Entry ${entryCount + 1}: ${key} = [File] ${value.name} (${value.size} bytes)`);
+        }
+        entryCount++;
+      }
+      console.log('Total FormData entries:', entryCount);
+
+      console.log("Final FormData:", formData);
 
       // ✅ Send FormData to backend (Multer will handle it)
       const response = await apiService.createEvent(formData);
@@ -462,7 +500,7 @@ for (let [key, value] of formData.entries()) {
       }
 
       setLoadingSuppliers(true);
-      const details: { [key: string]: SupplierData } = {};
+      const details: Record<string, SupplierData> = {};
 
       try {
         // Get all unique supplier IDs
@@ -710,6 +748,63 @@ for (let [key, value] of formData.entries()) {
                   <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between font-semibold text-base sm:text-lg p-3 bg-primary/10 rounded-lg gap-2 sm:gap-0 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
                     <span>{t('createEvent.step3.totalRevenue')}</span>
                     <span className={`${isRTL ? 'text-left' : 'text-right'}`}>₪{getTotalRevenue().toFixed(2)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Producer Banking Details */}
+          {eventData.bankDetails && (
+            <Card>
+              <CardHeader className="pb-2 sm:pb-3">
+                <CardTitle className={`flex items-center gap-2 text-base sm:text-lg ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Banking Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 sm:p-6">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 ${isRTL ? 'text-right' : ''}`}>
+                    <div className="space-y-2">
+                      <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <Building2 className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="font-medium">Bank Name</span>
+                      </div>
+                      <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md">
+                        {eventData.bankDetails.bankName || 'Not provided'}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="font-medium">Branch</span>
+                      </div>
+                      <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md">
+                        {eventData.bankDetails.branch || 'Not provided'}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="font-medium">Account Number</span>
+                      </div>
+                      <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md font-mono">
+                        {eventData.bankDetails.accountNumber || 'Not provided'}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="font-medium">Account Holder</span>
+                      </div>
+                      <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md">
+                        {eventData.bankDetails.accountHolderName || 'Not provided'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </CardContent>

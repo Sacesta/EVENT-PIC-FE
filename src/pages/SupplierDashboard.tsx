@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/use-auth';
 import ServiceManagement from '@/components/services/ServiceManagement';
 import PackageManagement from '@/components/services/PackageManagement';
 import { autoTranslate } from '@/utils/autoTranslate';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const EVENT_TYPES = [
   'birthday',
@@ -68,6 +69,7 @@ export default function SupplierDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
+  const [openPackages, setOpenPackages] = useState<Record<string, boolean>>({});
   const [stats, setStats] = useState({
     totalServices: 0,
     activeServices: 0,
@@ -95,6 +97,15 @@ export default function SupplierDashboard() {
   });
   
   const { toast } = useToast();
+
+  // Add this function to toggle package accordion
+const togglePackage = (eventId: string, supplierIndex: number) => {
+  const key = `${eventId}-${supplierIndex}`;
+  setOpenPackages(prev => ({
+    ...prev,
+    [key]: !prev[key]
+  }));
+};
 
   useEffect(() => {
     fetchDashboardData();
@@ -790,12 +801,13 @@ export default function SupplierDashboard() {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-[250px]">{t('events.eventName', 'Event Name')}</TableHead>
-                        <TableHead>{t('events.category', 'Category')}</TableHead>
-                        <TableHead>{t('events.date', 'Date')}</TableHead>
-                        <TableHead>{t('events.location', 'Location')}</TableHead>
-                        <TableHead>{t('events.status', 'Status')}</TableHead>
+                        <TableHead className='text-center'>{t('events.category', 'Category')}</TableHead>
+                        <TableHead className='text-center'>{t('events.date', 'Date')}</TableHead>
+                        <TableHead className='text-center'>{t('events.location', 'Location')}</TableHead>
+                        <TableHead className='text-center'>{t('events.status', 'Status')}</TableHead>
                         <TableHead>{t('events.tickets', 'Tickets')}</TableHead>
-                        <TableHead className="text-right">{t('events.actions', 'Actions')}</TableHead>
+                        <TableHead className='text-center'>{t('events.packages', 'Packages')}</TableHead>
+                        <TableHead className="text-center">{t('events.actions', 'Actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -868,6 +880,96 @@ export default function SupplierDashboard() {
                               <span className="text-sm text-gray-500">N/A</span>
                             )}
                           </TableCell>
+                          <TableCell>
+  {event.suppliers && event.suppliers.length > 0 ? (
+    <div className="space-y-2 min-w-[150px]">
+      {event.suppliers
+        .filter(supplier => supplier.packageDetails && supplier.packageDetails.name)
+        .map((supplier, index) => {
+          const key = `${event._id}-${index}`;
+          const isOpen = openPackages[key];
+          
+          return (
+            <div 
+              key={index} 
+              className="border border-gray-200 rounded-md overflow-hidden"
+            >
+              {/* Accordion Header */}
+              <button
+                onClick={() => togglePackage(event._id, index)}
+                className="w-full px-3 py-2 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-gray-900">
+                    {supplier.packageDetails.name}
+                  </span>
+                </div>
+                {isOpen ? (
+                  <ChevronUp className="h-4 w-4 text-gray-600" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-gray-600" />
+                )}
+              </button>
+
+              {/* Accordion Content */}
+              {isOpen && (
+                <div className="px-3 py-3 bg-white space-y-2">
+                  {/* Price */}
+                  {supplier.packageDetails.price && (
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-3 w-3 text-green-600" />
+                      <span className="text-sm font-semibold text-green-700">
+                        ${supplier.packageDetails.price}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {supplier.packageDetails.description && (
+                    <div>
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        {supplier.packageDetails.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Additional Features if available */}
+                  {supplier.packageDetails.features && 
+                   supplier.packageDetails.features.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-gray-100">
+                      <p className="text-xs font-medium text-gray-700 mb-1">
+                        {t('events.features', 'Features')}:
+                      </p>
+                      <ul className="text-xs text-gray-600 space-y-1">
+                        {supplier.packageDetails.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-start gap-1">
+                            <span className="text-blue-600 mt-0.5">•</span>
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      
+      {/* Show message if no packages */}
+      {event.suppliers.filter(s => s.packageDetails && s.packageDetails.name).length === 0 && (
+        <div className="text-xs text-gray-500 italic">
+          {t('events.noPackages', 'No packages selected')}
+        </div>
+      )}
+    </div>
+  ) : (
+    <div className="text-xs text-gray-500 italic">
+      {t('events.noPackages', 'No packages selected')}
+    </div>
+  )}
+</TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
                               {event.status === 'draft' && (

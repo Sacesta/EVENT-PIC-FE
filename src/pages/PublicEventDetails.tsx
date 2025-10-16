@@ -17,6 +17,7 @@ import {
   Palette,
   Shield,
   Car,
+  CreditCard,
   DollarSign,
   Package
 } from 'lucide-react';
@@ -29,6 +30,7 @@ import { apiService } from '@/services/api';
 import { useAuth } from '@/hooks/use-auth';
 import { autoTranslate } from '@/utils/autoTranslate';
 import { useToast } from '@/hooks/use-toast';
+import config from '@/config/environment';
 
 const PublicEventDetails = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -301,6 +303,9 @@ const PublicEventDetails = () => {
     }
   };
 
+  console.log("event --->",event);
+  console.log("url ---- > ",config.BACKEND_URL);
+  
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -330,20 +335,26 @@ const PublicEventDetails = () => {
             </div>
 
             {/* Event Banner Image - Always show */}
-            <div className="w-full h-96 rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 via-primary/10 to-background shadow-lg">
-              <img 
-                src={event.image || '/image.png'} 
-                alt={autoTranslate(event.name, i18n.language)}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  // If image fails to load, use the default image.png
-                  const target = e.target as HTMLImageElement;
-                  if (target.src !== window.location.origin + '/image.png') {
-                    target.src = '/image.png';
-                  }
-                }}
-              />
-            </div>
+
+<div className="w-full h-96 rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 via-primary/10 to-background shadow-lg">
+ <img
+  src={
+    event.image
+      ? `${config.BACKEND_URL.replace(/\/$/, '')}/${event.image.replace(/^\/+/, '')}`
+      : '/image.png'
+  }
+  alt={autoTranslate(event.name, i18n.language)}
+  className="w-full h-full object-cover"
+  onError={(e) => {
+    const target = e.target as HTMLImageElement;
+    if (target.src !== window.location.origin + '/image.png') {
+      target.src = '/image.png';
+    }
+  }}
+/>
+
+</div>
+
 
             {/* Event Info */}
             <Card>
@@ -644,6 +655,36 @@ const PublicEventDetails = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Bank Details */}
+            {event.bankDetails && (
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <CreditCard className="w-5 h-5 text-primary" />
+                    Bank Details
+                  </h3>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Bank Name</p>
+                      <p className="text-sm font-medium">{event.bankDetails.bankName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Branch</p>
+                      <p className="text-sm font-medium">{event.bankDetails.branch}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Account Number</p>
+                      <p className="text-sm font-medium">{event.bankDetails.accountNumber}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Account Holder</p>
+                      <p className="text-sm font-medium">{event.bankDetails.accountHolderName}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

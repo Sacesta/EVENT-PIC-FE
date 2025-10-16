@@ -81,6 +81,7 @@ interface Event {
   category: string;
   requiredServices?: string[];
   suppliers?: Array<{
+    packageDetails: any;
     supplierId: {
       _id: string;
       name: string;
@@ -657,10 +658,11 @@ class ApiService {
 
   private async request<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const defaultOptions: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
+        // Only set Content-Type if body is not FormData
+        ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
         ...options.headers,
       },
       credentials: 'omit',

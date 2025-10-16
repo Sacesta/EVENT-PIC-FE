@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -41,8 +42,10 @@ const EditEvent: React.FC<EditEventProps> = () => {
   const [currentTab, setCurrentTab] = useState('services');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [eventLocation, setEventLocation] = useState('');
   const [eventType, setEventType] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
@@ -60,9 +63,9 @@ const EditEvent: React.FC<EditEventProps> = () => {
   // Create eventData object with stable reference but updated values
   const eventDataRef = useRef<EventData>({} as EventData);
   eventDataRef.current = {
-    name, description, date, time, location: eventLocation, eventType,
+    name, description, startDate, endDate, startTime, endTime, location: eventLocation, eventType,
     isPrivate, eventPassword, isPaid, tickets, services,
-    selectedSuppliers, specialRequests, currentTab
+    selectedSuppliers, specialRequests, currentTab, isFree: !isPaid, freeTicketLimit: 0, selectedPackages: {}
   };
 
   const steps = useMemo(() => [
@@ -115,8 +118,15 @@ const EditEvent: React.FC<EditEventProps> = () => {
         // Handle date formatting - extract date from startDate
         if (eventData.startDate) {
           const startDate = new Date(eventData.startDate);
-          setDate(startDate.toISOString().split('T')[0]); // YYYY-MM-DD format
-          setTime(startDate.toTimeString().slice(0, 5)); // HH:MM format
+          setStartDate(startDate.toISOString().split('T')[0]); // YYYY-MM-DD format
+          setStartTime(startDate.toTimeString().slice(0, 5)); // HH:MM format
+        }
+
+        // Handle end date if available
+        if (eventData.endDate) {
+          const endDate = new Date(eventData.endDate);
+          setEndDate(endDate.toISOString().split('T')[0]); // YYYY-MM-DD format
+          setEndTime(endDate.toTimeString().slice(0, 5)); // HH:MM format
         }
         
         // Handle location - can be string or object
@@ -213,19 +223,21 @@ const EditEvent: React.FC<EditEventProps> = () => {
     if (!loading && originalEvent) {
       const dataToSave = {
         services, selectedSuppliers, currentTab, name, description,
-        date, time, location: eventLocation, eventType, isPrivate,
+        startDate, endDate, startTime, endTime, location: eventLocation, eventType, isPrivate,
         eventPassword, isPaid, tickets, specialRequests
       };
       sessionStorage.setItem(`editEventData_${eventId}`, JSON.stringify(dataToSave));
     }
-  }, [services, selectedSuppliers, currentTab, name, description, date, time, eventLocation, eventType, isPrivate, eventPassword, isPaid, tickets, specialRequests, loading, originalEvent, eventId]);
+  }, [services, selectedSuppliers, currentTab, name, description, startDate, endDate, startTime, endTime, eventLocation, eventType, isPrivate, eventPassword, isPaid, tickets, specialRequests, loading, originalEvent, eventId]);
 
   const handleInputChange = useCallback((field: string, value: unknown) => {
     switch (field) {
       case 'name': setName(value as string); break;
       case 'description': setDescription(value as string); break;
-      case 'date': setDate(value as string); break;
-      case 'time': setTime(value as string); break;
+      case 'startDate': setStartDate(value as string); break;
+      case 'endDate': setEndDate(value as string); break;
+      case 'startTime': setStartTime(value as string); break;
+      case 'endTime': setEndTime(value as string); break;
       case 'location': setEventLocation(value as string); break;
       case 'eventType': setEventType(value as string); break;
       case 'isPrivate': setIsPrivate(value as boolean); break;
@@ -266,15 +278,23 @@ const EditEvent: React.FC<EditEventProps> = () => {
       console.log('Selected Suppliers:', eventDataRef.current.selectedSuppliers);
       
       // Create start and end dates
-      const eventDate = new Date(eventDataRef.current.date);
-      const [hours, minutes] = eventDataRef.current.time.split(':').map(Number);
-      
+      const eventDate = new Date(eventDataRef.current.startDate);
+      const [hours, minutes] = eventDataRef.current.startTime.split(':').map(Number);
+
       const startDate = new Date(eventDate);
       startDate.setHours(hours, minutes, 0, 0);
-      
-      // Assume event duration of 4 hours if not specified
-      const endDate = new Date(startDate);
-      endDate.setHours(startDate.getHours() + 4);
+
+      // Use end date/time if available, otherwise assume event duration of 4 hours
+      let endDate: Date;
+      if (eventDataRef.current.endDate && eventDataRef.current.endTime) {
+        const endDateTime = new Date(eventDataRef.current.endDate);
+        const [endHours, endMinutes] = eventDataRef.current.endTime.split(':').map(Number);
+        endDate = new Date(endDateTime);
+        endDate.setHours(endHours, endMinutes, 0, 0);
+      } else {
+        endDate = new Date(startDate);
+        endDate.setHours(startDate.getHours() + 4);
+      }
 
       // Transform suppliers from nested object to backend expected format (nested services structure)
       const suppliers: Array<{
@@ -395,7 +415,7 @@ const EditEvent: React.FC<EditEventProps> = () => {
         name: eventDataRef.current.name,
         description: eventDataRef.current.description || '',
         startDate: startDate.toISOString(),
-        endDate: new Date(startDate.getTime() + (4 * 60 * 60 * 1000)).toISOString(), // Ensure endDate is after startDate
+        endDate: endDate.toISOString(), // Use the calculated endDate
         location: {
           address: address,
           city: city

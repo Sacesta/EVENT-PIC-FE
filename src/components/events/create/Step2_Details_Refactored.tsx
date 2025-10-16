@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -63,7 +64,59 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
     });
   }, []);
 
-  // Validation - only run when needed, not on every render
+  const isDateTimeInPast = useCallback((dateStr: string, timeStr: string): boolean => {
+    const now = new Date();
+    const dateTime = new Date(`${dateStr}T${timeStr}:00`);
+    return dateTime < now;
+  }, []);
+
+  const isEndDateTimeAfterStartDateTime = useCallback(
+    (
+      startDateStr: string,
+      startTimeStr: string,
+      endDateStr: string,
+      endTimeStr: string
+    ): boolean => {
+      const startDateTime = new Date(`${startDateStr}T${startTimeStr}:00`);
+      const endDateTime = new Date(`${endDateStr}T${endTimeStr}:00`);
+      return endDateTime > startDateTime;
+    },
+    []
+  );
+
+  // Helper function to extract date in YYYY-MM-DD format from various inputs
+  const getNormalizedDate = (dateValue: string | Date | null | undefined): string => {
+    if (!dateValue) return "";
+    
+    // If it's already a string in YYYY-MM-DD format, return it
+    if (typeof dateValue === "string" && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return dateValue;
+    }
+    
+    // If it's an ISO string with time, extract the date part
+    if (typeof dateValue === "string" && dateValue.includes("T")) {
+      return dateValue.split("T")[0];
+    }
+    
+    // If it's a Date object, convert to YYYY-MM-DD
+    if (dateValue instanceof Date) {
+      return dateValue.toISOString().split("T")[0];
+    }
+    
+    // Try to parse it as a date
+    try {
+      const parsed = new Date(dateValue);
+      if (!isNaN(parsed.getTime())) {
+        return parsed.toISOString().split("T")[0];
+      }
+    } catch (error) {
+      return "";
+    }
+    
+    return "";
+  };
+
+  // Updated validateForm
   const validateForm = useCallback(() => {
     const newErrors: Record<string, string> = {};
 
@@ -87,35 +140,55 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
       newErrors.endTime = t("auth.validation.required");
     }
 
+    // Normalize dates before validation
+    const normalizedStartDate = getNormalizedDate(eventData.startDate);
+    const normalizedEndDate = getNormalizedDate(eventData.endDate);
+
+    // Check if start date/time is not in past
+    if (normalizedStartDate && eventData.startTime) {
+      if (isDateTimeInPast(normalizedStartDate, eventData.startTime)) {
+        newErrors.startDate = t("auth.validation.cannotBePast") || "Start date/time cannot be in the past";
+        newErrors.startTime = t("auth.validation.cannotBePast") || "Start date/time cannot be in the past";
+      }
+    }
+
     // Validate end date/time is after start date/time
-    if (eventData.startDate && eventData.endDate && eventData.startTime && eventData.endTime) {
-    // Create start and end dates from separate date/time fields
-// Handle both formats: YYYY-MM-DD and date objects
-const formatDate = (date: string) => {
-  const d = new Date(date);
-  return d.toISOString().split('T')[0]; // Returns YYYY-MM-DD
-};
+    if (normalizedStartDate && normalizedEndDate && eventData.startTime && eventData.endTime) {
+      if (
+        !isEndDateTimeAfterStartDateTime(
+          normalizedStartDate,
+          eventData.startTime,
+          normalizedEndDate,
+          eventData.endTime
+        )
+      ) {
+        newErrors.endDate = t("auth.validation.mustBeAfterStart") || "End date/time must be after start date/time";
+        newErrors.endTime = t("auth.validation.mustBeAfterStart") || "End date/time must be after start date/time";
+      }
+    }
 
-const startDateStr = typeof eventData.startDate === 'string' 
-  ? eventData.startDate 
-  : formatDate(eventData.startDate);
-const endDateStr = typeof eventData.endDate === 'string' 
-  ? eventData.endDate 
-  : formatDate(eventData.endDate);
+    // Validate date format for start
+    if (normalizedStartDate && eventData.startTime) {
+      try {
+        const startDateTime = new Date(`${normalizedStartDate}T${eventData.startTime}:00`);
+        if (isNaN(startDateTime.getTime())) {
+          newErrors.startDate = "Invalid start date/time format";
+        }
+      } catch (error) {
+        newErrors.startDate = "Invalid start date/time format";
+      }
+    }
 
-const startDate = new Date(`${startDateStr}T${eventData.startTime}:00`);
-const endDate = new Date(`${endDateStr}T${eventData.endTime}:00`);
-
-console.log('Date Time Debug:', {
-  startDateStr,
-  endDateStr,
-  startTime: eventData.startTime,
-  endTime: eventData.endTime,
-  startDate: startDate.toISOString(),
-  endDate: endDate.toISOString()
-})
-
-     
+    // Validate date format for end
+    if (normalizedEndDate && eventData.endTime) {
+      try {
+        const endDateTime = new Date(`${normalizedEndDate}T${eventData.endTime}:00`);
+        if (isNaN(endDateTime.getTime())) {
+          newErrors.endDate = "Invalid end date/time format";
+        }
+      } catch (error) {
+        newErrors.endDate = "Invalid end date/time format";
+      }
     }
 
     if (!eventData.location.trim()) {
@@ -136,7 +209,7 @@ console.log('Date Time Debug:', {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [eventData, t]);
+  }, [eventData, t, isDateTimeInPast, isEndDateTimeAfterStartDateTime]);
 
   // Memoized handlers
   const handleUpdate = useCallback(
@@ -275,6 +348,10 @@ console.log('Date Time Debug:', {
 
 
 
+  // Compute min values for date/time inputs
+  const today = new Date().toISOString().split("T")[0];
+  const currentTime = new Date().toISOString().split("T")[1].slice(0, 5);
+
   console.log("Rendering Step2_Detail222222");
   return (
     <div className="flex flex-col h-full max-h-[calc(90vh-120px)]">
@@ -318,6 +395,7 @@ console.log('Date Time Debug:', {
                 onChange={(value) => handleUpdate("startDate", value)}
                 required
                 error={errors.startDate}
+                min={today}
               />
               <MemoizedInput
                 label={t("createEvent.step2.startTime")}
@@ -327,6 +405,7 @@ console.log('Date Time Debug:', {
                 onChange={(value) => handleUpdate("startTime", value)}
                 required
                 error={errors.startTime}
+                min={eventData.startDate === today ? currentTime : undefined}
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -338,6 +417,7 @@ console.log('Date Time Debug:', {
                 onChange={(value) => handleUpdate("endDate", value)}
                 required
                 error={errors.endDate}
+                min={eventData.startDate || today}
               />
               <MemoizedInput
                 label={t("createEvent.step2.endTime")}
@@ -347,6 +427,7 @@ console.log('Date Time Debug:', {
                 onChange={(value) => handleUpdate("endTime", value)}
                 required
                 error={errors.endTime}
+                min={eventData.endDate === eventData.startDate ? eventData.startTime : undefined}
               />
             </div>
           </div>

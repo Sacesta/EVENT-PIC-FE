@@ -27,6 +27,13 @@ export const TicketItem = React.memo<TicketItemProps>(
       [ticket.id, onUpdate]
     );
 
+    const handleNameChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        onUpdate(ticket.id, { name: e.target.value });
+      },
+      [ticket.id, onUpdate]
+    );
+
     const handlePriceChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         onUpdate(ticket.id, { price: parseFloat(e.target.value) || 0 });
@@ -67,7 +74,11 @@ export const TicketItem = React.memo<TicketItemProps>(
               <Label className="text-xs text-gray-500">
                 {t('createEvent.step2.ticketName')}
               </Label>
-              <Input value={ticket.name} readOnly /> {/* name fixed */}
+              <Input
+                value={ticket.name}
+                onChange={handleNameChange}
+                placeholder={t('createEvent.step2.ticketNamePlaceholder')}
+              />
             </div>
             <div>
               <Label className="text-xs text-gray-500">

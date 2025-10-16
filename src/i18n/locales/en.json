@@ -20,7 +20,38 @@
     "steps": {
       "servicesSuppliers": "Services & Suppliers",
       "eventDetails": "Event Details",
-      "summary": "Summary"
+      "summary": "Summary",
+      "bankDetails" : "Bank Details"
+    },
+    "step2": {
+      "title": "Event Details",
+      "subtitle": "Fill in the details for your event",
+      "eventName": "Event Name",
+      "eventNamePlaceholder": "Enter event name",
+      "eventImage": "Event Image",
+      "startDate": "Start Date",
+      "startTime": "Start Time",
+      "endDate": "End Date",
+      "endTime": "End Time",
+      "eventType": "Event Type",
+      "selectEventType": "Select event type",
+      "location": "Location",
+      "privateEvent": "Private Event",
+      "privateEventDesc": "Require password to access event",
+      "passwordPlaceholder": "Enter password",
+      "paidTickets": "Paid Tickets",
+      "freeTickets": "Free Tickets",
+      "chargeAttendees": "Charge attendees for tickets",
+      "noChargeAttendees": "No charge for attendees",
+      "setPricesBelow": "Set ticket prices below",
+      "toggleForPaid": "Toggle to enable paid tickets",
+      "ticketTypesPricing": "Ticket Types & Pricing",
+      "ticketTypes": "Ticket Types",
+      "createTicketTiers": "Create ticket tiers with different prices",
+      "createTicketCategories": "Create ticket categories",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe your event...",
+      "continue": "Continue"
     },
     "editEvent": {
       "title": "Edit Event",
@@ -303,6 +334,7 @@
     "eventChat": "Event Chat",
     "date": "Date",
     "tickets": "Tickets",
+    "packages" : "Packages",
     "actions": "Actions",
     "approve": "Approve",
     "reject": "Reject",
@@ -643,7 +675,9 @@
       "email": "Please enter a valid email address",
       "minLength": "Must be at least {{count}} characters",
       "passwordMatch": "Passwords must match",
-      "positiveNumber": "Must be a positive number"
+      "positiveNumber": "Must be a positive number",
+      "cannotBePast": "Start date/time cannot be in the past",
+      "mustBeAfterStart": "End date/time must be after start date/time"
     },
     "termsAgreementPrefix": "By checking this box, you agree to our"
 
@@ -811,6 +845,7 @@
     "intermediate": "Intermediate",
     "expert": "Expert"
   },
+  
   "terms": {
     "title": "Framework Agreement for Platform Use",
     "agreement": "I agree to the Terms and Conditions",
@@ -899,7 +934,7 @@
       "content2": "Either party may terminate the agreement with 60 days' advance notice to the other party.",
       "content3": "Either party may terminate the agreement immediately in case of material breach by the other party, not remedied within 14 days from notice of breach.",
       "content4": "Upon agreement termination, the Supplier shall cease offering Services/Products through the Platform, but shall be obligated to complete supply of Services/Products ordered before termination date.",
-      "content5": "Provisions of sections 7, 8, 9, 10, 11, and 13 shall continue to apply after agreement termination."
+      "content5": "Provisions of sections 8, 9, 10, 11, 12, and 14 shall continue to apply after agreement termination."
     },
     "general": {
       "title": "13. General Provisions",
@@ -918,7 +953,7 @@
       "content2": "During the trial period, usage fees shall be 0 (zero new shekels). At end of trial period, the Company will notify the Supplier of the first usage fee amount.",
       "content3": "In addition to usage fees, the Supplier shall bear actual clearing costs incurred by the Company.",
       "paymentTerms": "2. Payment Terms",
-      "content4": "The Company will transfer compensation due to the Supplier, minus usage fees due to the Company, within ___ business days from receipt of payment from the client.",
+      "content4": "The Company will transfer compensation due to the Supplier, minus usage fees due to the Company, within 30 business days from receipt of payment from the client.",
       "content5": "Payment will be transferred to the Supplier's bank account, as provided to the Company upon Platform registration.",
       "content6": "The Company will provide the Supplier with a detailed report of transactions and commissions once per month.",
       "vat": "3. Value Added Tax",
@@ -931,17 +966,18 @@
       "content1": "The Company will strive to provide Platform availability of at least 99%, except during scheduled maintenance times.",
       "content2": "The Company will notify the Supplier in advance of scheduled maintenance times, as much as possible.",
       "responseTime": "2. Malfunction Response Times",
-      "content3": "The Company will respond to critical malfunctions disabling Platform use within ___ hours from report.",
-      "content4": "The Company will respond to non-critical malfunctions within ___ business hours from report.",
+      "content3": "The Company will respond to critical malfunctions disabling Platform use within 12 hours from report.",
+      "content4": "The Company will respond to non-critical malfunctions within 24 business hours from report.",
       "customerService": "3. Customer Service",
       "content5": "The Company will provide customer service to the Supplier on days Sunday-Thursday between hours 9:00-17:00.",
-      "content6": "Response time to Supplier inquiries will not exceed ___ business hours."
+      "content6": "Response time to Supplier inquiries will not exceed 24 business hours."
     },
     "contact": {
       "title": "Contact Information",
       "content": "If you have any questions about these Terms and Conditions, please contact us at support@pic-platform.com or through our contact form on the website."
     }
-  },
+  }
+,
   "common": {
     "minCharacters": "Min. {{count}} characters",
     "charactersCount": "{{current}}/{{min}} characters",

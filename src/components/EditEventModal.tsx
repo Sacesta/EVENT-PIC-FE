@@ -85,6 +85,14 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
   const [attendeesStatistics, setAttendeesStatistics] = useState<any>(null);
   const [attendeeSearch, setAttendeeSearch] = useState('');
   const [attendeeStatusFilter, setAttendeeStatusFilter] = useState('all');
+
+  // Producer details state for editing
+  const [bankDetails, setBankDetails] = useState({
+    bankName: '',
+    branch: '',
+    accountNumber: '',
+    accountHolderName: ''
+  });
   
   // Copy link state
   const [linkCopied, setLinkCopied] = useState(false);
@@ -94,7 +102,7 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
   eventDataRef.current = {
     name, description, startDate, endDate, startTime, endTime, location: eventLocation, eventType,
     isPrivate, eventPassword, isPaid, isFree: false, freeTicketLimit: 0, tickets, services,
-    selectedSuppliers, selectedPackages, specialRequests, currentTab
+    selectedSuppliers, selectedPackages, specialRequests, currentTab, bankDetails
   };
 
   // Load event data when modal opens
@@ -333,11 +341,19 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
       console.log('isPaid:', eventDataRef.current.isPaid);
       
       // Create start and end dates from separate fields
-      const startDateTime = new Date(`${eventDataRef.current.startDate}T${eventDataRef.current.startTime}`);
-      const endDateTime = new Date(`${eventDataRef.current.endDate}T${eventDataRef.current.endTime}`);
+      const startDateTime = new Date(`${eventDataRef.current.startDate}T${eventDataRef.current.startTime}:00`);
+      const endDateTime = new Date(`${eventDataRef.current.endDate}T${eventDataRef.current.endTime}:00`);
 
       console.log('Start DateTime:', startDateTime.toISOString());
       console.log('End DateTime:', endDateTime.toISOString());
+
+      // Add validation to ensure dates are valid
+      if (isNaN(startDateTime.getTime())) {
+        throw new Error('Invalid start date/time format');
+      }
+      if (isNaN(endDateTime.getTime())) {
+        throw new Error('Invalid end date/time format');
+      }
 
       // Transform suppliers WITH PACKAGE DETAILS
       const suppliers: Array<{
@@ -504,8 +520,8 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
       const updateData = {
         name: eventDataRef.current.name,
         description: eventDataRef.current.description || '',
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
+        startDate: startDateTime.toISOString(),
+        endDate: endDateTime.toISOString(),
         location: { address, city },
         language: 'en' as const,
         category: eventDataRef.current.eventType || 'other',

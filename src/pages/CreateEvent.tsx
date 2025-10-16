@@ -12,6 +12,7 @@ import Step1_ServicesAndSuppliers from '@/components/events/create/Step1_Service
 import Step2_Details from '@/components/events/create/Step2_Details_Refactored';
 import Step3_Summary from '@/components/events/create/Step3_Summary';
 import { EventData, Ticket } from '@/components/events/create/types';
+import Step_ProducerDetails from '@/components/events/create/Step_ProducerDetails';
 
 const CreateEvent: React.FC = () => {
   const { t } = useTranslation();
@@ -51,13 +52,19 @@ const CreateEvent: React.FC = () => {
   const [selectedPackages, setSelectedPackages] = useState<{ [serviceId: string]: { packageId: string; packageDetails: any } }>({});
   const [specialRequests, setSpecialRequests] = useState('');
   const [eventImage, setEventImage] = useState<File | null>(null);
+  const [bankDetails, setBankDetails] = useState({
+    bankName: '',
+    branch: '',
+    accountNumber: '',
+    accountHolderName: ''
+  });
 
   // Create eventData object with stable reference but updated values
   const eventDataRef = useRef<EventData>({} as EventData);
   eventDataRef.current = {
     name, description, startDate, endDate, startTime, endTime, location: eventLocation, eventType,
     isPrivate, eventPassword, isPaid, isFree, freeTicketLimit, tickets, services,
-    selectedSuppliers, selectedPackages, specialRequests, currentTab, eventImage
+    selectedSuppliers, selectedPackages, specialRequests, currentTab, eventImage,bankDetails
   };
 
   const steps = useMemo(() => [
@@ -73,9 +80,15 @@ const CreateEvent: React.FC = () => {
     },
     { 
       number: 3, 
-      title: t('createEvent.steps.summary'),
+      title: t('createEvent.steps.bankDetails'),
       path: '/create-event/step/3'
-    }
+    },
+    { 
+      number: 4, 
+      title: t('createEvent.steps.summary'),
+      path: '/create-event/step/4'
+    },
+      
   ], [t]);
 
   // Load saved data from sessionStorage on component mount
@@ -141,6 +154,7 @@ const CreateEvent: React.FC = () => {
       case 'selectedSuppliers': setSelectedSuppliers(value as { [service: string]: { [supplierId: string]: string[] } }); break;
       case 'currentTab': setCurrentTab(value as string); break;
       case 'eventImage': setEventImage(value as File | null); break;
+      case 'bankDetails': setBankDetails(value as { bankName: string; branch: string; accountNumber: string; accountHolderName: string }); break;
     }
   }, []);
 
@@ -282,13 +296,22 @@ const CreateEvent: React.FC = () => {
                     onBack={prevStep}
                   />
                 )}
-                {currentStep === 3 && (
+                 {currentStep === 3 && (
+                  <Step_ProducerDetails
+                    eventData={eventDataRef.current}
+                    onUpdate={handleInputChange}
+                    onBack={prevStep}
+                    onNext={nextStep}
+                  />
+                )}
+                {currentStep === 4 && (
                   <Step3_Summary
                     eventData={eventDataRef.current}
                     onBack={prevStep}
                     onCreateEvent={handleCreateEvent}
                   />
                 )}
+               
               </motion.div>
             </AnimatePresence>
           </CardContent>

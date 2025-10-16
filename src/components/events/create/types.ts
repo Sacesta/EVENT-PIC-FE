@@ -22,6 +22,13 @@ export interface SelectedPackageInfo {
   packageDetails: PackageDetails;
 }
 
+export interface BankDetails {
+  bankName: string;
+  branch: string;
+  accountNumber: string;
+  accountHolderName: string;
+}
+
 export interface EventData {
   name: string;
   description: string;
@@ -43,6 +50,7 @@ export interface EventData {
   specialRequests: string;
   currentTab: string;
   eventImage?: File | null;
+  bankDetails: BankDetails;
 }
 
 export interface Step2_DetailsProps {
@@ -51,4 +59,11 @@ export interface Step2_DetailsProps {
   onNext: () => void;
   onBack: () => void;
   isEditMode?: boolean;
+}
+
+export interface Step_BankDetailsProps {
+  eventData: EventData;
+  onUpdate: (field: string, value: any) => void;
+  onBack: () => void;
+  onNext: () => void;
 }
