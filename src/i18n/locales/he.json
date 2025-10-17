@@ -20,7 +20,8 @@
     "steps": {
       "servicesSuppliers": "שירותים וספקים",
       "eventDetails": "פרטי האירוע",
-      "summary": "סיכום"
+      "summary": "סיכום",
+      "bankDetails": "פרטי בנק"
     },
     "editEvent": {
       "title": "ערוך אירוע",
@@ -80,6 +81,11 @@
       "removeImage": "הסר תמונה",
       "date": "תאריך",
       "time": "שעה",
+      "startDate": "תאריך התחלה",
+"endDate": "תאריך סיום",
+"startTime": "שעת התחלה",
+"endTime": "שעת סיום",
+
       "pickDate": "בחר תאריך",
       "selectTime": "בחר שעה",
       "eventType": "סוג אירוע",
@@ -126,9 +132,49 @@
       "suppliersSelected": "ספקים נבחרו",
       "supplier": "ספק",
       "suppliers": "ספקים",
+      "totalAttendees": "מספר משתתפים כולל",
       "tickets": "כרטיסים",
       "totalRevenue": "הכנסה כוללת"
     },
+    "bankDetailsStep": {
+  "title": "פרטי בנק",
+  "provide": "אנא ספק את פרטי הבנק שלך עבור תשלומי האירוע",
+  "current": "מידע הבנק הנוכחי שלך",
+  "editBankDetails": "ערוך פרטי בנק",
+"updateDetails": "עדכן את פרטי הבנק שלך עבור תשלומי האירוע",
+  "info": "מידע בנקאי",
+  "subtitle": "אנא ספק את פרטי הבנק שלך עבור תשלומי האירוע",
+  "form": {
+    "bankName": {
+      "label": "שם הבנק",
+      "placeholder": "הזן את שם הבנק שלך"
+    },
+    "branch": {
+      "label": "סניף",
+      "placeholder": "הזן את שם או מספר הסניף"
+    },
+    "accountNumber": {
+      "label": "מספר חשבון",
+      "placeholder": "הזן את מספר החשבון שלך"
+    },
+    "accountHolderName": {
+      "label": "שם בעל החשבון",
+      "placeholder": "הזן את שם בעל החשבון"
+    }
+  },
+  "buttons": {
+    "back": "חזרה",
+    "continue": "המשך",
+    "cancel": "בטל",
+"update": "עדכן פרטי בנק"
+
+  },
+  "validation": {
+    "requiredFields": "אנא מלא את כל השדות הנדרשים"
+  }
+}
+,
+
     "eventTypes": {
       "birthday": "מסיבת יום הולדת",
       "wedding": "חתונה",
@@ -352,6 +398,7 @@
     "fetchError": "טעינת האירועים נכשלה. אנא נסה שוב.",
     "editEventModal": {
       "eventDetail": "פרטי אירוע",
+      "bankDetails": "פרטי בנק",
       "suppliers": "ספקים",
       "attendees": "משתתפים",
       "eventSuppliers": "ספקי האירוע",

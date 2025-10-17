@@ -33,7 +33,6 @@ const EVENT_TYPES = [
   'other'
 ];
 
-
 interface Order {
   _id: string;
   eventName: string;

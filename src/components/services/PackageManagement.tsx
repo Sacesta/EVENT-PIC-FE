@@ -144,6 +144,8 @@ export default function PackageManagement({ isOpen, onClose, service, onPackages
 
 const handleSubmitPackage = async (e: React.FormEvent) => {
   e.preventDefault();
+  
+  // Frontend validation
   if (!service || !formData.name || formData.price <= 0) {
     toast({
       title: t('common.error', 'Error'),
@@ -168,6 +170,7 @@ const handleSubmitPackage = async (e: React.FormEvent) => {
     let packageId: string;
 
     if (editingPackage && formData._id) {
+      // Update existing package
       const { _id, ...data } = formData;
       await apiService.updateServicePackage(service._id, _id, data);
       packageId = _id;
@@ -177,6 +180,7 @@ const handleSubmitPackage = async (e: React.FormEvent) => {
         description: t('packages.packageUpdated', 'Package updated successfully')
       });
     } else {
+      // Create new package
       const { _id, ...data } = formData;
       const response = await apiService.addPackageToService(service._id, data);
 
@@ -189,7 +193,10 @@ const handleSubmitPackage = async (e: React.FormEvent) => {
                   (packagesArray && packagesArray.length > 0 ? packagesArray[packagesArray.length - 1]?._id : undefined) ||
                   '';
 
-      if (!packageId) console.warn('Could not extract package ID from response');
+      if (!packageId) {
+        console.warn('Could not extract package ID from response');
+      }
+      
       toast({
         title: t('common.success', 'Success'),
         description: t('packages.packageAdded', 'Package added successfully')
@@ -210,16 +217,69 @@ const handleSubmitPackage = async (e: React.FormEvent) => {
     onPackagesUpdated();
     resetForm();
 
-  } catch (error) {
-    console.error('Error saving package:', error);
-    toast({
-      title: t('common.error', 'Error'),
-      description: t('packages.saveError', 'Failed to save package'),
-      variant: 'destructive'
-    });
-  } finally {
-    setIsLoading(false);
+  } catch (error: any) {
+  console.error('Error saving package:', error);
+
+  let errorMessage = t('packages.saveError', 'Failed to save package');
+
+  try {
+    // 🧩 Try to extract backend data safely
+    let resData = error?.response?.data;
+
+    // Case: when the backend error JSON is inside error.message (string)
+    if (!resData || Object.keys(resData).length === 0) {
+      try {
+        const parsed = JSON.parse(error.message.replace('Error: ', '').trim());
+        if (parsed && typeof parsed === 'object') {
+          resData = parsed;
+        }
+      } catch {
+        // ignore parsing errors
+      }
+    }
+
+    console.log('data of the error : ', resData);
+
+    const rawMessage =
+      Array.isArray(resData?.message)
+        ? resData.message.join(', ')
+        : typeof resData?.message === 'string'
+        ? resData.message
+        : Array.isArray(resData?.errors)
+        ? resData.errors.join(', ')
+        : '';
+
+    const cleanMsg = rawMessage.replace(/"/g, '').toLowerCase();
+    console.log('message clean : ', cleanMsg);
+
+    // 🧠 Field-based mapping
+    if (cleanMsg.includes('description')) {
+      errorMessage = t('packages.descriptionRequired', 'Description cannot be empty');
+    } else if (cleanMsg.includes('name')) {
+      errorMessage = t('packages.nameRequired', 'Package name is required');
+    } else if (cleanMsg.includes('price')) {
+      errorMessage = t('packages.priceRequired', 'Price must be greater than 0');
+    } else if (cleanMsg.includes('duration')) {
+      errorMessage = 'Duration is required';
+    } else if (cleanMsg) {
+      errorMessage = cleanMsg;
+    }
+
+  } catch (parseErr) {
+    console.error('Error parsing backend error:', parseErr);
   }
+
+  toast({
+    title: t('packages.validationError', 'Validation Error'),
+    description: errorMessage,
+    variant: 'destructive',
+  });
+} finally {
+  setIsLoading(false);
+}
+
+
+
 };
 
 

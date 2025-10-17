@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Loader2, XCircle, Users, MessageCircle, Plus, Package, CheckCircle, Star, MapPin, Clock, Search, Mail, Phone, Calendar, Ticket as TicketIcon, UserCheck, Link2, Copy } from 'lucide-react';
+import { Loader2, XCircle, Users, MessageCircle, Plus, Package, CheckCircle, Star, MapPin, Clock, Search, Mail, Phone, Calendar, Ticket as TicketIcon, UserCheck, Link2, Copy, Building2, CreditCard, User, CreditCardIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,9 +12,11 @@ import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import Step2_Details from '@/components/events/create/Step2_Details_Refactored';
+import Step_ProducerDetails from '@/components/events/create/Step_ProducerDetails';
 import { EventData, Ticket } from '@/components/events/create/types';
 import { DateTimeFields } from '@/components/events/create/form-components/DateTimeFields';
 import apiService, { type Event as ApiEvent } from '@/services/api';
+import { Label } from '@/components/ui/label';
 
 interface EditEventModalProps {
   isOpen: boolean;
@@ -87,13 +89,84 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
   const [attendeeStatusFilter, setAttendeeStatusFilter] = useState('all');
 
   // Producer details state for editing
-  const [bankDetails, setBankDetails] = useState({
-    bankName: '',
-    branch: '',
-    accountNumber: '',
-    accountHolderName: ''
-  });
-  
+ const [bankDetails, setBankDetails] = useState<{
+  bankName: string;
+  branch: string;
+  accountNumber: string;
+  accountHolderName: string;
+}>({
+  bankName: '',
+  branch: '',
+  accountNumber: '',
+  accountHolderName: ''
+});
+
+  // Bank details edit mode
+  const [isEditingBankDetails, setIsEditingBankDetails] = useState(false);
+
+  // Handle bank details update
+const handleUpdateBankDetails = useCallback(async () => {
+  if (!event?._id) {
+    toast({
+      title: "Update Failed",
+      description: "Event ID is missing. Cannot update bank details.",
+      variant: "destructive"
+    });
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    // Validate bank details before sending
+    if (!bankDetails.bankName || !bankDetails.branch || 
+        !bankDetails.accountNumber || !bankDetails.accountHolderName) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all bank details fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const updateData = {
+      bankDetails: bankDetails  // Use the state variable, not eventDataRef
+    };
+
+    console.log('Updating bank details:', updateData);
+
+    const response = await apiService.updateEvent(event._id, updateData);
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to update bank details');
+    }
+
+    toast({
+      title: "Bank Details Updated!",
+      description: "Your bank details have been updated successfully.",
+    });
+
+    // Refetch the event data to get updated bank details
+    const refreshedEvent = await apiService.getEvent(event._id);
+    if (refreshedEvent.success && refreshedEvent.data) {
+      onSave(refreshedEvent.data as ApiEvent);
+    }
+
+    // Exit edit mode
+    setIsEditingBankDetails(false);
+
+  } catch (error) {
+    console.error('Error updating bank details:', error);
+    toast({
+      title: "Update Failed",
+      description: error instanceof Error ? error.message : "Failed to update bank details. Please try again.",
+      variant: "destructive"
+    });
+  } finally {
+    setLoading(false);
+  }
+}, [event, bankDetails, toast, onSave]);  // Add bankDetails to dependencies
+
   // Copy link state
   const [linkCopied, setLinkCopied] = useState(false);
 
@@ -131,6 +204,16 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
           setEndDate(endDate.toISOString().split('T')[0]);
           setEndTime(endDate.toTimeString().slice(0, 5));
         }
+
+        // Add this inside the loadEventData function, after loading other fields:
+if (event.bankDetails) {
+  setBankDetails({
+    bankName: event.bankDetails.bankName || '',
+    branch: event.bankDetails.branch || '',
+    accountNumber: event.bankDetails.accountNumber || '',
+    accountHolderName: event.bankDetails.accountHolderName || ''
+  });
+}
         
         // Handle location
         if (typeof event.location === 'string') {
@@ -319,6 +402,9 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
       case 'services': setServices(value as string[]); break;
       case 'selectedSuppliers': setSelectedSuppliers(value as { [service: string]: { [supplierId: string]: string[] } }); break;
       case 'currentTab': setCurrentTab(value as string); break;
+      case 'bankDetails': 
+      setBankDetails(value as typeof bankDetails); 
+      break; 
     }
   }, []);
 
@@ -566,6 +652,12 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
           }
         }),
         tags: eventDataRef.current.services || [],
+
+         ...(eventDataRef.current.bankDetails && 
+      eventDataRef.current.bankDetails.bankName && 
+      eventDataRef.current.bankDetails.accountNumber && {
+    bankDetails: eventDataRef.current.bankDetails
+  })
       };
 
       console.log('=== FINAL UPDATE DATA ===');
@@ -913,8 +1005,9 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
 
         <div className="flex-1 overflow-hidden flex flex-col min-h-0">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-            <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
+            <TabsList className="grid w-full grid-cols-4 flex-shrink-0">
               <TabsTrigger value="event-detail">{t('events.editEventModal.eventDetail')}</TabsTrigger>
+              <TabsTrigger value="bank-details">{t('events.editEventModal.bankDetails')}</TabsTrigger>
               <TabsTrigger value="suppliers">{t('events.editEventModal.suppliers')}</TabsTrigger>
               <TabsTrigger value="attendees">{t('events.editEventModal.attendees')}</TabsTrigger>
             </TabsList>
@@ -934,16 +1027,136 @@ export const EditEventModal: React.FC<EditEventModalProps> = ({
                 </Card>
               ) : (
                 <>
-                 
-                  
+
                   <Step2_Details
+                    eventData={eventDataRef.current}
+                    onUpdate={handleInputChange}
+                    onNext={() => {}} // No next step needed
+                    onBack={() => {}} // No back step needed
+                    isEditMode={false}
+                  />
+                </>
+              )}
+            </TabsContent>
+
+            {/* Bank Details Tab */}
+            <TabsContent value="bank-details" className="flex-1 overflow-y-auto mt-2">
+              {isEditingBankDetails ? (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <h2 className="text-2xl font-bold text-foreground mb-2">
+                       {t('createEvent.bankDetailsStep.editBankDetails')}
+                    </h2>
+                    <p className="text-muted-foreground">
+                      {t('createEvent.bankDetailsStep.updateDetails')}
+                    </p>
+                  </div>
+
+                  <Step_ProducerDetails
                     eventData={eventDataRef.current}
                     onUpdate={handleInputChange}
                     onNext={() => {}} // No next step needed
                     onBack={() => {}} // No back step needed
                     isEditMode={true}
                   />
-                </>
+
+                  <div className="flex justify-between pt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsEditingBankDetails(false)}
+                      className="flex items-center gap-2"
+                    >
+                      {t("createEvent.bankDetailsStep.buttons.cancel")}
+                    </Button>
+                    <Button
+  onClick={handleUpdateBankDetails}
+  disabled={loading}
+  className="flex items-center gap-2"
+>
+  {loading ? (
+    <>
+      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+      {t("createEvent.bankDetailsStep.buttons.updating")}...
+    </>
+  ) : (
+    t("createEvent.bankDetailsStep.buttons.update")
+  )}
+</Button>
+
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <h2 className="text-2xl font-bold text-foreground mb-2">
+                       {t('createEvent.bankDetailsStep.title')}
+                    </h2>
+                    <p className="text-muted-foreground">
+                       {t('createEvent.bankDetailsStep.current')}
+                    </p>
+                  </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <span className="flex items-center gap-2">
+                          <Building2 className="w-5 h-5" />
+                          {t("createEvent.bankDetailsStep.info")}
+                        </span>
+                        <Button
+                          onClick={() => setIsEditingBankDetails(true)}
+                          variant="outline"
+                          size="sm"
+                        >
+                           {t('createEvent.bankDetailsStep.buttons.update')}
+                        </Button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="flex items-center gap-2 text-sm font-medium">
+                            <Building2 className="w-4 h-4" />
+                            {t("createEvent.bankDetailsStep.form.bankName.label")}
+                          </Label>
+                          <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+                            {eventDataRef.current.bankDetails?.bankName || 'Not provided'}
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="flex items-center gap-2 text-sm font-medium">
+                            <MapPin className="w-4 h-4" />
+                           {t("createEvent.bankDetailsStep.form.branch.label")}
+                          </Label>
+                          <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+                            {eventDataRef.current.bankDetails?.branch || 'Not provided'}
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="flex items-center gap-2 text-sm font-medium">
+                            <CreditCardIcon className="w-4 h-4" />
+                           {t("createEvent.bankDetailsStep.form.accountNumber.label")} 
+                          </Label>
+                          <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md font-mono">
+                            {eventDataRef.current.bankDetails?.accountNumber || 'Not provided'}
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="flex items-center gap-2 text-sm font-medium">
+                            <User className="w-4 h-4" />
+                           {t("createEvent.bankDetailsStep.form.accountHolderName.label")}
+                          </Label>
+                          <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+                            {eventDataRef.current.bankDetails?.accountHolderName || 'Not provided'}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               )}
             </TabsContent>
 

@@ -1,4 +1,4 @@
-import config from '../config/environment';
+import config from "../config/environment";
 
 // Type definitions
 interface LoginCredentials {
@@ -28,7 +28,7 @@ interface EventData {
       lng: number;
     };
   };
-  language?: 'he' | 'en' | 'ar';
+  language?: "he" | "en" | "ar";
   category: string;
   requiredServices?: string[];
   suppliers?: Array<{
@@ -37,10 +37,10 @@ interface EventData {
       serviceId: string;
       requestedPrice?: number;
       notes?: string;
-      priority?: 'low' | 'medium' | 'high';
+      priority?: "low" | "medium" | "high";
     }>;
   }>;
-  status?: 'draft' | 'published' | 'cancelled' | 'completed';
+  status?: "draft" | "published" | "cancelled" | "completed";
   isPublic?: boolean;
   password?: string; // Password for private events (when isPublic is false)
   ticketInfo?: {
@@ -77,7 +77,7 @@ interface Event {
       lng: number;
     };
   };
-  language?: 'he' | 'en' | 'ar';
+  language?: "he" | "en" | "ar";
   category: string;
   requiredServices?: string[];
   suppliers?: Array<{
@@ -92,8 +92,8 @@ interface Event {
     serviceId: string;
     requestedPrice?: number;
     notes?: string;
-    priority?: 'low' | 'medium' | 'high';
-    status?: 'pending' | 'approved' | 'rejected';
+    priority?: "low" | "medium" | "high";
+    status?: "pending" | "approved" | "rejected";
   }>;
   producerId: {
     _id: string;
@@ -101,7 +101,7 @@ interface Event {
     companyName?: string;
     profileImage?: string;
   };
-  status: 'draft' | 'approved' | 'rejected' | 'completed';
+  status: "draft" | "approved" | "rejected" | "completed";
   isPublic: boolean;
   ticketInfo?: {
     availableTickets: number;
@@ -145,11 +145,11 @@ interface EnhancedSupplier {
     availability: Record<string, unknown>;
     location: Record<string, unknown>;
   };
-  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  status: "pending" | "approved" | "rejected" | "cancelled";
   requestedPrice?: number;
   finalPrice?: number;
   notes?: string;
-  priority?: 'low' | 'medium' | 'high';
+  priority?: "low" | "medium" | "high";
   requestedAt?: string;
   confirmedAt?: string;
   completedAt?: string;
@@ -192,11 +192,11 @@ interface GroupedSupplier {
       availability: Record<string, unknown>;
       location: Record<string, unknown>;
     };
-    status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+    status: "pending" | "approved" | "rejected" | "cancelled";
     requestedPrice?: number;
     finalPrice?: number;
     notes?: string;
-    priority?: 'low' | 'medium' | 'high';
+    priority?: "low" | "medium" | "high";
     requestedAt?: string;
     confirmedAt?: string;
     completedAt?: string;
@@ -227,7 +227,7 @@ interface EnhancedEvent {
       lng: number;
     };
   };
-  language?: 'he' | 'en' | 'ar';
+  language?: "he" | "en" | "ar";
   category: string;
   requiredServices?: string[];
   producerId: {
@@ -236,7 +236,7 @@ interface EnhancedEvent {
     companyName?: string;
     profileImage?: string;
   };
-  status: 'draft' | 'approved' | 'rejected' | 'completed';
+  status: "draft" | "approved" | "rejected" | "completed";
   isPublic: boolean;
   ticketInfo?: {
     availableTickets: number;
@@ -300,7 +300,7 @@ interface MyEventsParams {
   category?: string;
   search?: string;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
   startDate?: string;
   endDate?: string;
 }
@@ -452,7 +452,7 @@ interface ServiceWithSupplierDetails {
   category: string;
   subcategories: string[];
   tags: string[];
-  
+
   // Service Pricing
   price: {
     amount: number;
@@ -461,7 +461,7 @@ interface ServiceWithSupplierDetails {
     minPrice?: number;
     maxPrice?: number;
   };
-  
+
   // Service Packages (Complete Details)
   packages: Array<{
     _id: string;
@@ -472,14 +472,14 @@ interface ServiceWithSupplierDetails {
     duration?: number;
     isPopular: boolean;
   }>;
-  
+
   // Service Rating & Reviews
   rating: {
     average: number;
     count: number;
     totalReviews: number;
   };
-  
+
   // Service Location & Availability
   location: {
     city: string;
@@ -489,7 +489,7 @@ interface ServiceWithSupplierDetails {
     };
     serviceRadius?: number;
   };
-  
+
   availability: {
     startDate?: string;
     endDate?: string;
@@ -502,7 +502,7 @@ interface ServiceWithSupplierDetails {
     };
     leadTime?: number;
   };
-  
+
   // Service Media & Portfolio
   image?: string;
   portfolio: Array<{
@@ -512,13 +512,13 @@ interface ServiceWithSupplierDetails {
     eventType: string;
     date: string;
   }>;
-  
+
   // Service Status
   available: boolean;
   featured: boolean;
   views: number;
   experience?: string;
-  
+
   // Complete Supplier Details
   supplier: {
     // Basic Info
@@ -529,20 +529,20 @@ interface ServiceWithSupplierDetails {
     profileImage?: string;
     isVerified: boolean;
     memberSince: string;
-    
+
     // Company Details
     companyName?: string;
     description?: string;
     businessLicense?: string;
     experience?: string;
     categories: string[];
-    
+
     // Supplier Rating
     rating: {
       average: number;
       count: number;
     };
-    
+
     // Location Details
     location: {
       city: string;
@@ -553,7 +553,7 @@ interface ServiceWithSupplierDetails {
       };
       serviceRadius?: number;
     };
-    
+
     // Additional Supplier Info
     portfolio: Array<{
       title?: string;
@@ -570,7 +570,7 @@ interface ServiceWithSupplierDetails {
     }>;
     languages: string[];
     paymentMethods: string[];
-    
+
     // Business Hours
     businessHours: {
       [key: string]: {
@@ -580,7 +580,7 @@ interface ServiceWithSupplierDetails {
       };
     };
   };
-  
+
   // Timestamps
   createdAt: string;
   updatedAt: string;
@@ -656,63 +656,72 @@ class ApiService {
     this.baseURL = `${config.BACKEND_URL}/api`;
   }
 
-  private async request<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+  private async request<T = unknown>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
 
     const defaultOptions: RequestInit = {
       headers: {
         // Only set Content-Type if body is not FormData
-        ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+        ...(options.body instanceof FormData
+          ? {}
+          : { "Content-Type": "application/json" }),
         ...options.headers,
       },
-      credentials: 'omit',
+      credentials: "omit",
       ...options,
     };
 
     try {
       const response = await fetch(url, defaultOptions);
 
-      console.log("response -> ",response);
-      
+      console.log("response -> ", response);
+
       if (!response.ok) {
-        // Try to get error details from response
         let errorData;
         try {
           errorData = await response.json();
         } catch {
-          errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+          errorData = {
+            message: `HTTP ${response.status}: ${response.statusText}`,
+          };
         }
-        
-        // Create a more detailed error
-        const error = new Error(JSON.stringify({
-          message: errorData.message || `Request failed with status ${response.status}`,
-          errorType: errorData.errorType,
-          status: response.status,
-          statusText: response.statusText
-        }));
-        
+
+        const error = new Error(
+          JSON.stringify({
+            message:
+              errorData.message ||
+              `Request failed with status ${response.status}`,
+            errorType: errorData.errorType,
+            status: response.status,
+            statusText: response.statusText,
+          })
+        );
+
         throw error;
       }
-      
+
       const responseData = await response.json();
       return responseData;
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error("API request failed:", error);
       throw error;
     }
   }
 
   // Auth endpoints
   async login(credentials: LoginCredentials) {
-    return this.request('/auth/login', {
-      method: 'POST',
+    return this.request("/auth/login", {
+      method: "POST",
       body: JSON.stringify(credentials),
     });
   }
 
   async register(userData: UserData) {
-    return this.request('/auth/register', {
-      method: 'POST',
+    return this.request("/auth/register", {
+      method: "POST",
       body: JSON.stringify(userData),
     });
   }
@@ -742,15 +751,15 @@ class ApiService {
     website?: string;
     portfolio?: string[];
   }) {
-    return this.request('/supplier-registration/register', {
-      method: 'POST',
+    return this.request("/supplier-registration/register", {
+      method: "POST",
       body: JSON.stringify(supplierData),
     });
   }
 
   // Get available service categories
   async getServiceCategories() {
-    return this.request('/supplier-registration/service-categories');
+    return this.request("/supplier-registration/service-categories");
   }
 
   // Get registration status
@@ -759,15 +768,15 @@ class ApiService {
   }
 
   async forgotPassword(email: string) {
-    return this.request('/auth/forgot-password', {
-      method: 'POST',
+    return this.request("/auth/forgot-password", {
+      method: "POST",
       body: JSON.stringify({ email }),
     });
   }
 
   async resetPassword(token: string, password: string) {
-    return this.request('/auth/reset-password', {
-      method: 'POST',
+    return this.request("/auth/reset-password", {
+      method: "POST",
       body: JSON.stringify({ token, password }),
     });
   }
@@ -775,49 +784,43 @@ class ApiService {
   // User endpoints
   // Get current user profile
   async getProfile(): Promise<ApiResponse<{ user: unknown }>> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    return this.request('/auth/me', {
-      method: 'GET',
+
+    return this.request("/auth/me", {
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
-  async updateProfile(userData: UserData) {
-    return this.request('/users/profile', {
-      method: 'PUT',
-      body: JSON.stringify(userData),
-    });
-  }
-
+ 
   // Event endpoints
   async getEvents(params?: { limit?: number; sort?: string }) {
     const queryParams = new URLSearchParams();
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.sort) queryParams.append('sort', params.sort);
-    
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.sort) queryParams.append("sort", params.sort);
+
     return this.request(`/events?${queryParams}`);
   }
 
   async createEvent(formData: FormData) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    console.log('Creating event with data:', formData);
-    
-    return this.request('/events', {
-      method: 'POST',
+
+    console.log("Creating event with data:", formData);
+
+    return this.request("/events", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         // 'Content-Type': 'application/json',
-        // 'Content-Type': 'multipart/form-data' 
+        // 'Content-Type': 'multipart/form-data'
       },
       body: formData,
     });
@@ -827,137 +830,161 @@ class ApiService {
     return this.request(`/events/${id}`);
   }
 
-  async updateEvent(id: string, eventData: EventData | Record<string, unknown>) {
-    const token = localStorage.getItem('token');
+  async updateEvent(
+    id: string,
+    eventData: EventData | Record<string, unknown>
+  ) {
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    console.log('Updating event with data:', eventData);
-    
+
+    console.log("Updating event with data:", eventData);
+
     return this.request(`/events/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(eventData),
     });
   }
 
   async deleteEvent(id: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    console.log('Deleting event with ID:', id);
-    
+
+    console.log("Deleting event with ID:", id);
+
     return this.request(`/events/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
     });
   }
 
   // Get producer's events
-  async getProducerEvents(params?: { page?: number; limit?: number; status?: string }) {
-    const token = localStorage.getItem('token');
+  async getProducerEvents(params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+  }) {
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.status) queryParams.append('status', params.status);
-    
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.status) queryParams.append("status", params.status);
+
     return this.request(`/events/producer/me?${queryParams}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   // Get producer's events with enhanced data using /my-events endpoint
   async getMyEvents(params?: MyEventsParams): Promise<MyEventsResponse> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
-    }
-    
-    const queryParams = new URLSearchParams();
-    
-    // Add pagination parameters
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    
-    // Add filter parameters
-    if (params?.status && params.status.trim() !== '' && params.status !== 'all') {
-      queryParams.append('status', params.status);
-    }
-    
-    if (params?.category && params.category.trim() !== '' && params.category !== 'all') {
-      queryParams.append('category', params.category);
-    }
-    
-    if (params?.search && params.search.trim() !== '') {
-      queryParams.append('search', params.search);
-    }
-    
-    // Add sorting parameters
-    if (params?.sortBy && params.sortBy.trim() !== '') {
-      queryParams.append('sortBy', params.sortBy);
-    }
-    
-    if (params?.sortOrder && params.sortOrder.trim() !== '') {
-      queryParams.append('sortOrder', params.sortOrder);
-    }
-    
-    // Add date range filters
-    if (params?.startDate && params.startDate.trim() !== '') {
-      queryParams.append('startDate', params.startDate);
-    }
-    
-    if (params?.endDate && params.endDate.trim() !== '') {
-      queryParams.append('endDate', params.endDate);
+      throw new Error("No authentication token found");
     }
 
-    console.log('🔍 API Call - getMyEvents params:', {
+    const queryParams = new URLSearchParams();
+
+    // Add pagination parameters
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+
+    // Add filter parameters
+    if (
+      params?.status &&
+      params.status.trim() !== "" &&
+      params.status !== "all"
+    ) {
+      queryParams.append("status", params.status);
+    }
+
+    if (
+      params?.category &&
+      params.category.trim() !== "" &&
+      params.category !== "all"
+    ) {
+      queryParams.append("category", params.category);
+    }
+
+    if (params?.search && params.search.trim() !== "") {
+      queryParams.append("search", params.search);
+    }
+
+    // Add sorting parameters
+    if (params?.sortBy && params.sortBy.trim() !== "") {
+      queryParams.append("sortBy", params.sortBy);
+    }
+
+    if (params?.sortOrder && params.sortOrder.trim() !== "") {
+      queryParams.append("sortOrder", params.sortOrder);
+    }
+
+    // Add date range filters
+    if (params?.startDate && params.startDate.trim() !== "") {
+      queryParams.append("startDate", params.startDate);
+    }
+
+    if (params?.endDate && params.endDate.trim() !== "") {
+      queryParams.append("endDate", params.endDate);
+    }
+
+    console.log("🔍 API Call - getMyEvents params:", {
       queryString: queryParams.toString(),
-      originalParams: params
+      originalParams: params,
     });
-    
-    const response = await fetch(`${this.baseURL}/events/my-events?${queryParams}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+
+    const response = await fetch(
+      `${this.baseURL}/events/my-events?${queryParams}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       }
-    });
+    );
 
     if (!response.ok) {
       let errorData;
       try {
         errorData = await response.json();
       } catch {
-        errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+        errorData = {
+          message: `HTTP ${response.status}: ${response.statusText}`,
+        };
       }
-      
-      const error = new Error(JSON.stringify({
-        message: errorData.message || `Request failed with status ${response.status}`,
-        errorType: errorData.errorType,
-        status: response.status,
-        statusText: response.statusText
-      }));
-      
+
+      const error = new Error(
+        JSON.stringify({
+          message:
+            errorData.message ||
+            `Request failed with status ${response.status}`,
+          errorType: errorData.errorType,
+          status: response.status,
+          statusText: response.statusText,
+        })
+      );
+
       throw error;
     }
 
-    return await response.json() as MyEventsResponse;
+    return (await response.json()) as MyEventsResponse;
   }
 
   // Get all events with comprehensive filtering (updated to handle backend response properly)
@@ -976,166 +1003,191 @@ class ApiService {
     minPrice?: number;
     maxPrice?: number;
     hasAvailableTickets?: boolean;
-    supplierId?: string | string[];   // Support both single and multiple supplier IDs
+    supplierId?: string | string[]; // Support both single and multiple supplier IDs
   }): Promise<BackendEventsResponse> {
     const queryParams = new URLSearchParams();
-    
+
     // Build query parameters based on the provided API logic
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.category) queryParams.append('category', params.category);
-    if (params?.city) queryParams.append('city', params.city);
-    if (params?.language) queryParams.append('language', params.language);
-    if (params?.startDate) queryParams.append('startDate', params.startDate);
-    if (params?.endDate) queryParams.append('endDate', params.endDate);
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.category) queryParams.append("category", params.category);
+    if (params?.city) queryParams.append("city", params.city);
+    if (params?.language) queryParams.append("language", params.language);
+    if (params?.startDate) queryParams.append("startDate", params.startDate);
+    if (params?.endDate) queryParams.append("endDate", params.endDate);
     // Remove default status filter - let backend show all events by default
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.isPublic !== undefined) queryParams.append('isPublic', params.isPublic.toString());
-    if (params?.featured !== undefined) queryParams.append('featured', params.featured.toString());
-    if (params?.search) queryParams.append('search', params.search);
-    if (params?.minPrice) queryParams.append('minPrice', params.minPrice.toString());
-    if (params?.maxPrice) queryParams.append('maxPrice', params.maxPrice.toString());
-    if (params?.hasAvailableTickets !== undefined) queryParams.append('hasAvailableTickets', params.hasAvailableTickets.toString());
-    
+    if (params?.status) queryParams.append("status", params.status);
+    if (params?.isPublic !== undefined)
+      queryParams.append("isPublic", params.isPublic.toString());
+    if (params?.featured !== undefined)
+      queryParams.append("featured", params.featured.toString());
+    if (params?.search) queryParams.append("search", params.search);
+    if (params?.minPrice)
+      queryParams.append("minPrice", params.minPrice.toString());
+    if (params?.maxPrice)
+      queryParams.append("maxPrice", params.maxPrice.toString());
+    if (params?.hasAvailableTickets !== undefined)
+      queryParams.append(
+        "hasAvailableTickets",
+        params.hasAvailableTickets.toString()
+      );
+
     // Handle supplierId parameter - support both single string and array of strings
     if (params?.supplierId) {
       if (Array.isArray(params.supplierId)) {
         // If it's an array, add each supplierId as a separate parameter
-        params.supplierId.forEach(id => {
+        params.supplierId.forEach((id) => {
           if (id && id.trim()) {
-            queryParams.append('supplierId', id);
+            queryParams.append("supplierId", id);
           }
         });
       } else {
         // If it's a single string, add it directly
         if (params.supplierId.trim()) {
-          queryParams.append('supplierId', params.supplierId);
+          queryParams.append("supplierId", params.supplierId);
         }
       }
     }
 
-    console.log('🔍 API Call - getAllEvents params:', {
+    console.log("🔍 API Call - getAllEvents params:", {
       queryString: queryParams.toString(),
-      originalParams: params
+      originalParams: params,
     });
 
     try {
       const url = `${this.baseURL}/events?${queryParams}`;
-      
+
       const response = await fetch(url, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'omit',
+        credentials: "omit",
       });
-      
+
       if (!response.ok) {
         // Try to get error details from response
         let errorData;
         try {
           errorData = await response.json();
         } catch {
-          errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+          errorData = {
+            message: `HTTP ${response.status}: ${response.statusText}`,
+          };
         }
-        
+
         // Create a more detailed error
-        const error = new Error(JSON.stringify({
-          message: errorData.message || `Request failed with status ${response.status}`,
-          errorType: errorData.errorType,
-          status: response.status,
-          statusText: response.statusText
-        }));
-        
+        const error = new Error(
+          JSON.stringify({
+            message:
+              errorData.message ||
+              `Request failed with status ${response.status}`,
+            errorType: errorData.errorType,
+            status: response.status,
+            statusText: response.statusText,
+          })
+        );
+
         throw error;
       }
-      
-      const responseData = await response.json() as BackendEventsResponse;
-      
-      console.log('✅ API Response - getAllEvents:', {
+
+      const responseData = (await response.json()) as BackendEventsResponse;
+
+      console.log("✅ API Response - getAllEvents:", {
         success: responseData.success,
         dataLength: responseData.data?.length || 0,
-        pagination: responseData.pagination
+        pagination: responseData.pagination,
       });
-      
+
       return responseData;
     } catch (error) {
-      console.error('❌ API Error - getAllEvents:', error);
+      console.error("❌ API Error - getAllEvents:", error);
       throw error;
     }
   }
 
   // Get events filtered by supplier's service IDs using dedicated backend endpoint
-  async getEventsForSupplier(userId: string, params?: {
-    page?: number;
-    limit?: number;
-    category?: string;
-    city?: string;
-    status?: string; // Event status
-    search?: string;
-    sortBy?: string;
-  }) {
-    const token = localStorage.getItem('token');
+  async getEventsForSupplier(
+    userId: string,
+    params?: {
+      page?: number;
+      limit?: number;
+      category?: string;
+      city?: string;
+      status?: string; // Event status
+      search?: string;
+      sortBy?: string;
+    }
+  ) {
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
-    }
-    
-    const queryParams = new URLSearchParams();
-    
-    // Add pagination parameters
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    
-    // Add filter parameters - only include non-empty values
-    if (params?.category && params.category.trim() !== '' && params.category !== 'all') {
-      queryParams.append('category', params.category);
-    }
-    
-    if (params?.city && params.city.trim() !== '') {
-      queryParams.append('city', params.city);
-    }
-    
-    // Event status filter
-    if (params?.status && params.status.trim() !== '' && params.status !== 'all') {
-      queryParams.append('status', params.status);
-    }
-    
-    // Search parameter
-    if (params?.search && params.search.trim() !== '') {
-      queryParams.append('search', params.search);
-    }
-    
-    // Sort parameter
-    if (params?.sortBy && params.sortBy.trim() !== '') {
-      queryParams.append('sortBy', params.sortBy);
+      throw new Error("No authentication token found");
     }
 
-    console.log('🔍 API Call - getEventsForSupplier params:', {
+    const queryParams = new URLSearchParams();
+
+    // Add pagination parameters
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+
+    // Add filter parameters - only include non-empty values
+    if (
+      params?.category &&
+      params.category.trim() !== "" &&
+      params.category !== "all"
+    ) {
+      queryParams.append("category", params.category);
+    }
+
+    if (params?.city && params.city.trim() !== "") {
+      queryParams.append("city", params.city);
+    }
+
+    // Event status filter
+    if (
+      params?.status &&
+      params.status.trim() !== "" &&
+      params.status !== "all"
+    ) {
+      queryParams.append("status", params.status);
+    }
+
+    // Search parameter
+    if (params?.search && params.search.trim() !== "") {
+      queryParams.append("search", params.search);
+    }
+
+    // Sort parameter
+    if (params?.sortBy && params.sortBy.trim() !== "") {
+      queryParams.append("sortBy", params.sortBy);
+    }
+
+    console.log("🔍 API Call - getEventsForSupplier params:", {
       userId,
       queryString: queryParams.toString(),
-      originalParams: params
+      originalParams: params,
     });
-    
+
     return this.request(`/events/supplier/${userId}?${queryParams}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   // Get supplier's orders using the new backend endpoint
   async getSupplierOrders() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    return this.request('/orders', {
-      method: 'GET',
+
+    return this.request("/orders", {
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
@@ -1151,15 +1203,17 @@ class ApiService {
     tags?: string;
   }) {
     const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.category) queryParams.append('category', params.category);
-    if (params?.city) queryParams.append('city', params.city);
-    if (params?.maxPrice) queryParams.append('maxPrice', params.maxPrice.toString());
-    if (params?.minPrice) queryParams.append('minPrice', params.minPrice.toString());
-    if (params?.search) queryParams.append('search', params.search);
-    if (params?.tags) queryParams.append('tags', params.tags);
-    
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.category) queryParams.append("category", params.category);
+    if (params?.city) queryParams.append("city", params.city);
+    if (params?.maxPrice)
+      queryParams.append("maxPrice", params.maxPrice.toString());
+    if (params?.minPrice)
+      queryParams.append("minPrice", params.minPrice.toString());
+    if (params?.search) queryParams.append("search", params.search);
+    if (params?.tags) queryParams.append("tags", params.tags);
+
     return this.request(`/services?${queryParams}`);
   }
 
@@ -1174,34 +1228,42 @@ class ApiService {
     minRating?: number;
   }) {
     const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.category) queryParams.append('category', params.category);
-    if (params?.city) queryParams.append('city', params.city);
-    if (params?.maxPrice) queryParams.append('maxPrice', params.maxPrice.toString());
-    if (params?.minPrice) queryParams.append('minPrice', params.minPrice.toString());
-    if (params?.search) queryParams.append('search', params.search);
-    if (params?.minRating) queryParams.append('minRating', params.minRating.toString());
-    
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.category) queryParams.append("category", params.category);
+    if (params?.city) queryParams.append("city", params.city);
+    if (params?.maxPrice)
+      queryParams.append("maxPrice", params.maxPrice.toString());
+    if (params?.minPrice)
+      queryParams.append("minPrice", params.minPrice.toString());
+    if (params?.search) queryParams.append("search", params.search);
+    if (params?.minRating)
+      queryParams.append("minRating", params.minRating.toString());
+
     return this.request(`/services/with-suppliers?${queryParams}`);
   }
 
-  async getMyServices(params?: { page?: number; limit?: number; isActive?: boolean }) {
-    const token = localStorage.getItem('token');
+  async getMyServices(params?: {
+    page?: number;
+    limit?: number;
+    isActive?: boolean;
+  }) {
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.isActive !== undefined) queryParams.append('isActive', params.isActive.toString());
-    
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.isActive !== undefined)
+      queryParams.append("isActive", params.isActive.toString());
+
     return this.request(`/services/supplier/me?${queryParams}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
@@ -1210,69 +1272,69 @@ class ApiService {
   }
 
   async createService(serviceData: ServiceData) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    console.log('Creating service with data:', serviceData);
-    
-    return this.request('/services', {
-      method: 'POST',
+
+    console.log("Creating service with data:", serviceData);
+
+    return this.request("/services", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(serviceData),
     });
   }
 
   async updateService(id: string, serviceData: Partial<ServiceData>) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    console.log('Updating service with data:', serviceData);
-    
+
+    console.log("Updating service with data:", serviceData);
+
     return this.request(`/services/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(serviceData),
     });
   }
 
   async deleteService(id: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/services/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
     });
   }
 
   async toggleServiceAvailability(id: string, isAvailable: boolean) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    console.log('Toggling service availability:', { id, isAvailable });
-    
+
+    console.log("Toggling service availability:", { id, isAvailable });
+
     return this.request(`/services/${id}/availability`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ isAvailable }),
     });
@@ -1283,86 +1345,92 @@ class ApiService {
     return this.request(`/services/${serviceId}/packages`);
   }
 
-async addPackageToService(serviceId: string, packageData: PackageData & { image?: File }) {
-  const token = localStorage.getItem('token');
-  if (!token) throw new Error('No authentication token found');
+  async addPackageToService(
+    serviceId: string,
+    packageData: PackageData & { image?: File }
+  ) {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("No authentication token found");
 
-  const formData = new FormData();
-  formData.append('name', packageData.name);
-  formData.append('description', packageData.description || '');
-  formData.append('price', packageData.price.toString());
-  formData.append('duration', (packageData.duration ?? 0).toString());
-  formData.append('isPopular', packageData.isPopular ? 'true' : 'false');
+    const formData = new FormData();
+    formData.append("name", packageData.name);
+    formData.append("description", packageData.description || "");
+    formData.append("price", packageData.price.toString());
+    formData.append("duration", (packageData.duration ?? 0).toString());
+    formData.append("isPopular", packageData.isPopular ? "true" : "false");
 
-  // Append features correctly for backend parsing
-  packageData.features?.forEach((f) => formData.append('features[]', f));
+    // Append features correctly for backend parsing
+    packageData.features?.forEach((f) => formData.append("features[]", f));
 
-  if (packageData.image) {
-    formData.append('image', packageData.image);
+    if (packageData.image) {
+      formData.append("image", packageData.image);
+    }
+
+    return this.request(`/services/${serviceId}/packages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // No Content-Type — browser will handle multipart
+      },
+      body: formData,
+    });
   }
 
-  return this.request(`/services/${serviceId}/packages`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      // No Content-Type — browser will handle multipart
-    },
-    body: formData,
-  });
-}
+  async updateServicePackage(
+    serviceId: string,
+    packageId: string,
+    packageData: PackageData & { image?: File }
+  ) {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("No authentication token found");
 
-async updateServicePackage(serviceId: string, packageId: string, packageData: PackageData & { image?: File }) {
-  const token = localStorage.getItem('token');
-  if (!token) throw new Error('No authentication token found');
+    const formData = new FormData();
+    formData.append("name", packageData.name);
+    formData.append("description", packageData.description || "");
+    formData.append("price", packageData.price.toString());
+    formData.append("duration", (packageData.duration ?? 0).toString());
+    formData.append("isPopular", packageData.isPopular ? "true" : "false");
 
-  const formData = new FormData();
-  formData.append('name', packageData.name);
-  formData.append('description', packageData.description || '');
-  formData.append('price', packageData.price.toString());
-  formData.append('duration', (packageData.duration ?? 0).toString());
-  formData.append('isPopular', packageData.isPopular ? 'true' : 'false');
+    packageData.features?.forEach((f) => formData.append("features[]", f));
+    if (packageData.image) {
+      formData.append("image", packageData.image);
+    }
 
-  packageData.features?.forEach((f) => formData.append('features[]', f));
-  if (packageData.image) {
-    formData.append('image', packageData.image);
+    return this.request(`/services/${serviceId}/packages/${packageId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
   }
-
-  return this.request(`/services/${serviceId}/packages/${packageId}`, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-    body: formData,
-  });
-}
-
 
   async deleteServicePackage(serviceId: string, packageId: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/services/${serviceId}/packages/${packageId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
     });
   }
 
   // Service reviews
   async addServiceReview(serviceId: string, rating: number, comment?: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/services/${serviceId}/reviews`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ rating, comment }),
     });
@@ -1370,58 +1438,58 @@ async updateServicePackage(serviceId: string, packageId: string, packageData: Pa
 
   // Order endpoints
   async getOrders() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    return this.request('/orders', {
-      method: 'GET',
+
+    return this.request("/orders", {
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   async getMyOrderStats() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    return this.request('/orders/stats/me', {
-      method: 'GET',
+
+    return this.request("/orders/stats/me", {
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   async createOrder(orderData: OrderData) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    return this.request('/orders', {
-      method: 'POST',
+
+    return this.request("/orders", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(orderData),
     });
   }
 
   async updateOrderStatus(orderId: string, status: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/orders/${orderId}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ status }),
     });
@@ -1429,519 +1497,557 @@ async updateServicePackage(serviceId: string, packageId: string, packageData: Pa
 
   // Admin order management
   async getAllOrders(params?: { limit?: number; sort?: string }) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     const queryParams = new URLSearchParams();
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.sort) queryParams.append('sort', params.sort);
-    
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.sort) queryParams.append("sort", params.sort);
+
     return this.request(`/admin/orders?${queryParams}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   // Ticket endpoints
   async getTickets() {
-    return this.request('/tickets');
+    return this.request("/tickets");
   }
 
   async createTicket(ticketData: TicketData) {
-    return this.request('/tickets', {
-      method: 'POST',
+    return this.request("/tickets", {
+      method: "POST",
       body: JSON.stringify(ticketData),
     });
   }
 
   // Admin endpoints
   async getAdminStats() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    return this.request('/admin/dashboard', {
-      method: 'GET',
+
+    return this.request("/admin/dashboard", {
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   async getUserStats(params?: { startDate?: string; endDate?: string }) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     const queryParams = new URLSearchParams();
-    if (params?.startDate) queryParams.append('startDate', params.startDate);
-    if (params?.endDate) queryParams.append('endDate', params.endDate);
-    
+    if (params?.startDate) queryParams.append("startDate", params.startDate);
+    if (params?.endDate) queryParams.append("endDate", params.endDate);
+
     return this.request(`/admin/users/stats?${queryParams}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
-  async getUsers(params?: { limit?: number; sortBy?: string; sortOrder?: string; status?: string }) {
-    const token = localStorage.getItem('token');
+  async getUsers(params?: {
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: string;
+    status?: string;
+  }) {
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     const queryParams = new URLSearchParams();
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
-    if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
-    if (params?.status) queryParams.append('status', params.status);
-    
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.sortBy) queryParams.append("sortBy", params.sortBy);
+    if (params?.sortOrder) queryParams.append("sortOrder", params.sortOrder);
+    if (params?.status) queryParams.append("status", params.status);
+
     return this.request(`/admin/users?${queryParams}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
-  async updateUserVerification(userId: string, status: 'approved' | 'rejected') {
-    const token = localStorage.getItem('token');
+  async updateUserVerification(
+    userId: string,
+    status: "approved" | "rejected"
+  ) {
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    const bodyData = { 
-      isVerified: status === 'approved',
-      verificationStatus: status === 'approved' ? 'approved' : 'rejected'
+
+    const bodyData = {
+      isVerified: status === "approved",
+      verificationStatus: status === "approved" ? "approved" : "rejected",
     };
 
-    console.log('Sending request with body:', bodyData); // Add this for debugging
-    
+    console.log("Sending request with body:", bodyData); // Add this for debugging
+
     return this.request(`/admin/users/${userId}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json' // Make sure this is set correctly
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json", // Make sure this is set correctly
       },
-      body: JSON.stringify(bodyData)
+      body: JSON.stringify(bodyData),
     });
   }
 
   async getPendingVerifications() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    return this.request('/admin/users?status=unverified&limit=1000', {
-      method: 'GET',
+
+    return this.request("/admin/users?status=unverified&limit=1000", {
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   async updateUser(userId: string, userData: Partial<UserData>) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/admin/users/${userId}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(userData)
+      body: JSON.stringify(userData),
     });
   }
 
   async createUser(userData: UserData) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    return this.request('/admin/users', {
-      method: 'POST',
+
+    return this.request("/admin/users", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(userData)
+      body: JSON.stringify(userData),
     });
   }
 
   async deleteUser(userId: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/admin/users/${userId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   // Chat endpoints
   async getChats(eventId?: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     const queryParams = new URLSearchParams();
-    if (eventId) queryParams.append('eventId', eventId);
-    
+    if (eventId) queryParams.append("eventId", eventId);
+
     return this.request(`/chats?${queryParams}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   async getEventChats(eventId: string, page = 1, limit = 50) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/chats/event/${eventId}?page=${page}&limit=${limit}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   async getChatDetails(chatId: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/chats/${chatId}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
-  async createChat(participants: Array<{ userId: string; role: string }>, eventId?: string, title?: string) {
-    const token = localStorage.getItem('token');
+  async createChat(
+    participants: Array<{ userId: string; role: string }>,
+    eventId?: string,
+    title?: string
+  ) {
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     const requestBody = {
       participants,
       eventId,
-      title
+      title,
     };
-    
-    console.log('🔵 createChat API - Request body:', JSON.stringify(requestBody, null, 2));
-    console.log('🔵 createChat API - Participants array:', participants);
-    console.log('🔵 createChat API - Participants length:', participants?.length);
-    
-    return this.request('/chats', {
-      method: 'POST',
+
+    console.log(
+      "🔵 createChat API - Request body:",
+      JSON.stringify(requestBody, null, 2)
+    );
+    console.log("🔵 createChat API - Participants array:", participants);
+    console.log(
+      "🔵 createChat API - Participants length:",
+      participants?.length
+    );
+
+    return this.request("/chats", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
     });
   }
 
-  async updateChatSettings(chatId: string, settings: { allowFileSharing?: boolean; notifications?: boolean; title?: string }) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
+  async updateChatSettings(
+    chatId: string,
+    settings: {
+      allowFileSharing?: boolean;
+      notifications?: boolean;
+      title?: string;
     }
-    
+  ) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
     return this.request(`/chats/${chatId}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(settings)
+      body: JSON.stringify(settings),
     });
   }
 
   async getChatMessages(chatId: string, page = 1, limit = 25) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    return this.request(`/chats/${chatId}/messages?page=${page}&limit=${limit}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
+
+    return this.request(
+      `/chats/${chatId}/messages?page=${page}&limit=${limit}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    });
+    );
   }
 
-  async sendChatMessage(chatId: string, messageData: {
-    content: string;
-    type?: 'text' | 'image' | 'file' | 'system';
-    replyTo?: string;
-    attachments?: Array<{
-      filename: string;
-      originalName: string;
-      mimeType: string;
-      size: number;
-      url: string;
-      thumbnailUrl?: string;
-    }>;
-  }) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
+  async sendChatMessage(
+    chatId: string,
+    messageData: {
+      content: string;
+      type?: "text" | "image" | "file" | "system";
+      replyTo?: string;
+      attachments?: Array<{
+        filename: string;
+        originalName: string;
+        mimeType: string;
+        size: number;
+        url: string;
+        thumbnailUrl?: string;
+      }>;
     }
-    
-    return this.request(`/chats/${chatId}/messages`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-       'Content-Type': 'application/json'
+  ) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
 
+    return this.request(`/chats/${chatId}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(messageData)
+      body: JSON.stringify(messageData),
     });
   }
 
   async editChatMessage(messageId: string, content: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/messages/${messageId}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ content })
+      body: JSON.stringify({ content }),
     });
   }
 
   async deleteChatMessage(messageId: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/messages/${messageId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   async addMessageReaction(messageId: string, emoji: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/messages/${messageId}/reactions`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ emoji })
+      body: JSON.stringify({ emoji }),
     });
   }
 
   async removeMessageReaction(messageId: string, emoji: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/messages/${messageId}/reactions`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ emoji })
+      body: JSON.stringify({ emoji }),
     });
   }
 
   async markChatAsRead(chatId: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/chats/${chatId}/read`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   async addParticipant(chatId: string, userId: string, role: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/chats/${chatId}/participants`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ userId, role })
+      body: JSON.stringify({ userId, role }),
     });
   }
 
   async removeParticipant(chatId: string, userId: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/chats/${chatId}/participants/${userId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   async archiveChat(chatId: string) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/chats/${chatId}/archive`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   async uploadChatFile(file: File, onProgress?: (progress: number) => void) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     const formData = new FormData();
-    formData.append('file', file);
-    
+    formData.append("file", file);
+
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      
+
       // Track upload progress
       if (onProgress) {
-        xhr.upload.addEventListener('progress', (e) => {
+        xhr.upload.addEventListener("progress", (e) => {
           if (e.lengthComputable) {
             const progress = (e.loaded / e.total) * 100;
             onProgress(progress);
           }
         });
       }
-      
-      xhr.addEventListener('load', () => {
+
+      xhr.addEventListener("load", () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
             const response = JSON.parse(xhr.responseText);
             resolve(response);
           } catch (error) {
-            reject(new Error('Failed to parse response'));
+            reject(new Error("Failed to parse response"));
           }
         } else {
           reject(new Error(`Upload failed with status ${xhr.status}`));
         }
       });
-      
-      xhr.addEventListener('error', () => {
-        reject(new Error('Upload failed'));
+
+      xhr.addEventListener("error", () => {
+        reject(new Error("Upload failed"));
       });
-      
-      xhr.open('POST', `${this.baseURL}/upload/chat-file`);
-      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+      xhr.open("POST", `${this.baseURL}/upload/chat-file`);
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
       xhr.send(formData);
     });
   }
 
   async getInitialUsers(limit = 25) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/users/search?limit=${limit}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   async searchUsers(searchTerm: string, limit = 20) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
-    return this.request(`/users/search?search=${encodeURIComponent(searchTerm)}&limit=${limit}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
+
+    return this.request(
+      `/users/search?search=${encodeURIComponent(searchTerm)}&limit=${limit}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    });
+    );
   }
 
   async getAllChatsForAdmin(page = 1, limit = 100) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/chats/admin/all?page=${page}&limit=${limit}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   // Supplier event status update
-  async updateSupplierEventStatus(eventId: string, supplierId: string, serviceId: string, status: 'approved' | 'rejected') {
-    const token = localStorage.getItem('token');
+  async updateSupplierEventStatus(
+    eventId: string,
+    supplierId: string,
+    serviceId: string,
+    status: "approved" | "rejected"
+  ) {
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
     }
-    
+
     return this.request(`/events/${eventId}/supplier-status`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ 
-        supplierId, 
-        serviceId, 
-        status 
+      body: JSON.stringify({
+        supplierId,
+        serviceId,
+        status,
       }),
     });
   }
@@ -1967,72 +2073,120 @@ async updateServicePackage(serviceId: string, packageId: string, packageData: Pa
     };
     specialRequirements?: string;
   }) {
-    return this.request('/attendees/register', {
-      method: 'POST',
+    return this.request("/attendees/register", {
+      method: "POST",
       body: JSON.stringify(registrationData),
     });
   }
 
-  // Get attendees for an event (Producer only)
-  async getEventAttendees(eventId: string, params?: {
-    page?: number;
-    limit?: number;
-    status?: string;
-    search?: string;
-    ticketType?: string;
-    checkedIn?: boolean;
-  }) {
-    const token = localStorage.getItem('token');
+  async uploadProfileImage(file: File) {
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error('No authentication token found');
+      throw new Error("No authentication token found");
+    }
+
+    const formData = new FormData();
+    formData.append("profileImage", file);
+
+    return this.request("/me/profile-image", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // No Content-Type header - browser will set it with boundary for multipart/form-data
+      },
+      body: formData,
+    });
+  }
+
+
+  async updateProfile(profileData: {
+  name?: string;
+  phone?: string;
+  language?: string;
+  producerDetails?: any;
+  supplierDetails?: any;
+}) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+
+  return this.request('/users/profile', {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(profileData),
+  });
+}
+
+  // Get attendees for an event (Producer only)
+  async getEventAttendees(
+    eventId: string,
+    params?: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      search?: string;
+      ticketType?: string;
+      checkedIn?: boolean;
+    }
+  ) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
     }
 
     const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.search) queryParams.append('search', params.search);
-    if (params?.ticketType) queryParams.append('ticketType', params.ticketType);
-    if (params?.checkedIn !== undefined) queryParams.append('checkedIn', params.checkedIn.toString());
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.status) queryParams.append("status", params.status);
+    if (params?.search) queryParams.append("search", params.search);
+    if (params?.ticketType) queryParams.append("ticketType", params.ticketType);
+    if (params?.checkedIn !== undefined)
+      queryParams.append("checkedIn", params.checkedIn.toString());
 
     const queryString = queryParams.toString();
-    const url = `/attendees/event/${eventId}${queryString ? `?${queryString}` : ''}`;
+    const url = `/attendees/event/${eventId}${
+      queryString ? `?${queryString}` : ""
+    }`;
 
     return this.request(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 
   // Verify event password for private events
   async verifyEventPassword(eventId: string, password: string) {
     return this.request(`/events/${eventId}/verify-password`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ password }),
     });
   }
 
   // Health check
   async healthCheck() {
-    return this.request('/health');
+    return this.request("/health");
   }
 }
 
 const apiService = new ApiService();
 export { apiService };
 export default apiService;
-export type { 
-  Service, 
-  ServiceData, 
-  PackageData, 
-  Event, 
-  EnhancedEvent, 
-  MyEventsResponse, 
-  MyEventsParams, 
+export type {
+  Service,
+  ServiceData,
+  PackageData,
+  Event,
+  EnhancedEvent,
+  MyEventsResponse,
+  MyEventsParams,
   OverallStats,
   SupplierStats,
   FinancialSummary,
-  StatusIndicators
+  StatusIndicators,
 };

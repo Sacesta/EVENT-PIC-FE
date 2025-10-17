@@ -5,51 +5,62 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ArrowRight, Building2, MapPin, CreditCard, User, CheckCircle } from 'lucide-react';
-import { Step_BankDetailsProps , Ticket , EventData } from "./types";
+import { Step_BankDetailsProps } from "./types";
+
+interface BankDetails {
+  bankName: string;
+  branch: string;
+  accountNumber: string;
+  accountHolderName: string;
+}
+
+interface EventData {
+  bankDetails?: BankDetails;
+  [key: string]: any;
+}
 
 const Step_ProducerDetails: React.FC<Step_BankDetailsProps> = ({     
   eventData,
   onUpdate,
   onBack,
-  onNext
+  onNext,
+  isEditMode
 }) => {
   const { t } = useTranslation();
 
-  // Local state for form validation
-  const [formData, setFormData] = useState({
+  // Local state for form validation - initialize with eventData.bankDetails
+  const [formData, setFormData] = useState<BankDetails>({
     bankName: eventData.bankDetails?.bankName || '',
     branch: eventData.bankDetails?.branch || '',
     accountNumber: eventData.bankDetails?.accountNumber || '',
     accountHolderName: eventData.bankDetails?.accountHolderName || ''
   });
 
-  // Update local state when eventData changes
+  // Update local state when eventData.bankDetails changes
   useEffect(() => {
-    setFormData({
-      bankName: eventData.bankDetails?.bankName || '',
-      branch: eventData.bankDetails?.branch || '',
-      accountNumber: eventData.bankDetails?.accountNumber || '',
-      accountHolderName: eventData.bankDetails?.accountHolderName || ''
-    });
+    if (eventData.bankDetails) {
+      setFormData({
+        bankName: eventData.bankDetails.bankName || '',
+        branch: eventData.bankDetails.branch || '',
+        accountNumber: eventData.bankDetails.accountNumber || '',
+        accountHolderName: eventData.bankDetails.accountHolderName || ''
+      });
+    }
   }, [eventData.bankDetails]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: keyof BankDetails, value: string) => {
     const updatedFormData = {
       ...formData,
       [field]: value
     };
     setFormData(updatedFormData);
 
-    // Update parent component
-    const updatedbankDetails = {
-      ...eventData.bankDetails,
-      [field]: value
-    };
-    onUpdate('bankDetails', updatedbankDetails);
+    // Update parent component with complete bankDetails object
+    onUpdate('bankDetails', updatedFormData);
   };
 
   // Form validation function
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const { bankName, branch, accountNumber, accountHolderName } = formData;
     return (
       bankName.trim().length > 0 &&
@@ -57,34 +68,34 @@ const Step_ProducerDetails: React.FC<Step_BankDetailsProps> = ({
       accountNumber.trim().length > 0 &&
       accountHolderName.trim().length > 0
     );
-  };
+  }, [formData]);
 
   const isFormValid = validateForm();
 
   const handleNext = useCallback(() => {
-      if (validateForm()) {
-        onNext();
-      }
-    }, [validateForm, onNext]);
+    if (validateForm()) {
+      onNext();
+    }
+  }, [validateForm, onNext]);
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="text-center">
+      { !isEditMode && <div className="text-center">
         <h2 className="text-2xl font-bold text-foreground mb-2">
-          {t('createEvent.steps.bankDetails')}
+          {t('createEvent.bankDetailsStep.title') || 'Bank Details'}
         </h2>
         <p className="text-muted-foreground">
-          Please provide your banking details for event payments
+          {t('createEvent.bankDetailsStep.provide')}
         </p>
-      </div>
+      </div> }
 
-      {/* Producer Details Form */}
+      {/* Bank Details Form */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="w-5 h-5" />
-            Banking Information
+            {t("createEvent.bankDetailsStep.info")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -92,11 +103,11 @@ const Step_ProducerDetails: React.FC<Step_BankDetailsProps> = ({
           <div className="space-y-2">
             <Label htmlFor="bankName" className="flex items-center gap-2">
               <Building2 className="w-4 h-4" />
-              Bank Name *
+              {t("createEvent.bankDetailsStep.form.bankName.label")} *
             </Label>
             <Input
               id="bankName"
-              placeholder="Enter your bank name"
+              placeholder= {t("createEvent.bankDetailsStep.form.bankName.placeholder")}
               value={formData.bankName}
               onChange={(e) => handleInputChange('bankName', e.target.value)}
               required
@@ -107,11 +118,11 @@ const Step_ProducerDetails: React.FC<Step_BankDetailsProps> = ({
           <div className="space-y-2">
             <Label htmlFor="branch" className="flex items-center gap-2">
               <MapPin className="w-4 h-4" />
-              Branch *
+               {t("createEvent.bankDetailsStep.form.branch.label")} *
             </Label>
             <Input
               id="branch"
-              placeholder="Enter branch name or number"
+              placeholder={t("createEvent.bankDetailsStep.form.branch.placeholder")}
               value={formData.branch}
               onChange={(e) => handleInputChange('branch', e.target.value)}
               required
@@ -122,14 +133,15 @@ const Step_ProducerDetails: React.FC<Step_BankDetailsProps> = ({
           <div className="space-y-2">
             <Label htmlFor="accountNumber" className="flex items-center gap-2">
               <CreditCard className="w-4 h-4" />
-              Account Number *
+              {t("createEvent.bankDetailsStep.form.accountNumber.label")} *
             </Label>
             <Input
               id="accountNumber"
-              placeholder="Enter your account number"
+              placeholder={t("createEvent.bankDetailsStep.form.accountNumber.placeholder")}
               value={formData.accountNumber}
               onChange={(e) => handleInputChange('accountNumber', e.target.value)}
               required
+              type="text"
             />
           </div>
 
@@ -137,11 +149,11 @@ const Step_ProducerDetails: React.FC<Step_BankDetailsProps> = ({
           <div className="space-y-2">
             <Label htmlFor="accountHolderName" className="flex items-center gap-2">
               <User className="w-4 h-4" />
-              Account Holder Name *
+              {t("createEvent.bankDetailsStep.form.accountHolderName.label")} *
             </Label>
             <Input
               id="accountHolderName"
-              placeholder="Enter the account holder name"
+              placeholder={t("createEvent.bankDetailsStep.form.accountHolderName.placeholder")}
               value={formData.accountHolderName}
               onChange={(e) => handleInputChange('accountHolderName', e.target.value)}
               required
@@ -151,25 +163,25 @@ const Step_ProducerDetails: React.FC<Step_BankDetailsProps> = ({
       </Card>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between pt-4">
+       {!isEditMode && <div className="flex justify-between pt-4">
         <Button
           variant="outline"
           onClick={onBack}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          {t("createEvent.bankDetailsStep.buttons.back")}
         </Button>
         <Button
           onClick={handleNext}
           disabled={!isFormValid}
           className="flex items-center gap-2"
         >
-          Continue
+         {t("createEvent.bankDetailsStep.buttons.continue")}
           {isFormValid && <CheckCircle className="w-4 h-4 ml-2" />}
         </Button>
-      </div>
-    </div>
+      </div> }
+    </div> 
   );
 };
 

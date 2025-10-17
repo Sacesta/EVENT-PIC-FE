@@ -66,4 +66,5 @@ export interface Step_BankDetailsProps {
   onUpdate: (field: string, value: any) => void;
   onBack: () => void;
   onNext: () => void;
+  isEditMode?: boolean;
 }

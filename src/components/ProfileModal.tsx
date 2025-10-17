@@ -1,3 +1,5 @@
+// Changes to ProfileModal component
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -5,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Upload, User } from 'lucide-react';
+import { Camera, Upload, User, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
+import apiService from '@/services/api'; // Import your API service
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -26,14 +29,29 @@ const placeholderAvatars = [
 export default function ProfileModal({ isOpen, onClose, user, onUpdateUser }: ProfileModalProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    description: user?.description || '',
-    companyName: user?.companyName || '',
-    profileImage: user?.profileImage || null
-  });
+const [formData, setFormData] = useState({
+  name: user?.name || '',
+  email: user?.email || '',
+  phone: user?.phone || '',
+  description: user?.role === 'supplier'
+    ? user?.supplierDetails?.description || ''
+    : user?.producerDetails?.description || '',
+  companyName: user?.role === 'supplier'
+    ? user?.supplierDetails?.companyName || ''
+    : user?.producerDetails?.companyName || '',
+  language: user?.language || 'he',
+  instagramLink: user?.role === 'supplier'
+    ? user?.supplierDetails?.instagramLink || ''
+    : user?.producerDetails?.instagramLink || '',
+  websiteLink: user?.role === 'supplier'
+    ? user?.supplierDetails?.website || ''
+    : user?.producerDetails?.website || '',
+  profileImage: user?.profileImage || null
+});
+
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const getInitials = (name: string) => {
     if (!name) return 'U';
@@ -51,36 +69,113 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateUser }: Pr
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: 'Invalid file',
+          description: 'Please upload an image file',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'File too large',
+          description: 'Image must be less than 5MB',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         setFormData(prev => ({ ...prev, profileImage: e.target?.result as string }));
       };
       reader.readAsDataURL(file);
+      setUploadedFile(file);
     }
   };
 
   const handlePlaceholderSelect = (avatarUrl: string) => {
     setFormData(prev => ({ ...prev, profileImage: avatarUrl }));
+    setUploadedFile(null);
     setShowAvatarPicker(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const updatedUser = {
-      ...user,
-      ...formData
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsUploading(true);
+
+  try {
+    let profileImagePath = formData.profileImage;
+
+    // Upload profile image if a new file was selected
+    if (uploadedFile) {
+      const uploadResponse = await apiService.uploadProfileImage(uploadedFile);
+      if (uploadResponse.success && uploadResponse.data?.profileImage) {
+        profileImagePath = uploadResponse.data.profileImage;
+      } else {
+        throw new Error('Failed to upload image');
+      }
+    }
+
+    // Update user profile with API call
+    const updatePayload = {
+      name: formData.name,
+      phone: formData.phone || '',
+      language: formData.language,
+      ...(user.role === 'producer' && {
+        producerDetails: {
+          description: formData.description,
+          companyName: formData.companyName,
+          instagramLink: formData.instagramLink,
+          website: formData.websiteLink
+        }
+      }),
+      ...(user.role === 'supplier' && {
+        supplierDetails: {
+          description: formData.description,
+          companyName: formData.companyName,
+          instagramLink: formData.instagramLink,
+          website: formData.websiteLink
+        }
+      })
     };
-    
+
+    const apiResponse = await apiService.updateProfile(updatePayload);
+
+    if (!apiResponse.success) {
+      throw new Error('Failed to update profile');
+    }
+
+    // Update user state with response data
+    const updatedUser = {
+      ...apiResponse.data.user,
+      profileImage: profileImagePath
+    };
+
     onUpdateUser(updatedUser);
-    
+
     toast({
       title: t('profile.profileUpdated'),
       description: t('profile.profileUpdatedSuccessfully'),
     });
-    
+
+    setUploadedFile(null);
     onClose();
-  };
+  } catch (error) {
+    console.error('Profile update error:', error);
+    toast({
+      title: 'Error',
+      description: error instanceof Error ? error.message : 'Failed to update profile',
+      variant: 'destructive',
+    });
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -111,8 +206,13 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateUser }: Pr
                     variant="outline"
                     size="sm"
                     onClick={() => document.getElementById('profile-upload')?.click()}
+                    disabled={isUploading}
                   >
-                    <Upload className="w-4 h-4 mr-2" />
+                    {isUploading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4 mr-2" />
+                    )}
                     {t('profile.upload')}
                   </Button>
                   <Button
@@ -120,6 +220,7 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateUser }: Pr
                     variant="outline"
                     size="sm"
                     onClick={() => setShowAvatarPicker(!showAvatarPicker)}
+                    disabled={isUploading}
                   >
                     <User className="w-4 h-4 mr-2" />
                     {t('profile.chooseAvatar')}
@@ -131,6 +232,7 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateUser }: Pr
                   accept="image/*"
                   onChange={handleImageUpload}
                   className="hidden"
+                  disabled={isUploading}
                 />
               </div>
             </div>
@@ -143,7 +245,8 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateUser }: Pr
                     key={index}
                     type="button"
                     onClick={() => handlePlaceholderSelect(avatar)}
-                    className="relative group"
+                    disabled={isUploading}
+                    className="relative group disabled:opacity-50"
                   >
                     <Avatar className="w-16 h-16 transition-transform group-hover:scale-105">
                       <AvatarImage src={avatar} />
@@ -167,6 +270,7 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateUser }: Pr
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder={t('profile.enterFullName')}
+                  disabled={isUploading}
                 />
               </div>
 
@@ -184,6 +288,20 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateUser }: Pr
                 <p className="text-xs text-muted-foreground">{t('profile.emailCannotBeChanged')}</p>
               </div>
 
+
+
+              <div className="space-y-2">
+  <Label htmlFor="phone">{t('profile.phone')}</Label>
+  <Input
+    id="phone"
+    type="tel"
+    value={formData.phone}
+    onChange={(e) => handleInputChange('phone', e.target.value)}
+    placeholder={t('profile.enterPhone')}
+    disabled={isUploading}
+  />
+</div>
+
               <div className="space-y-2">
                 <Label htmlFor="companyName">{t('profile.companyName')}</Label>
                 <Input
@@ -191,6 +309,7 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateUser }: Pr
                   value={formData.companyName}
                   onChange={(e) => handleInputChange('companyName', e.target.value)}
                   placeholder={t('profile.enterCompanyName')}
+                  disabled={isUploading}
                 />
               </div>
 
@@ -202,6 +321,29 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateUser }: Pr
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   placeholder={t('profile.tellUsAboutYourself')}
                   rows={3}
+                  disabled={isUploading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="instagramLink">Instagram Link</Label>
+                <Input
+                  id="instagramLink"
+                  value={formData.instagramLink}
+                  onChange={(e) => handleInputChange('instagramLink', e.target.value)}
+                  placeholder="https://instagram.com/yourusername"
+                  disabled={isUploading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="websiteLink">Website Link</Label>
+                <Input
+                  id="websiteLink"
+                  value={formData.websiteLink}
+                  onChange={(e) => handleInputChange('websiteLink', e.target.value)}
+                  placeholder="https://yourwebsite.com"
+                  disabled={isUploading}
                 />
               </div>
             </div>
@@ -213,14 +355,23 @@ export default function ProfileModal({ isOpen, onClose, user, onUpdateUser }: Pr
               type="button" 
               variant="outline" 
               onClick={onClose}
+              disabled={isUploading}
             >
               {t('profile.cancel')}
             </Button>
             <Button 
               type="submit"
               className="bg-primary hover:bg-primary/90"
+              disabled={isUploading}
             >
-              {t('profile.saveChanges')}
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {t('profile.saving')}
+                </>
+              ) : (
+                t('profile.saveChanges')
+              )}
             </Button>
           </div>
         </form>

@@ -27,6 +27,8 @@ import CreateEvent from "./pages/CreateEvent";
 import EditEvent from "./pages/EditEvent";
 import './i18n';
 import RoleSelection from "./pages/RoleSelection";
+import BroadSuppliers from "./pages/BroadSuppliers";
+import SupplierDetails from "./components/SupplierDetails";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +56,8 @@ const App = () => (
             <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/browse-events" element={<BrowseEvents />} />
+             <Route path="/supplier/:supplierId" element={<SupplierDetails />} />
+            <Route path="/browse-supplier" element={<BroadSuppliers />} />
             <Route path="/event/:eventId" element={<PublicEventDetails />} />
             <Route path="/event/:eventId/manage" element={<EventDetails />} />
             <Route path="/event-chat/:eventId" element={<EventChat />} />

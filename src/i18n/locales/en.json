@@ -2,6 +2,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "browseEvents": "Browse Events",
+    "Suppliers ":"Suppliers ",
     "createEvent": "Create Event",
     "signIn": "Sign In / Sign Up",
     "logout": "Logout",
@@ -176,6 +177,44 @@
       "totalAttendees":"totalAttendees",
       "attendees":"Attendees"
     },
+    "bankDetailsStep": {
+  "title": "Bank Details",
+  "provide" : "Please provide your banking details for event payments",
+  "current" : "Your current banking information",
+  "editBankDetails" : "Edit Bank Details",
+  "updateDetails" : "Update your banking information for event payments",
+  "info" : "Banking Information",
+  "subtitle": "Please provide your banking details for event payments",
+  "form": {
+    "bankName": {
+      "label": "Bank Name",
+      "placeholder": "Enter your bank name"
+    },
+    "branch": {
+      "label": "Branch",
+      "placeholder": "Enter branch name or number"
+    },
+    "accountNumber": {
+      "label": "Account Number",
+      "placeholder": "Enter your account number"
+    },
+    "accountHolderName": {
+      "label": "Account Holder Name",
+      "placeholder": "Enter the account holder name"
+    }
+  },
+  "buttons": {
+    "back": "Back",
+    "continue": "Continue",
+    "cancel" : "Cancel",
+    "update" : "Update Bank Details",
+    "updating" : "Updating"
+  },
+  "validation": {
+    "requiredFields": "Please fill in all required fields"
+  }
+},
+
     "eventTypes": {
       "birthday": "Birthday Party",
       "wedding": "Wedding",
@@ -345,6 +384,7 @@
     "allEvents": "All Events",
     "browseAllEvents": "Browse all events on the platform",
     "browseEvents": "Browse Events",
+    "Suppliers ":"Suppliers ",
     "discoverEvents": "Discover and join exciting events happening around you",
     "searchEvents": "Search events...",
     "searchPlaceholder": "Search events, organizers, locations...",
@@ -397,6 +437,7 @@
     "fetchError": "Failed to load events. Please try again.",
     "editEventModal": {
       "eventDetail": "Event Detail",
+      "bankDetails": "Bank Details",
       "suppliers": "Suppliers",
       "attendees": "Attendees",
       "eventSuppliers": "Event Suppliers",
@@ -781,37 +822,41 @@
     "serviceUpdated": "Service updated successfully",
     "updateError": "Failed to update service. Please try again."
   },
-  "packages": {
-    "managePackages": "Manage Packages",
-    "manageDescription": "Add and manage packages for this service",
-    "addNewPackage": "Add New Package",
-    "editPackage": "Edit Package",
-    "name": "Package Name",
-    "namePlaceholder": "Enter package name",
-    "price": "Price",
-    "description": "Description",
-    "descriptionPlaceholder": "Describe what this package includes",
-    "duration": "Duration (hours)",
-    "durationPlaceholder": "Duration in hours",
-    "features": "Features",
-    "addFeature": "Add feature",
-    "markAsPopular": "Mark as popular package",
-    "addPackage": "Add Package",
-    "updatePackage": "Update Package",
-    "packageAdded": "Package added successfully",
-    "packageUpdated": "Package updated successfully",
-    "packageDeleted": "Package deleted successfully",
-    "saveError": "Failed to save package",
-    "deleteError": "Failed to delete package",
-    "confirmDelete": "Are you sure you want to delete this package?",
-    "fillRequiredFields": "Please fill in all required fields",
-    "existingPackages": "Existing Packages",
-    "noPackages": "No packages yet",
-    "noPackagesDescription": "Create packages to offer different service options to your clients",
-    "createFirstPackage": "Create Your First Package",
-    "popular": "Popular",
-    "hours": "hours"
-  },
+ "packages": {
+  "managePackages": "Manage Packages",
+  "manageDescription": "Add and manage packages for this service",
+  "addNewPackage": "Add New Package",
+  "editPackage": "Edit Package",
+  "name": "Package Name",
+  "namePlaceholder": "Enter package name",
+  "price": "Price",
+  "description": "Description",
+  "descriptionPlaceholder": "Describe what this package includes",
+  "duration": "Duration (hours)",
+  "durationPlaceholder": "Duration in hours",
+  "features": "Features",
+  "addFeature": "Add feature",
+  "markAsPopular": "Mark as popular package",
+  "addPackage": "Add Package",
+  "updatePackage": "Update Package",
+  "packageAdded": "Package added successfully",
+  "packageUpdated": "Package updated successfully",
+  "packageDeleted": "Package deleted successfully",
+  "saveError": "Failed to save package",
+  "deleteError": "Failed to delete package",
+  "confirmDelete": "Are you sure you want to delete this package?",
+  "fillRequiredFields": "Please fill in all required fields",
+  "existingPackages": "Existing Packages",
+  "noPackages": "No packages yet",
+  "noPackagesDescription": "Create packages to offer different service options to your clients",
+  "createFirstPackage": "Create Your First Package",
+  "popular": "Popular",
+  "hours": "hours",
+  "validationError": "Validation Error",
+  "descriptionRequired": "Description cannot be empty",
+  "nameRequired": "Package name is required",
+  "priceRequired": "Price must be greater than 0"
+},
   "categories": {
     "photography": "Photography",
     "videography": "Videography",

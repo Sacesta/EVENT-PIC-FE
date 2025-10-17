@@ -760,7 +760,7 @@ const handleCreateEvent = async () => {
               <CardHeader className="pb-2 sm:pb-3">
                 <CardTitle className={`flex items-center gap-2 text-base sm:text-lg ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                  Banking Information
+                 {t("createEvent.bankDetailsStep.info")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-3 sm:p-6">
@@ -769,7 +769,7 @@ const handleCreateEvent = async () => {
                     <div className="space-y-2">
                       <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
                         <Building2 className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="font-medium">Bank Name</span>
+                        <span className="font-medium">{t("createEvent.bankDetailsStep.form.bankName.label")}</span>
                       </div>
                       <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md">
                         {eventData.bankDetails.bankName || 'Not provided'}
@@ -779,7 +779,7 @@ const handleCreateEvent = async () => {
                     <div className="space-y-2">
                       <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
                         <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="font-medium">Branch</span>
+                        <span className="font-medium"> {t("createEvent.bankDetailsStep.form.branch.label")}</span>
                       </div>
                       <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md">
                         {eventData.bankDetails.branch || 'Not provided'}
@@ -789,7 +789,7 @@ const handleCreateEvent = async () => {
                     <div className="space-y-2">
                       <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
                         <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="font-medium">Account Number</span>
+                        <span className="font-medium"> {t("createEvent.bankDetailsStep.form.accountNumber.label")}</span>
                       </div>
                       <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md font-mono">
                         {eventData.bankDetails.accountNumber || 'Not provided'}
@@ -799,7 +799,7 @@ const handleCreateEvent = async () => {
                     <div className="space-y-2">
                       <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
                         <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="font-medium">Account Holder</span>
+                        <span className="font-medium">{t("createEvent.bankDetailsStep.form.accountHolderName.label")}</span>
                       </div>
                       <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md">
                         {eventData.bankDetails.accountHolderName || 'Not provided'}

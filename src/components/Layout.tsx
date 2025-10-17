@@ -197,6 +197,7 @@ export default function Layout({ children }: LayoutProps) {
     },
     { title: t("nav.browseEvents"), url: "/browse-events", icon: Search },
     { title: t("nav.createEvent"), url: "/", icon: CalendarPlus },
+     { title: t("nav.Suppliers "), url: "/browse-supplier", icon: Search },
   ];
 
   const handleLogout = () => {
@@ -218,10 +219,23 @@ export default function Layout({ children }: LayoutProps) {
     return name.substring(0, 2).toUpperCase();
   };
 
-  const handleUpdateUser = (updatedUser: User) => {
+const handleUpdateUser = async (updatedUser: User) => {
+  try {
     setUser(updatedUser);
-  };
-
+    
+    // Optional: Refresh user data from backend to ensure sync
+    // const refreshedData = await apiService.getProfile();
+    // const responseData = refreshedData as { data: { user: User } };
+    // setUser(responseData.data.user);
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    toast({
+      title: 'Error',
+      description: 'Failed to sync profile',
+      variant: 'destructive',
+    });
+  }
+};
   return (
     <AuthProvider value={{ user, isLoadingUser, setUser, setIsLoadingUser }}>
       <div
