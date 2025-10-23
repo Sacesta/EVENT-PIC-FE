@@ -94,7 +94,7 @@ interface UseChatOptions {
 
 export const useChat = (options: UseChatOptions = {}) => {
   const { chatId, autoConnect = true } = options;
-  const { socket, isConnected } = useSocket();
+  const { socket, isConnected, reconnect } = useSocket();
   const { user } = useAuth();
   
   const [chats, setChats] = useState<Chat[]>([]);
@@ -774,7 +774,7 @@ export const useChat = (options: UseChatOptions = {}) => {
     error,
     typingUsers,
     isConnected,
-    
+
     // Actions
     fetchChats,
     fetchEventChats,
@@ -796,7 +796,8 @@ export const useChat = (options: UseChatOptions = {}) => {
     addChatParticipant,
     removeChatParticipant,
     archiveChatById,
-    
+    reconnectSocket: reconnect,
+
     // Refs
     messagesEndRef
   };

@@ -19,6 +19,9 @@ export const ChatList: React.FC<ChatListProps> = ({
   onSelectChat,
   loading = false
 }) => {
+  console.log('🔍 ChatList - Received chats:', chats);
+  console.log('🔍 ChatList - Chats count:', chats?.length || 0);
+  console.log('🔍 ChatList - Loading:', loading);
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -83,15 +86,15 @@ export const ChatList: React.FC<ChatListProps> = ({
 
   if (loading) {
     return (
-      <Card className="glass-card h-[75vh] flex flex-col overflow-hidden">
-        <CardHeader>
+      <Card className="glass-card h-full flex flex-col overflow-hidden">
+        <CardHeader className="flex-shrink-0">
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="w-5 h-5" />
             Conversations
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
-          <ScrollArea className="h-[500px]">
+        <CardContent className="p-0 flex-1 overflow-hidden">
+          <ScrollArea className="h-full">
             <div className="space-y-2 p-4">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="p-4 rounded-lg animate-pulse">
@@ -112,7 +115,7 @@ export const ChatList: React.FC<ChatListProps> = ({
   }
 
   return (
-    <Card className="glass-card h-full flex flex-col">
+    <Card className="glass-card h-full flex flex-col overflow-hidden">
       <CardHeader className="flex-shrink-0">
         <CardTitle className="flex items-center gap-2">
           <MessageCircle className="w-5 h-5" />
@@ -120,7 +123,7 @@ export const ChatList: React.FC<ChatListProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 flex-1 overflow-hidden">
-        <ScrollArea className="h-[600px]">
+        <ScrollArea className="h-full">
           <div className="space-y-2 p-4">
             {chats?.length === 0 ? (
               <div className="text-center py-8">

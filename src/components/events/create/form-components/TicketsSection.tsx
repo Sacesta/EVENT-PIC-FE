@@ -25,21 +25,19 @@ export const TicketsSection = React.memo<TicketsSectionProps>(
         ? ['מחיר מוקדם', 'מחיר רגיל', 'מחיר אחרון']
         : ['Early Bird Price', 'Regular Price', 'Last Minute Price'];
 
-    // Auto-create 3 tickets on mount if none exist
+    // Auto-create 1 ticket on mount if none exist (only for paid events)
     useEffect(() => {
-      if (tickets.length === 0) {
-        const defaultTickets: TicketType[] = defaultTicketNames.map(
-          (name, index) => ({
-            id: `auto-${index + 1}`,
-            name,
-            quantity: 0,
-            price: 0,
-            currency: 'ILS',
-          })
-        );
-        onAdd(defaultTickets);
+      if (tickets.length === 0 && isPaid) {
+        const defaultTicket: TicketType = {
+          id: 'auto-1',
+          name: defaultTicketNames[0], // Use only the first ticket name (Early Bird)
+          quantity: 0,
+          price: 0,
+          currency: 'ILS',
+        };
+        onAdd(defaultTicket);
       }
-    }, [tickets.length, i18n.language]);
+    }, [tickets.length, i18n.language, isPaid]);
 
     const totalRevenue = useMemo(() => {
       return tickets.reduce(

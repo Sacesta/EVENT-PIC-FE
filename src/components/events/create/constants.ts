@@ -1,26 +1,23 @@
 // Event types configuration - using translation keys
 export const EVENT_TYPES = [
+  { value: 'street', labelKey: 'createEvent.eventTypes.street' },
+  { value: 'nature', labelKey: 'createEvent.eventTypes.nature' },
   { value: 'birthday', labelKey: 'createEvent.eventTypes.birthday' },
+  { value: 'party', labelKey: 'createEvent.eventTypes.party' },
   { value: 'wedding', labelKey: 'createEvent.eventTypes.wedding' },
-  { value: 'corporate', labelKey: 'createEvent.eventTypes.corporate' },
-  { value: 'conference', labelKey: 'createEvent.eventTypes.conference' },
-  { value: 'workshop', labelKey: 'createEvent.eventTypes.workshop' },
-  { value: 'concert', labelKey: 'createEvent.eventTypes.concert' },
-  { value: 'graduation', labelKey: 'createEvent.eventTypes.graduation' },
-  { value: 'anniversary', labelKey: 'createEvent.eventTypes.anniversary' },
-  { value: 'babyShower', labelKey: 'createEvent.eventTypes.babyShower' },
   { value: 'other', labelKey: 'createEvent.eventTypes.other' }
 ];
 
 // Popular locations - using translation keys
 export const POPULAR_LOCATIONS = [
-  { value: 'telAvivConventionCenter', labelKey: 'createEvent.locations.telAvivConventionCenter' },
-  { value: 'jerusalemConventionCenter', labelKey: 'createEvent.locations.jerusalemConventionCenter' },
-  { value: 'haifaAuditorium', labelKey: 'createEvent.locations.haifaAuditorium' },
-  { value: 'eilatConventionCenter', labelKey: 'createEvent.locations.eilatConventionCenter' },
-  { value: 'deadSeaConventionCenter', labelKey: 'createEvent.locations.deadSeaConventionCenter' },
-  { value: 'herzliyaMarina', labelKey: 'createEvent.locations.herzliyaMarina' },
-  { value: 'caesareaAmphitheater', labelKey: 'createEvent.locations.caesareaAmphitheater' },
+  { value: 'north', labelKey: 'createEvent.locations.north' },
+  { value: 'south', labelKey: 'createEvent.locations.south' },
+  { value: 'golan', labelKey: 'createEvent.locations.golan' },
+  { value: 'telAviv', labelKey: 'createEvent.locations.telAviv' },
+  { value: 'jerusalem', labelKey: 'createEvent.locations.jerusalem' },
+  { value: 'haifa', labelKey: 'createEvent.locations.haifa' },
+  { value: 'beerSheva', labelKey: 'createEvent.locations.beerSheva' },
+  { value: 'gilboa', labelKey: 'createEvent.locations.gilboa' },
   { value: 'parkHayarkon', labelKey: 'createEvent.locations.parkHayarkon' }
 ];
 

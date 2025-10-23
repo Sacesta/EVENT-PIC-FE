@@ -2,7 +2,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "browseEvents": "Browse Events",
-    "Suppliers ":"Suppliers ",
+    "Suppliers ": "Suppliers ",
     "createEvent": "Create Event",
     "signIn": "Sign In / Sign Up",
     "logout": "Logout",
@@ -22,7 +22,7 @@
       "servicesSuppliers": "Services & Suppliers",
       "eventDetails": "Event Details",
       "summary": "Summary",
-      "bankDetails" : "Bank Details"
+      "bankDetails": "Bank Details"
     },
     "step2": {
       "title": "Event Details",
@@ -102,7 +102,7 @@
       "clickToSelect": "Click to Select"
     },
     "step2": {
-      "title": "Event Details", 
+      "title": "Event Details",
       "subtitle": "Tell us about your event",
       "eventName": "Event Name",
       "eventNamePlaceholder": "Enter your event name",
@@ -146,11 +146,16 @@
       "ticketTypes": "Ticket Types",
       "createTicketTiers": "Create ticket tiers with different prices (e.g., VIP, General Admission, Early Bird)",
       "createTicketCategories": "Create ticket categories. All tickets are free - no payment required from attendees.",
-      "addTicket": "Add Pricing Option”",
+      "eventDuration": "Event Duration",
+      "selectEventTiming": "Select when your event starts and ends",
+      "addTicket": "Add Pricing Option",
       "ticketName": "Ticket Name",
       "ticketNamePlaceholder": "e.g., General Admission",
       "quantity": "Quantity",
-      "totalAttendees":"totalAttendees",
+      "totalAttendees": "Total Attendees",
+      "maxAttendees": "Maximum Attendees",
+      "maxAttendeesPlaceholder": "Enter maximum number of attendees",
+      "setMaxAttendees": "Set the maximum number of attendees for this free event",
       "price": "Price (₪)",
       "noTickets": "No tickets added yet",
       "description": "Description",
@@ -174,57 +179,52 @@
       "suppliers": "suppliers",
       "tickets": "tickets",
       "totalRevenue": "Total Revenue",
-      "totalAttendees":"totalAttendees",
-      "attendees":"Attendees"
+      "totalAttendees": "Total Attendees",
+      "attendees": "Attendees"
     },
     "bankDetailsStep": {
-  "title": "Bank Details",
-  "provide" : "Please provide your banking details for event payments",
-  "current" : "Your current banking information",
-  "editBankDetails" : "Edit Bank Details",
-  "updateDetails" : "Update your banking information for event payments",
-  "info" : "Banking Information",
-  "subtitle": "Please provide your banking details for event payments",
-  "form": {
-    "bankName": {
-      "label": "Bank Name",
-      "placeholder": "Enter your bank name"
+      "title": "Bank Details",
+      "provide": "Please provide your banking details for event payments",
+      "current": "Your current banking information",
+      "editBankDetails": "Edit Bank Details",
+      "updateDetails": "Update your banking information for event payments",
+      "info": "Banking Information",
+      "subtitle": "Please provide your banking details for event payments",
+      "form": {
+        "bankName": {
+          "label": "Bank Name",
+          "placeholder": "Enter your bank name"
+        },
+        "branch": {
+          "label": "Branch",
+          "placeholder": "Enter branch name or number"
+        },
+        "accountNumber": {
+          "label": "Account Number",
+          "placeholder": "Enter your account number"
+        },
+        "accountHolderName": {
+          "label": "Account Holder Name",
+          "placeholder": "Enter the account holder name"
+        }
+      },
+      "buttons": {
+        "back": "Back",
+        "continue": "Continue",
+        "cancel": "Cancel",
+        "update": "Update Bank Details",
+        "updating": "Updating"
+      },
+      "validation": {
+        "requiredFields": "Please fill in all required fields"
+      }
     },
-    "branch": {
-      "label": "Branch",
-      "placeholder": "Enter branch name or number"
-    },
-    "accountNumber": {
-      "label": "Account Number",
-      "placeholder": "Enter your account number"
-    },
-    "accountHolderName": {
-      "label": "Account Holder Name",
-      "placeholder": "Enter the account holder name"
-    }
-  },
-  "buttons": {
-    "back": "Back",
-    "continue": "Continue",
-    "cancel" : "Cancel",
-    "update" : "Update Bank Details",
-    "updating" : "Updating"
-  },
-  "validation": {
-    "requiredFields": "Please fill in all required fields"
-  }
-},
-
     "eventTypes": {
-      "birthday": "Birthday Party",
+      "street": "Street Party",
       "wedding": "Wedding",
-      "corporate": "Corporate Event",
-      "anniversary": "Anniversary",
-      "graduation": "Graduation",
-      "babyShower": "Baby Shower",
-      "concert": "Concert",
-      "conference": "Conference",
-      "workshop": "Workshop",
+      "party": "Party",
+      "birthday": "Birthday Party",
+      "nature": "Nature Party",
       "other": "Other"
     },
     "locations": {
@@ -236,13 +236,14 @@
       "home": "Home",
       "beach": "Beach",
       "rooftopVenue": "Rooftop Venue",
-      "telAvivConventionCenter": "Tel Aviv Convention Center",
-      "jerusalemConventionCenter": "Jerusalem International Convention Center",
-      "haifaAuditorium": "Haifa Auditorium",
-      "eilatConventionCenter": "Eilat Convention Center",
-      "deadSeaConventionCenter": "Dead Sea Convention Center",
-      "herzliyaMarina": "Herzliya Marina",
-      "caesareaAmphitheater": "Caesarea Amphitheater",
+      "north": "North",
+      "south": "South",
+      "golan": "Golan",
+      "telAviv": "Tel Aviv",
+      "jerusalem": "Jerusalem",
+      "haifa": "Haifa",
+      "beerSheva": "Beer Sheva",
+      "gilboa": "Gilboa",
       "parkHayarkon": "Park Hayarkon, Tel Aviv"
     },
     "services": {
@@ -281,7 +282,12 @@
     "noUpcomingEvents": "No upcoming events",
     "noPastEvents": "No past events",
     "producer": {
-      "greetings": ["Hey {{name}}", "Wassup {{name}}", "Howyodoin {{name}}", "Howdy {{name}}"],
+      "greetings": [
+        "Hey {{name}}",
+        "Wassup {{name}}",
+        "Howyodoin {{name}}",
+        "Howdy {{name}}"
+      ],
       "subtitle": "Manage all your events in one place",
       "createEvent": "Create Event",
       "createEventDesc": "Start planning your next event",
@@ -325,7 +331,7 @@
       "users": "Users",
       "events": "Events",
       "analytics": "Analytics",
-      "chats" : "Chats",
+      "chats": "Chats",
       "recentUsers": "Recent Users",
       "newlyRegistered": "Newly registered users",
       "recentEvents": "Recent Events",
@@ -373,7 +379,7 @@
     "eventChat": "Event Chat",
     "date": "Date",
     "tickets": "Tickets",
-    "packages" : "Packages",
+    "packages": "Packages",
     "actions": "Actions",
     "approve": "Approve",
     "reject": "Reject",
@@ -384,7 +390,7 @@
     "allEvents": "All Events",
     "browseAllEvents": "Browse all events on the platform",
     "browseEvents": "Browse Events",
-    "Suppliers ":"Suppliers ",
+    "Suppliers ": "Suppliers ",
     "discoverEvents": "Discover and join exciting events happening around you",
     "searchEvents": "Search events...",
     "searchPlaceholder": "Search events, organizers, locations...",
@@ -499,8 +505,8 @@
     "status": "Status",
     "getInTouch": "Get in Touch",
     "rights": "All rights reserved",
-    "email": "hello@pic.com",
-    "phone": "+1 (555) 123-4567",
+    "email": "info@pic-events.co.il",
+    "phone": "+972-55-660-4443",
     "address": "Tel Aviv, Israel"
   },
   "auth": {
@@ -554,7 +560,7 @@
         "continue": "Continue as Producer"
       },
       "supplier": {
-        "title": "Supplier", 
+        "title": "Supplier",
         "description": "I provide services",
         "continue": "Continue as Supplier"
       }
@@ -675,7 +681,7 @@
       "registerHere": "Register here"
     },
     "supplierLogin": {
-      "title": "Supplier Sign In", 
+      "title": "Supplier Sign In",
       "subtitle": "Welcome back! Sign in to manage your services and connect with event producers.",
       "noAccount": "Don't have a supplier account?",
       "registerHere": "Register here"
@@ -698,9 +704,8 @@
       "serverError": "Server is temporarily unavailable. Please try again in a few minutes.",
       "timeoutError": "Request timed out. Please try again.",
       "passwordError": "Password does not meet requirements. Please ensure it is at least 8 characters long.",
-      "websiteError" : "Please enter a valid website URL (e.g., https://your-website.com)",
+      "websiteError": "Please enter a valid website URL (e.g., https://your-website.com)",
       "agreeToTerms": "Please agree to the Terms and Conditions to continue"
-
     },
     "success": {
       "registrationSubmitted": "Registration Submitted",
@@ -721,7 +726,6 @@
       "mustBeAfterStart": "End date/time must be after start date/time"
     },
     "termsAgreementPrefix": "By checking this box, you agree to our"
-
   },
   "admin": {
     "users": {
@@ -822,41 +826,41 @@
     "serviceUpdated": "Service updated successfully",
     "updateError": "Failed to update service. Please try again."
   },
- "packages": {
-  "managePackages": "Manage Packages",
-  "manageDescription": "Add and manage packages for this service",
-  "addNewPackage": "Add New Package",
-  "editPackage": "Edit Package",
-  "name": "Package Name",
-  "namePlaceholder": "Enter package name",
-  "price": "Price",
-  "description": "Description",
-  "descriptionPlaceholder": "Describe what this package includes",
-  "duration": "Duration (hours)",
-  "durationPlaceholder": "Duration in hours",
-  "features": "Features",
-  "addFeature": "Add feature",
-  "markAsPopular": "Mark as popular package",
-  "addPackage": "Add Package",
-  "updatePackage": "Update Package",
-  "packageAdded": "Package added successfully",
-  "packageUpdated": "Package updated successfully",
-  "packageDeleted": "Package deleted successfully",
-  "saveError": "Failed to save package",
-  "deleteError": "Failed to delete package",
-  "confirmDelete": "Are you sure you want to delete this package?",
-  "fillRequiredFields": "Please fill in all required fields",
-  "existingPackages": "Existing Packages",
-  "noPackages": "No packages yet",
-  "noPackagesDescription": "Create packages to offer different service options to your clients",
-  "createFirstPackage": "Create Your First Package",
-  "popular": "Popular",
-  "hours": "hours",
-  "validationError": "Validation Error",
-  "descriptionRequired": "Description cannot be empty",
-  "nameRequired": "Package name is required",
-  "priceRequired": "Price must be greater than 0"
-},
+  "packages": {
+    "managePackages": "Manage Packages",
+    "manageDescription": "Add and manage packages for this service",
+    "addNewPackage": "Add New Package",
+    "editPackage": "Edit Package",
+    "name": "Package Name",
+    "namePlaceholder": "Enter package name",
+    "price": "Price",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe what this package includes",
+    "duration": "Duration (hours)",
+    "durationPlaceholder": "Duration in hours",
+    "features": "Features",
+    "addFeature": "Add feature",
+    "markAsPopular": "Mark as popular package",
+    "addPackage": "Add Package",
+    "updatePackage": "Update Package",
+    "packageAdded": "Package added successfully",
+    "packageUpdated": "Package updated successfully",
+    "packageDeleted": "Package deleted successfully",
+    "saveError": "Failed to save package",
+    "deleteError": "Failed to delete package",
+    "confirmDelete": "Are you sure you want to delete this package?",
+    "fillRequiredFields": "Please fill in all required fields",
+    "existingPackages": "Existing Packages",
+    "noPackages": "No packages yet",
+    "noPackagesDescription": "Create packages to offer different service options to your clients",
+    "createFirstPackage": "Create Your First Package",
+    "popular": "Popular",
+    "hours": "hours",
+    "validationError": "Validation Error",
+    "descriptionRequired": "Description cannot be empty",
+    "nameRequired": "Package name is required",
+    "priceRequired": "Price must be greater than 0"
+  },
   "categories": {
     "photography": "Photography",
     "videography": "Videography",
@@ -890,7 +894,6 @@
     "intermediate": "Intermediate",
     "expert": "Expert"
   },
-  
   "terms": {
     "title": "Framework Agreement for Platform Use",
     "agreement": "I agree to the Terms and Conditions",
@@ -1021,8 +1024,7 @@
       "title": "Contact Information",
       "content": "If you have any questions about these Terms and Conditions, please contact us at support@pic-platform.com or through our contact form on the website."
     }
-  }
-,
+  },
   "common": {
     "minCharacters": "Min. {{count}} characters",
     "charactersCount": "{{current}}/{{min}} characters",
@@ -1080,5 +1082,353 @@
     "saveChanges": "Save Changes",
     "profileUpdated": "Profile Updated",
     "profileUpdatedSuccessfully": "Your profile has been successfully updated."
+  },
+  "suppliers": {
+    "about" : "About",
+    "pack" : "Services & Packages",
+    "browseSuppliers": "עיין בספקים",
+    "discoverSuppliers": "Find and connect with professional service providers",
+    "searchPlaceholder": "Search suppliers, services...",
+    "city": "City",
+    "sortByRating": "Sort by Rating",
+    "services": {
+      "all": "All Services",
+      "photography": "Photography",
+      "catering": "Catering",
+      "decoration": "Decoration",
+      "music": "Music",
+      "venue": "Venue",
+      "transportation": "Transportation",
+      "security": "Security",
+      "florist": "Florist",
+      "cake": "Cake",
+      "invitation": "Invitation",
+      "videography": "Videography",
+      "makeup": "Makeup",
+      "other": "Other"
+    },
+    "filters": {
+      "minRating": "Min Rating",
+      "allRatings": "All Ratings",
+      "stars3": "3+ Stars",
+      "stars4": "4+ Stars",
+      "stars45": "4.5+ Stars",
+      "stars5": "5 Stars",
+      "show": "Show",
+      "reset": "Reset"
+    },
+    "supplierCard": {
+      "memberSince": "Member since",
+      "viewDetails": "View Details",
+      "instagram": "Instagram",
+      "website": "Website",
+      "reviews": "reviews"
+    },
+    "loading": {
+      "loadingSuppliers": "Loading suppliers...",
+      "loading": "Loading..."
+    },
+    "emptyState": {
+      "title": "No suppliers found matching your criteria",
+      "description": "Try adjusting your search or filters"
+    },
+    "pagination": {
+      "showing": "Showing",
+      "to": "to",
+      "of": "of",
+      "suppliers": "suppliers",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "errors": {
+      "failedToLoad": "Failed to load suppliers. Please try again."
+    }
+  },
+  "commons": {
+    "rating": "Rating",
+    "services": "Services",
+    "contact": "Contact",
+    "verified": "Verified"
+  },
+  "pages": {
+    "about": {
+      "title": "About Us",
+      "subtitle": "Connecting event producers with quality suppliers to create unforgettable experiences.",
+      "mission": {
+        "title": "Our Mission",
+        "description": "To simplify event planning by providing a comprehensive platform that connects producers with the best suppliers, streamlining the entire event management process."
+      },
+      "vision": {
+        "title": "Our Vision",
+        "description": "To become the leading platform for event management and supplier collaboration, empowering professionals to create exceptional events with ease and efficiency."
+      },
+      "story": {
+        "title": "Our Story",
+        "paragraph1": "Founded with the vision of revolutionizing the event planning industry, our platform was born from the challenges faced by event producers in finding and coordinating with reliable suppliers.",
+        "paragraph2": "We recognized the need for a centralized platform where producers and suppliers could connect, communicate, and collaborate seamlessly. Our solution brings together the best features of event management, supplier discovery, and project coordination into one intuitive platform.",
+        "paragraph3": "Today, we serve thousands of event professionals, helping them create memorable experiences through efficient planning and reliable partnerships."
+      },
+      "values": {
+        "title": "Our Values",
+        "quality": {
+          "title": "Quality",
+          "description": "We are committed to connecting our users with verified, high-quality suppliers."
+        },
+        "transparency": {
+          "title": "Transparency",
+          "description": "Clear communication and honest practices guide everything we do."
+        },
+        "innovation": {
+          "title": "Innovation",
+          "description": "We continuously improve our platform with the latest technology and user feedback."
+        },
+        "community": {
+          "title": "Community",
+          "description": "Building strong relationships between producers and suppliers is at the heart of what we do."
+        }
+      }
+    },
+    "contact": {
+      "title": "Contact Us",
+      "subtitle": "Get in touch with our team. We're here to help!",
+      "form": {
+        "title": "Send us a message",
+        "description": "Fill out the form below and we'll get back to you as soon as possible.",
+        "name": "Name",
+        "namePlaceholder": "Your name",
+        "email": "Email",
+        "emailPlaceholder": "your.email@example.com",
+        "subject": "Subject",
+        "subjectPlaceholder": "What is this about?",
+        "message": "Message",
+        "messagePlaceholder": "Your message...",
+        "send": "Send Message",
+        "success": "Message sent successfully! We'll get back to you soon."
+      },
+      "info": {
+        "email": {
+          "title": "Email",
+          "address": "info@pic-events.co.il"
+        },
+        "phone": {
+          "title": "Phone",
+          "number": "+972-55-660-4443",
+          "hours": "Sunday - Thursday, 10:00 AM - 5:00 PM"
+        },
+        "businessHours": {
+          "title": "Business Hours",
+          "weekdays": "Sunday - Thursday",
+          "weekdaysHours": "10:00 AM - 5:00 PM",
+          "friday": "Friday",
+          "fridayHours": "Closed",
+          "saturday": "Saturday",
+          "saturdayHours": "Closed"
+        },
+        "location": {
+          "title": "Location",
+          "address": "Tel Aviv, Israel"
+        }
+      }
+    },
+    "blog": {
+      "title": "Blog",
+      "subtitle": "Insights, tips, and updates from the world of event planning",
+      "searchPlaceholder": "Search articles...",
+      "readMore": "Read More",
+      "noArticles": "No articles found matching your search.",
+      "newsletter": {
+        "title": "Stay Updated",
+        "description": "Subscribe to our newsletter for the latest articles and event planning tips",
+        "emailPlaceholder": "Enter your email",
+        "subscribe": "Subscribe"
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "lastUpdated": "Last updated: January 15, 2024"
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "lastUpdated": "Last updated: January 15, 2024"
+    },
+    "cookies": {
+      "title": "Cookie Policy",
+      "lastUpdated": "Last updated: January 15, 2024",
+      "preferences": {
+        "title": "Cookie Preferences",
+        "description": "Manage your cookie preferences. You can change these settings at any time.",
+        "necessary": {
+          "title": "Necessary Cookies",
+          "description": "Required for the website to function properly. Cannot be disabled."
+        },
+        "functional": {
+          "title": "Functional Cookies",
+          "description": "Enable enhanced functionality and personalization."
+        },
+        "analytics": {
+          "title": "Analytics Cookies",
+          "description": "Help us understand how visitors interact with our website."
+        },
+        "advertising": {
+          "title": "Advertising Cookies",
+          "description": "Used to deliver relevant advertisements to you."
+        },
+        "savePreferences": "Save Preferences",
+        "acceptAll": "Accept All",
+        "rejectAll": "Reject All",
+        "saved": "Cookie preferences saved successfully"
+      }
+    },
+    "gdpr": {
+      "title": "GDPR Compliance",
+      "subtitle": "Your data protection rights under the General Data Protection Regulation",
+      "rights": {
+        "title": "Your Data Rights",
+        "description": "Under GDPR, you have comprehensive rights over your personal data",
+        "access": {
+          "title": "Right to Access",
+          "description": "Request a copy of your personal data we hold"
+        },
+        "rectification": {
+          "title": "Right to Rectification",
+          "description": "Correct inaccurate or incomplete data"
+        },
+        "erasure": {
+          "title": "Right to Erasure",
+          "description": "Request deletion of your personal data"
+        },
+        "portability": {
+          "title": "Right to Portability",
+          "description": "Receive your data in a portable format"
+        },
+        "object": {
+          "title": "Right to Object",
+          "description": "Object to certain processing of your data"
+        },
+        "restrict": {
+          "title": "Right to Restrict",
+          "description": "Limit how we use your data"
+        }
+      },
+      "actions": {
+        "downloadData": "Download My Data",
+        "managePreferences": "Manage Preferences"
+      }
+    },
+    "help": {
+      "title": "Help Center",
+      "subtitle": "Find answers, guides, and support to help you succeed",
+      "searchPlaceholder": "Search for help articles, guides, and tutorials...",
+      "tabs": {
+        "guides": "Guides",
+        "videos": "Videos",
+        "topics": "Topics",
+        "contact": "Contact"
+      },
+      "contact": {
+        "liveChat": {
+          "title": "Live Chat Support",
+          "description": "Get instant help from our support team during business hours.",
+          "hours": "Monday - Friday: 9:00 AM - 6:00 PM EST",
+          "start": "Start Live Chat"
+        },
+        "email": {
+          "title": "Email Support",
+          "description": "Send us an email and we'll respond within 24 hours.",
+          "address": "support@eventplatform.com",
+          "send": "Send Email"
+        },
+        "needHelp": "Still need help?",
+        "additionalResources": "Check out these additional resources"
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Find quick answers to common questions about our platform",
+      "searchPlaceholder": "Search questions...",
+      "noResults": "No questions found matching your search.",
+      "categories": {
+        "all": "All Questions",
+        "account": "Account",
+        "events": "Events",
+        "suppliers": "Suppliers",
+        "communication": "Communication",
+        "billing": "Billing",
+        "security": "Security",
+        "support": "Support"
+      },
+      "stillHaveQuestions": "Still have questions?",
+      "cantFindAnswer": "Can't find the answer you're looking for? Our support team is here to help.",
+      "contactSupport": "Contact Support",
+      "visitHelpCenter": "Visit Help Center"
+    },
+    "community": {
+      "title": "Community",
+      "subtitle": "Connect with fellow event professionals, share knowledge, and grow together",
+      "searchPlaceholder": "Search discussions, members, and resources...",
+      "tabs": {
+        "discussions": "Discussions",
+        "trending": "Trending",
+        "events": "Events"
+      },
+      "newDiscussion": "New Discussion",
+      "topContributors": {
+        "title": "Top Contributors",
+        "description": "Most active community members this month"
+      },
+      "guidelines": {
+        "title": "Community Guidelines",
+        "readFull": "Read Full Guidelines"
+      },
+      "stats": {
+        "title": "Community Stats",
+        "totalMembers": "Total Members",
+        "discussions": "Discussions",
+        "activeToday": "Active Today",
+        "newThisWeek": "New This Week"
+      },
+      "loadMore": "Load More Discussions"
+    },
+    "status": {
+      "title": "System Status",
+      "lastUpdated": "Last updated:",
+      "refresh": "Refresh",
+      "allOperational": {
+        "title": "All Systems Operational",
+        "description": "Everything is running smoothly"
+      },
+      "someAffected": {
+        "title": "Some Systems Affected",
+        "description": "We're working to resolve any issues"
+      },
+      "activeIncidents": "Active Incidents",
+      "serviceStatus": {
+        "title": "Service Status",
+        "description": "Current status of all platform services",
+        "checkedAgo": "Checked {{time}} ago",
+        "uptime": "{{percent}} uptime"
+      },
+      "scheduledMaintenance": {
+        "title": "Scheduled Maintenance",
+        "description": "Upcoming planned maintenance windows",
+        "impact": "Impact:",
+        "scheduled": "Scheduled"
+      },
+      "uptimeHistory": {
+        "title": "Uptime History (Last 90 Days)",
+        "overall": "Overall Uptime",
+        "operational": "Operational",
+        "incident": "Incident"
+      },
+      "subscribe": "Subscribe to status updates via",
+      "rss": "RSS",
+      "email": "Email",
+      "statuses": {
+        "operational": "Operational",
+        "degraded": "Degraded",
+        "outage": "Outage",
+        "maintenance": "Maintenance"
+      }
+    }
   }
 }

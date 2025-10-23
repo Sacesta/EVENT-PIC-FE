@@ -347,14 +347,14 @@ export default function BroadSuppliers() {
               {/* Footer with member since and action button */}
               <div className="flex items-center justify-between">
                 <div className="text-xs text-muted-foreground">
-                  Member since {new Date(supplier.memberSince).getFullYear()}
+                   {t('suppliers.supplierCard.memberSince')} {new Date(supplier.memberSince).getFullYear()}
                 </div>
                 <Button
                   size="sm"
                   onClick={() => handleViewDetails(supplier.supplierId)}
                   className="ml-2"
                 >
-                  View Details
+                  {t('suppliers.supplierCard.viewDetails')}
                 </Button>
               </div>
             </div>
@@ -421,10 +421,10 @@ export default function BroadSuppliers() {
 
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger>
-              <SelectValue placeholder="All Services" />
+              <SelectValue placeholder={t('suppliers.services.all')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Services</SelectItem>
+              <SelectItem value="all">{t('suppliers.services.all')}</SelectItem>
               {SERVICE_CATEGORIES.map((category) => (
                 <SelectItem key={category} value={category}>
                   {autoTranslate(category, i18n.language)}
@@ -447,17 +447,17 @@ export default function BroadSuppliers() {
               <SelectValue placeholder="Min Rating" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="0">All Ratings</SelectItem>
-              <SelectItem value="3">3+ Stars</SelectItem>
-              <SelectItem value="4">4+ Stars</SelectItem>
-              <SelectItem value="4.5">4.5+ Stars</SelectItem>
-              <SelectItem value="5">5 Stars</SelectItem>
+              <SelectItem value="0">{t('suppliers.filters.allRatings')}</SelectItem>
+              <SelectItem value="3">{t('suppliers.filters.stars3')}</SelectItem>
+              <SelectItem value="4">{t('suppliers.filters.stars4')}</SelectItem>
+              <SelectItem value="4.5">{t('suppliers.filters.stars45')}</SelectItem>
+              <SelectItem value="5">{t('suppliers.filters.stars5')}</SelectItem>
             </SelectContent>
           </Select>
 
           {/* Items per page selector */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground whitespace-nowrap">Show:</span>
+            <span className="text-sm text-muted-foreground whitespace-nowrap">{t('suppliers.filters.show')}:</span>
             <Select value={limit.toString()} onValueChange={handleLimitChange}>
               <SelectTrigger className="w-20">
                 <SelectValue />
@@ -486,7 +486,7 @@ export default function BroadSuppliers() {
               className="flex items-center gap-2"
             >
               <RotateCcw className="w-4 h-4" />
-              Reset
+              {t('suppliers.filters.reset')}
             </Button>
           </div>
         </div>

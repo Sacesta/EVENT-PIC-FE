@@ -7,7 +7,7 @@ interface LoginCredentials {
 }
 
 interface UserData {
-  name?: string;
+  name: string;
   email: string;
   password: string;
   role?: string;
@@ -1004,6 +1004,7 @@ class ApiService {
     maxPrice?: number;
     hasAvailableTickets?: boolean;
     supplierId?: string | string[]; // Support both single and multiple supplier IDs
+    includePastEvents?: boolean; // Include past events (for admin dashboard)
   }): Promise<BackendEventsResponse> {
     const queryParams = new URLSearchParams();
 
@@ -1031,6 +1032,8 @@ class ApiService {
         "hasAvailableTickets",
         params.hasAvailableTickets.toString()
       );
+    if (params?.includePastEvents !== undefined)
+      queryParams.append("includePastEvents", params.includePastEvents.toString());
 
     // Handle supplierId parameter - support both single string and array of strings
     if (params?.supplierId) {
@@ -1117,6 +1120,7 @@ class ApiService {
       status?: string; // Event status
       search?: string;
       sortBy?: string;
+      includePastEvents?: boolean; // Include past events
     }
   ) {
     const token = localStorage.getItem("token");
@@ -1160,6 +1164,11 @@ class ApiService {
     // Sort parameter
     if (params?.sortBy && params.sortBy.trim() !== "") {
       queryParams.append("sortBy", params.sortBy);
+    }
+
+    // Include past events parameter
+    if (params?.includePastEvents !== undefined) {
+      queryParams.append("includePastEvents", params.includePastEvents.toString());
     }
 
     console.log("🔍 API Call - getEventsForSupplier params:", {
@@ -1564,6 +1573,7 @@ class ApiService {
     sortBy?: string;
     sortOrder?: string;
     status?: string;
+    role?: string;
   }) {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -1575,6 +1585,7 @@ class ApiService {
     if (params?.sortBy) queryParams.append("sortBy", params.sortBy);
     if (params?.sortOrder) queryParams.append("sortOrder", params.sortOrder);
     if (params?.status) queryParams.append("status", params.status);
+    if (params?.role) queryParams.append("role", params.role);
 
     return this.request(`/admin/users?${queryParams}`, {
       method: "GET",
@@ -1649,6 +1660,7 @@ class ApiService {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(userData),
     });
@@ -2105,6 +2117,7 @@ class ApiService {
   language?: string;
   producerDetails?: any;
   supplierDetails?: any;
+  profileImage?: string;
 }) {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -2165,6 +2178,65 @@ class ApiService {
     return this.request(`/events/${eventId}/verify-password`, {
       method: "POST",
       body: JSON.stringify({ password }),
+    });
+  }
+
+  // QR Code scanning methods
+  async verifyQR(qrCode: string): Promise<ApiResponse<any>> {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    return this.request('/attendees/verify-qr', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ qrCode: qrCode.trim() })
+    });
+  }
+
+  async checkInTicket(attendeeId: string, ticketId: string): Promise<ApiResponse<any>> {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    return this.request(`/attendees/${attendeeId}/tickets/${ticketId}/check-in`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async checkInAllTickets(attendeeId: string): Promise<ApiResponse<any>> {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    return this.request(`/attendees/${attendeeId}/check-in-remaining`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getEventStatistics(eventId: string): Promise<ApiResponse<any>> {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    return this.request(`/attendees/event/${eventId}/statistics`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 

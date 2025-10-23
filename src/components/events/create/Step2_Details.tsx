@@ -66,6 +66,7 @@ interface EventData {
   selectedSuppliers: { [service: string]: { [supplierId: string]: string[] } };
   specialRequests: string;
   currentTab: string;
+  eventImage?: File | null;
 }
 
 interface Step2_DetailsProps {
@@ -78,7 +79,8 @@ interface Step2_DetailsProps {
 // Import constants from the constants file
 import { EVENT_TYPES, POPULAR_LOCATIONS } from './constants';
 import { TicketsSection } from './form-components/TicketsSection';
-import { DateTimeFields } from './form-components/DateTimeFields';
+import { DateTimeSelector } from './form-components/DateTimeSelector';
+import ImageUpload from './form-components/ImageUpload';
 
 // Time slots - moved outside component
 const TIME_SLOTS = [
@@ -713,6 +715,13 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
     [handleUpdate]
   );
 
+  const handleImageChange = useCallback(
+    (file: File | null) => {
+      handleUpdate("eventImage", file);
+    },
+    [handleUpdate]
+  );
+
   // Check if form is valid for continue button
   const isFormValid = useMemo(() => {
     return (
@@ -765,8 +774,8 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
             error={errors.name}
           />
 
-          {/* Date & Time */}
-          <DateTimeFields
+          {/* Date & Time Selector */}
+          <DateTimeSelector
             startDate={eventData.startDate}
             endDate={eventData.endDate}
             startTime={eventData.startTime}
@@ -790,6 +799,13 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
             options={EVENT_TYPES}
             required
             error={errors.eventType}
+          />
+
+          {/* Event Image */}
+          <ImageUpload
+            label={t('createEvent.step2.eventImage')}
+            value={eventData.eventImage || null}
+            onChange={handleImageChange}
           />
 
           {/* Location */}
@@ -917,7 +933,7 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
       </div>
 
       {/* Navigation - Fixed at bottom */}
-      <div className="flex-shrink-0 flex justify-between pt-4 border-t bg-background">
+      <div className="flex-shrink-0 flex justify-between pt-4 border-t nav-wrapper-dark">
         <Button variant="outline" onClick={onBack} className="px-8">
           {t('common.back')}
         </Button>

@@ -211,7 +211,7 @@ const CreateEvent: React.FC = () => {
           <Button
             variant="outline"
             onClick={() => navigate('/')}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 button-dark"
           >
             <Home className="w-4 h-4" />
             <span>{t('dashboard.producer.backToHome')}</span>
@@ -229,7 +229,7 @@ const CreateEvent: React.FC = () => {
         </div>
 
         {/* Step Indicator */}
-        <Card className="mb-4 sm:mb-8">
+        <Card className="mb-4 sm:mb-8 steps-dark">
           <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between gap-2">
               {steps.map((step, index) => (

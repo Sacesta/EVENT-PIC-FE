@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, MapPin, Tag, SortAsc, SortDesc, Calendar, Clock, Pencil, User, Trash2, MessageCircle, Ticket, CheckCircle, XCircle, AlertCircle, Pause, DollarSign, Users as UsersIcon, Lock, Gift, Link2, Check } from 'lucide-react';
+import { Search, MapPin, Tag, SortAsc, SortDesc, Calendar, Clock, Pencil, User, Trash2, MessageCircle, Ticket, CheckCircle, XCircle, AlertCircle, Pause, DollarSign, Users as UsersIcon, Lock, Gift, Link2, Check, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -206,7 +206,7 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
     
     // Determine event type badges
     const isPrivate = !(event as any).isPublic;
-    const isFreeEvent = (event.ticketInfo?.isFree === true) || 
+    const isFreeEvent = ((event.ticketInfo as any)?.isFree === true) ||
                        (event.ticketInfo?.priceRange?.min === 0) ||
                        (!event.ticketInfo?.priceRange?.min && !((event as any).tickets?.some((t: any) => t.price > 0)));
     const isPaidEvent = !isFreeEvent;
@@ -282,22 +282,36 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
           
           <div className="flex gap-2 flex-wrap">
             {!isPastEvent && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-10 h-10 p-0" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditEvent(eventId);
-                }}
-                title="Edit Event"
-              >
-                <Pencil className="w-4 h-4" />
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-10 h-10 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditEvent(eventId);
+                  }}
+                  title="Edit Event"
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-10 h-10 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/scan-qr/${eventId}`);
+                  }}
+                  title="Scan QR Codes"
+                >
+                  <QrCode className="w-4 h-4" />
+                </Button>
+              </>
             )}
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className="w-10 h-10 p-0"
               onClick={(e) => {
                 e.stopPropagation();
@@ -307,18 +321,18 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
             >
               <MessageCircle className="w-4 h-4" />
             </Button>
-            <Button 
+            <Button
               variant={isCopied ? "default" : "outline"}
-              size="sm" 
+              size="sm"
               className="w-10 h-10 p-0"
               onClick={(e) => handleCopyLink(eventId, e)}
               title="Copy Event Link"
             >
               {isCopied ? <Check className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
             </Button>
-            <Button 
-              variant="destructive" 
-              size="sm" 
+            <Button
+              variant="destructive"
+              size="sm"
               className="w-10 h-10 p-0"
               onClick={(e) => {
                 e.stopPropagation();

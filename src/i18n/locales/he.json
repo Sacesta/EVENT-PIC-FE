@@ -3,6 +3,7 @@
     "dashboard": "לוח בקרה",
     "browseEvents": "עיון באירועים",
     "createEvent": "יצירת אירוע",
+    "Suppliers ": "הספקים שלנו",
     "signIn": "התחברות / הרשמה",
     "logout": "התנתקות",
     "profile": "פרופיל"
@@ -39,7 +40,6 @@
       "eventNotFound": "האירוע לא נמצא. ייתכן שהוא נמחק.",
       "failedToUpdate": "עדכון האירוע נכשל. אנא נסה שוב."
     },
-
     "step1": {
       "title": "בחר שירותים וספקים",
       "subtitle": "בחר מה אתה צריך לאירוע שלך",
@@ -82,10 +82,9 @@
       "date": "תאריך",
       "time": "שעה",
       "startDate": "תאריך התחלה",
-"endDate": "תאריך סיום",
-"startTime": "שעת התחלה",
-"endTime": "שעת סיום",
-
+      "endDate": "תאריך סיום",
+      "startTime": "שעת התחלה",
+      "endTime": "שעת סיום",
       "pickDate": "בחר תאריך",
       "selectTime": "בחר שעה",
       "eventType": "סוג אירוע",
@@ -111,6 +110,10 @@
       "ticketName": "שם הכרטיס",
       "ticketNamePlaceholder": "לדוגמה, כניסה כללית",
       "quantity": "כמות",
+      "totalAttendees": "מספר משתתפים כולל",
+      "maxAttendees": "מספר משתתפים מקסימלי",
+      "maxAttendeesPlaceholder": "הזן מספר משתתפים מקסימלי",
+      "setMaxAttendees": "הגדר את מספר המשתתפים המקסימלי לאירוע חינם זה",
       "price": "מחיר (₪)",
       "noTickets": "טרם נוספו כרטיסים",
       "description": "תיאור",
@@ -133,58 +136,52 @@
       "supplier": "ספק",
       "suppliers": "ספקים",
       "totalAttendees": "מספר משתתפים כולל",
+      "attendees": "משתתפים",
       "tickets": "כרטיסים",
       "totalRevenue": "הכנסה כוללת"
     },
     "bankDetailsStep": {
-  "title": "פרטי בנק",
-  "provide": "אנא ספק את פרטי הבנק שלך עבור תשלומי האירוע",
-  "current": "מידע הבנק הנוכחי שלך",
-  "editBankDetails": "ערוך פרטי בנק",
-"updateDetails": "עדכן את פרטי הבנק שלך עבור תשלומי האירוע",
-  "info": "מידע בנקאי",
-  "subtitle": "אנא ספק את פרטי הבנק שלך עבור תשלומי האירוע",
-  "form": {
-    "bankName": {
-      "label": "שם הבנק",
-      "placeholder": "הזן את שם הבנק שלך"
+      "title": "פרטי בנק",
+      "provide": "אנא ספק את פרטי הבנק שלך עבור תשלומי האירוע",
+      "current": "מידע הבנק הנוכחי שלך",
+      "editBankDetails": "ערוך פרטי בנק",
+      "updateDetails": "עדכן את פרטי הבנק שלך עבור תשלומי האירוע",
+      "info": "מידע בנקאי",
+      "subtitle": "אנא ספק את פרטי הבנק שלך עבור תשלומי האירוע",
+      "form": {
+        "bankName": {
+          "label": "שם הבנק",
+          "placeholder": "הזן את שם הבנק שלך"
+        },
+        "branch": {
+          "label": "סניף",
+          "placeholder": "הזן את שם או מספר הסניף"
+        },
+        "accountNumber": {
+          "label": "מספר חשבון",
+          "placeholder": "הזן את מספר החשבון שלך"
+        },
+        "accountHolderName": {
+          "label": "שם בעל החשבון",
+          "placeholder": "הזן את שם בעל החשבון"
+        }
+      },
+      "buttons": {
+        "back": "חזרה",
+        "continue": "המשך",
+        "cancel": "בטל",
+        "update": "עדכן פרטי בנק"
+      },
+      "validation": {
+        "requiredFields": "אנא מלא את כל השדות הנדרשים"
+      }
     },
-    "branch": {
-      "label": "סניף",
-      "placeholder": "הזן את שם או מספר הסניף"
-    },
-    "accountNumber": {
-      "label": "מספר חשבון",
-      "placeholder": "הזן את מספר החשבון שלך"
-    },
-    "accountHolderName": {
-      "label": "שם בעל החשבון",
-      "placeholder": "הזן את שם בעל החשבון"
-    }
-  },
-  "buttons": {
-    "back": "חזרה",
-    "continue": "המשך",
-    "cancel": "בטל",
-"update": "עדכן פרטי בנק"
-
-  },
-  "validation": {
-    "requiredFields": "אנא מלא את כל השדות הנדרשים"
-  }
-}
-,
-
     "eventTypes": {
-      "birthday": "מסיבת יום הולדת",
+      "street": "מסיבת רחוב",
       "wedding": "חתונה",
-      "corporate": "אירוע תאגידי",
-      "anniversary": "יום נישואין",
-      "graduation": "סיום לימודים",
-      "babyShower": "מסיבת תינוק",
-      "concert": "קונצרט",
-      "conference": "כנס",
-      "workshop": "סדנה",
+      "party": "מסיבה",
+      "birthday": "מסיבת יום הולדת",
+      "nature": "מסיבת טבע",
       "other": "אחר"
     },
     "locations": {
@@ -196,13 +193,14 @@
       "home": "בית",
       "beach": "חוף",
       "rooftopVenue": "מקום על הגג",
-      "telAvivConventionCenter": "מרכז הכנסים תל אביב",
-      "jerusalemConventionCenter": "מרכז הכנסים הבינלאומי ירושלים",
-      "haifaAuditorium": "אודיטוריום חיפה",
-      "eilatConventionCenter": "מרכז כנסים אילת",
-      "deadSeaConventionCenter": "מרכז כנסים ים המלח",
-      "herzliyaMarina": "מרינה הרצליה",
-      "caesareaAmphitheater": "אמפיתיאטרון קיסריה",
+      "north": "צפון",
+      "south": "דרום",
+      "golan": "גולן",
+      "telAviv": "תל אביב",
+      "jerusalem": "ירושלים",
+      "haifa": "חיפה",
+      "beerSheva": "באר שבע",
+      "gilboa": "גלבוע",
       "parkHayarkon": "פארק הירקון, תל אביב"
     },
     "services": {
@@ -241,7 +239,12 @@
     "noUpcomingEvents": "אין אירועים קרובים",
     "noPastEvents": "אין אירועים שעברו",
     "producer": {
-      "greetings": ["היי {{name}}", "מה קורה {{name}}", "מה נשמע {{name}}", "שלום {{name}}"],
+      "greetings": [
+        "היי {{name}}",
+        "מה קורה {{name}}",
+        "מה נשמע {{name}}",
+        "שלום {{name}}"
+      ],
       "subtitle": "נהל את כל האירועים שלך במקום אחד",
       "createEvent": "צור אירוע",
       "createEventDesc": "התחל לתכנן את האירוע הבא שלך",
@@ -460,8 +463,8 @@
     "status": "סטטוס",
     "getInTouch": "צור קשר",
     "rights": "כל הזכויות שמורות",
-    "email": "hello@pic.com",
-    "phone": "1+ (555) 4567-123",
+    "email": "info@pic-events.co.il",
+    "phone": "+972-55-660-4443",
     "address": "תל אביב, ישראל"
   },
   "auth": {
@@ -842,7 +845,6 @@
     "intermediate": "בינוני",
     "expert": "מומחה"
   },
-  
   "terms": {
     "title": "הסכם מסגרת לשימוש בפלטפורמה",
     "agreement": "אני מסכים לתנאים וההגבלות",
@@ -973,8 +975,7 @@
       "title": "פרטי התקשרות",
       "content": "אם יש לך שאלות לגבי תנאים והגבלות אלה, אנא צור קשר איתנו בכתובת support@pic-platform.com או דרך טופס יצירת הקשר באתר."
     }
-  }
-,
+  },
   "common": {
     "minCharacters": "מינימום {{count}} תווים",
     "charactersCount": "{{current}}/{{min}} תווים",
@@ -1007,7 +1008,6 @@
     "forbidden": "אסור",
     "serverError": "שגיאת שרת",
     "tryAgain": "נסה שוב",
- 
     "settings": "הגדרות",
     "loadingYourEvents": "טוען את האירועים שלך...",
     "manageAttendees": "נהל משתתפים",
@@ -1035,5 +1035,353 @@
     "saveChanges": "שמור שינויים",
     "profileUpdated": "הפרופיל עודכן",
     "profileUpdatedSuccessfully": "הפרופיל שלך עודכן בהצלחה."
+  },
+  "suppliers": {
+    "about": "אודות",
+    "pack": "שירותים וחבילות",
+    "browseSuppliers": "עיין בספקים",
+    "discoverSuppliers": "גלה והתחבר עם ספקי שירות מקצועיים",
+    "searchPlaceholder": "חפש ספקים, שירותים...",
+    "city": "עיר",
+    "sortByRating": "מיין לפי דירוג",
+    "services": {
+      "all": "כל השירותים",
+      "photography": "צילום",
+      "catering": "קייטרינג",
+      "decoration": "עיצוב",
+      "music": "מוזיקה",
+      "venue": "אולם",
+      "transportation": "הסעות",
+      "security": "אבטחה",
+      "florist": "פרחים",
+      "cake": "עוגה",
+      "invitation": "הזמנה",
+      "videography": "וידאו",
+      "makeup": "איפור",
+      "other": "אחר"
+    },
+    "filters": {
+      "minRating": "דירוג מינימלי",
+      "allRatings": "כל הדירוגים",
+      "stars3": "3+ כוכבים",
+      "stars4": "4+ כוכבים",
+      "stars45": "4.5+ כוכבים",
+      "stars5": "5 כוכבים",
+      "show": "הצג",
+      "reset": "איפוס"
+    },
+    "supplierCard": {
+      "memberSince": "חבר מאז",
+      "viewDetails": "צפה בפרטים",
+      "instagram": "אינסטגרם",
+      "website": "אתר אינטרנט",
+      "reviews": "ביקורות"
+    },
+    "loading": {
+      "loadingSuppliers": "טוען ספקים...",
+      "loading": "טוען..."
+    },
+    "emptyState": {
+      "title": "לא נמצאו ספקים התואמים את הקריטריונים שלך",
+      "description": "נסה לשנות את החיפוש או את המסננים"
+    },
+    "pagination": {
+      "showing": "מציג",
+      "to": "עד",
+      "of": "מתוך",
+      "suppliers": "ספקים",
+      "previous": "הקודם",
+      "next": "הבא"
+    },
+    "errors": {
+      "failedToLoad": "נכשל בטעינת הספקים. אנא נסה שוב."
+    }
+  },
+    "commons": {
+      "rating": "דירוג",
+      "services": "שירותים",
+      "contact": "צור קשר",
+      "verified": "מאומת"
+    },
+  "pages": {
+    "about": {
+      "title": "אודותינו",
+      "subtitle": "מחברים מפיקי אירועים עם ספקים איכותיים ליצירת חוויות בלתי נשכחות.",
+      "mission": {
+        "title": "המשימה שלנו",
+        "description": "לפשט את תכנון האירועים על ידי מתן פלטפורמה מקיפה המחברת מפיקים עם הספקים הטובים ביותר, תוך ייעול כל תהליך ניהול האירועים."
+      },
+      "vision": {
+        "title": "החזון שלנו",
+        "description": "להפוך לפלטפורמה המובילה לניהול אירועים ושיתוף פעולה עם ספקים, תוך העצמת אנשי מקצוע ליצירת אירועים יוצאי דופן בקלות וביעילות."
+      },
+      "story": {
+        "title": "הסיפור שלנו",
+        "paragraph1": "הפלטפורמה שלנו נוסדה מתוך חזון לחולל מהפכה בתעשיית תכנון האירועים, נולדה מהאתגרים שמפיקי אירועים מתמודדים איתם במציאת ספקים אמינים ובתיאום עימם.",
+        "paragraph2": "זיהינו את הצורך בפלטפורמה מרכזית שבה מפיקים וספקים יכולים להתחבר, לתקשר ולשתף פעולה בצורה חלקה. הפתרון שלנו מאגד את התכונות הטובות ביותר של ניהול אירועים, גילוי ספקים ותיאום פרויקטים לתוך פלטפורמה אינטואיטיבית אחת.",
+        "paragraph3": "כיום, אנו משרתים אלפי אנשי מקצוע בתחום האירועים, עוזרים להם ליצור חוויות בלתי נשכחות באמצעות תכנון יעיל ושותפויות אמינות."
+      },
+      "values": {
+        "title": "הערכים שלנו",
+        "quality": {
+          "title": "איכות",
+          "description": "אנו מחויבים לחבר את המשתמשים שלנו עם ספקים מאומתים ובעלי איכות גבוהה."
+        },
+        "transparency": {
+          "title": "שקיפות",
+          "description": "תקשורת ברורה ופרקטיקות כנות מנחות את כל מה שאנו עושים."
+        },
+        "innovation": {
+          "title": "חדשנות",
+          "description": "אנו משפרים כל הזמן את הפלטפורמה שלנו עם הטכנולוגיה העדכנית ביותר ומשוב מהמשתמשים."
+        },
+        "community": {
+          "title": "קהילה",
+          "description": "בניית קשרים חזקים בין מפיקים לספקים היא לב ליבה של מה שאנו עושים."
+        }
+      }
+    },
+    "contact": {
+      "title": "צור קשר",
+      "subtitle": "צור קשר עם הצוות שלנו. אנחנו כאן כדי לעזור!",
+      "form": {
+        "title": "שלח לנו הודעה",
+        "description": "מלא את הטופס למטה ונחזור אליך בהקדם האפשרי.",
+        "name": "שם",
+        "namePlaceholder": "השם שלך",
+        "email": "אימייל",
+        "emailPlaceholder": "your.email@example.com",
+        "subject": "נושא",
+        "subjectPlaceholder": "על מה מדובר?",
+        "message": "הודעה",
+        "messagePlaceholder": "ההודעה שלך...",
+        "send": "שלח הודעה",
+        "success": "ההודעה נשלחה בהצלחה! נחזור אליך בקרוב."
+      },
+      "info": {
+        "email": {
+          "title": "אימייל",
+          "address": "info@pic-events.co.il"
+        },
+        "phone": {
+          "title": "טלפון",
+          "number": "+972-55-660-4443",
+          "hours": "ראשון - חמישי, 10:00 - 17:00"
+        },
+        "businessHours": {
+          "title": "שעות פעילות",
+          "weekdays": "ראשון - חמישי",
+          "weekdaysHours": "10:00 - 17:00",
+          "friday": "שישי",
+          "fridayHours": "סגור",
+          "saturday": "שבת",
+          "saturdayHours": "סגור"
+        },
+        "location": {
+          "title": "מיקום",
+          "address": "תל אביב, ישראל"
+        }
+      }
+    },
+    "blog": {
+      "title": "בלוג",
+      "subtitle": "תובנות, טיפים ועדכונים מעולם תכנון האירועים",
+      "searchPlaceholder": "חפש מאמרים...",
+      "readMore": "קרא עוד",
+      "noArticles": "לא נמצאו מאמרים התואמים את החיפוש שלך.",
+      "newsletter": {
+        "title": "הישאר מעודכן",
+        "description": "הירשם לניוזלטר שלנו עבור המאמרים האחרונים וטיפים לתכנון אירועים",
+        "emailPlaceholder": "הזן את האימייל שלך",
+        "subscribe": "הירשם"
+      }
+    },
+    "terms": {
+      "title": "תנאי שירות",
+      "lastUpdated": "עודכן לאחרונה: 15 בינואר 2024"
+    },
+    "privacy": {
+      "title": "מדיניות פרטיות",
+      "lastUpdated": "עודכן לאחרונה: 15 בינואר 2024"
+    },
+    "cookies": {
+      "title": "מדיניות עוגיות",
+      "lastUpdated": "עודכן לאחרונה: 15 בינואר 2024",
+      "preferences": {
+        "title": "העדפות עוגיות",
+        "description": "נהל את העדפות העוגיות שלך. תוכל לשנות הגדרות אלה בכל עת.",
+        "necessary": {
+          "title": "עוגיות הכרחיות",
+          "description": "נדרשות כדי שהאתר יפעל כראוי. לא ניתן להשבית."
+        },
+        "functional": {
+          "title": "עוגיות פונקציונליות",
+          "description": "מאפשרות פונקציונליות משופרת והתאמה אישית."
+        },
+        "analytics": {
+          "title": "עוגיות אנליטיקה",
+          "description": "עוזרות לנו להבין כיצד המבקרים מקיימים אינטראקציה עם האתר שלנו."
+        },
+        "advertising": {
+          "title": "עוגיות פרסום",
+          "description": "משמשות למסירת פרסומות רלוונטיות אליך."
+        },
+        "savePreferences": "שמור העדפות",
+        "acceptAll": "קבל הכל",
+        "rejectAll": "דחה הכל",
+        "saved": "העדפות העוגיות נשמרו בהצלחה"
+      }
+    },
+    "gdpr": {
+      "title": "תאימות GDPR",
+      "subtitle": "זכויות הגנת הנתונים שלך תחת תקנת הגנת המידע הכללית",
+      "rights": {
+        "title": "זכויות הנתונים שלך",
+        "description": "תחת GDPR, יש לך זכויות מקיפות על הנתונים האישיים שלך",
+        "access": {
+          "title": "זכות גישה",
+          "description": "בקש עותק מהנתונים האישיים שלך שאנו מחזיקים"
+        },
+        "rectification": {
+          "title": "זכות תיקון",
+          "description": "תקן נתונים לא מדויקים או לא שלמים"
+        },
+        "erasure": {
+          "title": "זכות מחיקה",
+          "description": "בקש מחיקת הנתונים האישיים שלך"
+        },
+        "portability": {
+          "title": "זכות ניידות",
+          "description": "קבל את הנתונים שלך בפורמט נייד"
+        },
+        "object": {
+          "title": "זכות התנגדות",
+          "description": "התנגד לעיבוד מסוים של הנתונים שלך"
+        },
+        "restrict": {
+          "title": "זכות הגבלה",
+          "description": "הגבל כיצד אנו משתמשים בנתונים שלך"
+        }
+      },
+      "actions": {
+        "downloadData": "הורד את הנתונים שלי",
+        "managePreferences": "נהל העדפות"
+      }
+    },
+    "help": {
+      "title": "מרכז עזרה",
+      "subtitle": "מצא תשובות, מדריכים ותמיכה שיעזרו לך להצליח",
+      "searchPlaceholder": "חפש מאמרי עזרה, מדריכים והדרכות...",
+      "tabs": {
+        "guides": "מדריכים",
+        "videos": "סרטונים",
+        "topics": "נושאים",
+        "contact": "צור קשר"
+      },
+      "contact": {
+        "liveChat": {
+          "title": "תמיכה בצ'אט חי",
+          "description": "קבל עזרה מיידית מצוות התמיכה שלנו בשעות העבודה.",
+          "hours": "ראשון - חמישי: 9:00 - 18:00",
+          "start": "התחל צ'אט חי"
+        },
+        "email": {
+          "title": "תמיכה באימייל",
+          "description": "שלח לנו אימייל ונחזור אליך תוך 24 שעות.",
+          "address": "support@eventplatform.com",
+          "send": "שלח אימייל"
+        },
+        "needHelp": "עדיין צריך עזרה?",
+        "additionalResources": "בדוק את המשאבים הנוספים האלה"
+      }
+    },
+    "faq": {
+      "title": "שאלות נפוצות",
+      "subtitle": "מצא תשובות מהירות לשאלות נפוצות על הפלטפורמה שלנו",
+      "searchPlaceholder": "חפש שאלות...",
+      "noResults": "לא נמצאו שאלות התואמות את החיפוש שלך.",
+      "categories": {
+        "all": "כל השאלות",
+        "account": "חשבון",
+        "events": "אירועים",
+        "suppliers": "ספקים",
+        "communication": "תקשורת",
+        "billing": "חיוב",
+        "security": "אבטחה",
+        "support": "תמיכה"
+      },
+      "stillHaveQuestions": "עדיין יש שאלות?",
+      "cantFindAnswer": "לא מוצא את התשובה שאתה מחפש? צוות התמיכה שלנו כאן כדי לעזור.",
+      "contactSupport": "צור קשר עם תמיכה",
+      "visitHelpCenter": "בקר במרכז העזרה"
+    },
+    "community": {
+      "title": "קהילה",
+      "subtitle": "התחבר עם אנשי מקצוע בתחום האירועים, שתף ידע וצמח ביחד",
+      "searchPlaceholder": "חפש דיונים, חברים ומשאבים...",
+      "tabs": {
+        "discussions": "דיונים",
+        "trending": "פופולרי",
+        "events": "אירועים"
+      },
+      "newDiscussion": "דיון חדש",
+      "topContributors": {
+        "title": "תורמים מובילים",
+        "description": "חברי הקהילה הפעילים ביותר החודש"
+      },
+      "guidelines": {
+        "title": "כללי הקהילה",
+        "readFull": "קרא כללים מלאים"
+      },
+      "stats": {
+        "title": "סטטיסטיקות קהילה",
+        "totalMembers": "סה\"כ חברים",
+        "discussions": "דיונים",
+        "activeToday": "פעילים היום",
+        "newThisWeek": "חדשים השבוע"
+      },
+      "loadMore": "טען עוד דיונים"
+    },
+    "status": {
+      "title": "סטטוס המערכת",
+      "lastUpdated": "עודכן לאחרונה:",
+      "refresh": "רענן",
+      "allOperational": {
+        "title": "כל המערכות פעילות",
+        "description": "הכל עובד בצורה חלקה"
+      },
+      "someAffected": {
+        "title": "מערכות מושפעות",
+        "description": "אנו עובדים על פתרון הבעיות"
+      },
+      "activeIncidents": "תקלות פעילות",
+      "serviceStatus": {
+        "title": "סטטוס שירותים",
+        "description": "מצב נוכחי של כל שירותי הפלטפורמה",
+        "checkedAgo": "נבדק לפני {{time}}",
+        "uptime": "{{percent}} זמינות"
+      },
+      "scheduledMaintenance": {
+        "title": "תחזוקה מתוכננת",
+        "description": "חלונות תחזוקה מתוכננים הקרובים",
+        "impact": "השפעה:",
+        "scheduled": "מתוכנן"
+      },
+      "uptimeHistory": {
+        "title": "היסטוריית זמינות (90 ימים אחרונים)",
+        "overall": "זמינות כוללת",
+        "operational": "פעיל",
+        "incident": "תקלה"
+      },
+      "subscribe": "הירשם לעדכוני סטטוס דרך",
+      "rss": "RSS",
+      "email": "אימייל",
+      "statuses": {
+        "operational": "פעיל",
+        "degraded": "מופחת",
+        "outage": "הפסקה",
+        "maintenance": "תחזוקה"
+      }
+    }
   }
 }

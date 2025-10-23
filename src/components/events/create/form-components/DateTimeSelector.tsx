@@ -167,177 +167,223 @@ export const DateTimeSelector = React.memo<DateTimeSelectorProps>(({
   }, [selectedStartDate, today]);
 
   return (
-    <div className="space-y-4">
-      {/* Start Date & Time */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Start Date Picker */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">
-            {t('createEvent.step2.startDate')} <span className="text-red-500">*</span>
-          </Label>
-          <Popover open={isStartCalendarOpen} onOpenChange={handleStartCalendarOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !startDate && "text-muted-foreground",
-                  startDateError ? "border-red-500" : ""
+    <div className="space-y-6">
+      {/* Event Duration Section */}
+      <div className="space-y-4">
+        {/* Start Date & Time */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Start Date Picker */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              {t('createEvent.step2.startDate')} <span className="text-red-500">*</span>
+            </Label>
+            <Popover open={isStartCalendarOpen} onOpenChange={handleStartCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal h-12",
+                    !startDate && "text-muted-foreground",
+                    startDateError ? "border-red-500" : ""
+                  )}
+                >
+                  <CalendarIcon className="mr-3 h-5 w-5 text-primary" />
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm">
+                      {startDate && selectedStartDate ? format(selectedStartDate, "PPP") : t('createEvent.step2.pickStartDate')}
+                    </span>
+                    {startDate && (
+                      <span className="text-xs text-muted-foreground">
+                        {format(selectedStartDate!, "EEEE")}
+                      </span>
+                    )}
+                  </div>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedStartDate}
+                  onSelect={handleStartCalendarSelect}
+                  disabled={disabledStartDateCheck}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            {startDateError && (
+              <p className="text-sm text-red-500 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {startDateError}
+              </p>
+            )}
+          </div>
+
+          {/* Start Time Picker */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
+              {t('createEvent.step2.startTime')} {startDate && <span className="text-red-500">*</span>}
+            </Label>
+            <Select 
+              value={startTime} 
+              onValueChange={onStartTimeChange}
+              disabled={!startDate}
+            >
+              <SelectTrigger className={cn(
+                "h-12",
+                startTimeError ? "border-red-500" : "",
+                !startDate ? "opacity-50" : ""
+              )}>
+                <Clock className="mr-3 h-5 w-5 text-primary" />
+                <SelectValue placeholder={startDate ? t('createEvent.step2.selectStartTime') : t('createEvent.step2.pickStartDate')} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableStartTimeSlots.length > 0 ? (
+                  availableStartTimeSlots.map((timeSlot) => (
+                    <SelectItem key={timeSlot} value={timeSlot} className="py-3">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium">{timeSlot}</span>
+                      </div>
+                    </SelectItem>
+                  ))
+                ) : (
+                  <div className="p-4 text-sm text-muted-foreground text-center">
+                    <Clock className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                    {t('createEvent.step2.noTimeSlotsAvailable')}
+                  </div>
                 )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {startDate && selectedStartDate ? format(selectedStartDate, "PPP") : t('createEvent.step2.pickStartDate')}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={selectedStartDate}
-                onSelect={handleStartCalendarSelect}
-                disabled={disabledStartDateCheck}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          {startDateError && (
-            <p className="text-sm text-red-500 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" />
-              {startDateError}
-            </p>
-          )}
+              </SelectContent>
+            </Select>
+            {startTimeError && (
+              <p className="text-sm text-red-500 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {startTimeError}
+              </p>
+            )}
+            {isStartToday && availableStartTimeSlots.length > 0 && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {t('createEvent.step2.onlyFutureTimesAvailable')}
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* Start Time Picker */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">
-            {t('createEvent.step2.startTime')} {startDate && <span className="text-red-500">*</span>}
-          </Label>
-          <Select 
-            value={startTime} 
-            onValueChange={onStartTimeChange}
-            disabled={!startDate}
-          >
-            <SelectTrigger className={cn(
-              startTimeError ? "border-red-500" : "",
-              !startDate ? "opacity-50" : ""
-            )}>
-              <Clock className="mr-2 h-4 w-4" />
-              <SelectValue placeholder={startDate ? t('createEvent.step2.selectStartTime') : t('createEvent.step2.pickStartDate')} />
-            </SelectTrigger>
-            <SelectContent>
-              {availableStartTimeSlots.length > 0 ? (
-                availableStartTimeSlots.map((timeSlot) => (
-                  <SelectItem key={timeSlot} value={timeSlot}>
-                    {timeSlot}
-                  </SelectItem>
-                ))
-              ) : (
-                <div className="p-2 text-sm text-muted-foreground text-center">
-                  {t('createEvent.step2.noTimeSlotsAvailable')}
-                </div>
-              )}
-            </SelectContent>
-          </Select>
-          {startTimeError && (
-            <p className="text-sm text-red-500 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" />
-              {startTimeError}
-            </p>
-          )}
-          {isStartToday && availableStartTimeSlots.length > 0 && (
-            <p className="text-xs text-muted-foreground">
-              {t('createEvent.step2.onlyFutureTimesAvailable')}
-            </p>
-          )}
+        {/* Visual Separator */}
+        <div className="flex items-center justify-center py-2">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="w-8 h-px bg-border"></div>
+            <span className="text-xs font-medium px-2">TO</span>
+            <div className="w-8 h-px bg-border"></div>
+          </div>
         </div>
-      </div>
 
-      {/* End Date & Time */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* End Date Picker */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">
-            {t('createEvent.step2.endDate')} <span className="text-red-500">*</span>
-          </Label>
-          <Popover open={isEndCalendarOpen} onOpenChange={handleEndCalendarOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                disabled={!startDate}
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !endDate && "text-muted-foreground",
-                  endDateError ? "border-red-500" : "",
-                  !startDate ? "opacity-50" : ""
+        {/* End Date & Time */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* End Date Picker */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-red-500"></div>
+              {t('createEvent.step2.endDate')} <span className="text-red-500">*</span>
+            </Label>
+            <Popover open={isEndCalendarOpen} onOpenChange={handleEndCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={!startDate}
+                  className={cn(
+                    "w-full justify-start text-left font-normal h-12",
+                    !endDate && "text-muted-foreground",
+                    endDateError ? "border-red-500" : "",
+                    !startDate ? "opacity-50" : ""
+                  )}
+                >
+                  <CalendarIcon className="mr-3 h-5 w-5 text-primary" />
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm">
+                      {endDate && selectedEndDate ? format(selectedEndDate, "PPP") : t('createEvent.step2.pickEndDate')}
+                    </span>
+                    {endDate && (
+                      <span className="text-xs text-muted-foreground">
+                        {format(selectedEndDate!, "EEEE")}
+                      </span>
+                    )}
+                  </div>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedEndDate}
+                  onSelect={handleEndCalendarSelect}
+                  disabled={disabledEndDateCheck}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            {endDateError && (
+              <p className="text-sm text-red-500 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {endDateError}
+              </p>
+            )}
+          </div>
+
+          {/* End Time Picker */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
+              {t('createEvent.step2.endTime')} {endDate && <span className="text-red-500">*</span>}
+            </Label>
+            <Select 
+              value={endTime} 
+              onValueChange={onEndTimeChange}
+              disabled={!endDate}
+            >
+              <SelectTrigger className={cn(
+                "h-12",
+                endTimeError ? "border-red-500" : "",
+                !endDate ? "opacity-50" : ""
+              )}>
+                <Clock className="mr-3 h-5 w-5 text-primary" />
+                <SelectValue placeholder={endDate ? t('createEvent.step2.selectEndTime') : t('createEvent.step2.pickEndDate')} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableEndTimeSlots.length > 0 ? (
+                  availableEndTimeSlots.map((timeSlot) => (
+                    <SelectItem key={timeSlot} value={timeSlot} className="py-3">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium">{timeSlot}</span>
+                      </div>
+                    </SelectItem>
+                  ))
+                ) : (
+                  <div className="p-4 text-sm text-muted-foreground text-center">
+                    <Clock className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                    {isSameDay 
+                      ? t('createEvent.step2.endTimeMustBeAfterStart')
+                      : t('createEvent.step2.noTimeSlotsAvailable')
+                    }
+                  </div>
                 )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {endDate && selectedEndDate ? format(selectedEndDate, "PPP") : t('createEvent.step2.pickEndDate')}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={selectedEndDate}
-                onSelect={handleEndCalendarSelect}
-                disabled={disabledEndDateCheck}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          {endDateError && (
-            <p className="text-sm text-red-500 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" />
-              {endDateError}
-            </p>
-          )}
-        </div>
-
-        {/* End Time Picker */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">
-            {t('createEvent.step2.endTime')} {endDate && <span className="text-red-500">*</span>}
-          </Label>
-          <Select 
-            value={endTime} 
-            onValueChange={onEndTimeChange}
-            disabled={!endDate}
-          >
-            <SelectTrigger className={cn(
-              endTimeError ? "border-red-500" : "",
-              !endDate ? "opacity-50" : ""
-            )}>
-              <Clock className="mr-2 h-4 w-4" />
-              <SelectValue placeholder={endDate ? t('createEvent.step2.selectEndTime') : t('createEvent.step2.pickEndDate')} />
-            </SelectTrigger>
-            <SelectContent>
-              {availableEndTimeSlots.length > 0 ? (
-                availableEndTimeSlots.map((timeSlot) => (
-                  <SelectItem key={timeSlot} value={timeSlot}>
-                    {timeSlot}
-                  </SelectItem>
-                ))
-              ) : (
-                <div className="p-2 text-sm text-muted-foreground text-center">
-                  {isSameDay 
-                    ? t('createEvent.step2.endTimeMustBeAfterStart')
-                    : t('createEvent.step2.noTimeSlotsAvailable')
-                  }
-                </div>
-              )}
-            </SelectContent>
-          </Select>
-          {endTimeError && (
-            <p className="text-sm text-red-500 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" />
-              {endTimeError}
-            </p>
-          )}
-          {isSameDay && availableEndTimeSlots.length > 0 && (
-            <p className="text-xs text-muted-foreground">
-              {t('createEvent.step2.endTimeMustBeAfterStartTime')}
-            </p>
-          )}
+              </SelectContent>
+            </Select>
+            {endTimeError && (
+              <p className="text-sm text-red-500 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {endTimeError}
+              </p>
+            )}
+            {isSameDay && availableEndTimeSlots.length > 0 && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {t('createEvent.step2.endTimeMustBeAfterStartTime')}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

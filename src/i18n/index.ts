@@ -32,23 +32,29 @@ i18n
   .then(() => {
     // Set document direction based on detected language
     const currentLang = i18n.language;
+    console.log('🌐 i18n initialized with language:', currentLang);
     if (currentLang === 'he') {
       document.documentElement.dir = 'rtl';
       document.documentElement.lang = 'he';
+      console.log('✅ Set direction to RTL for Hebrew');
     } else {
       document.documentElement.dir = 'ltr';
       document.documentElement.lang = 'en';
+      console.log('✅ Set direction to LTR for English');
     }
   });
 
 // Listen for language changes and update direction
 i18n.on('languageChanged', (lng) => {
+  console.log('🔄 Language changed to:', lng);
   if (lng === 'he') {
     document.documentElement.dir = 'rtl';
     document.documentElement.lang = 'he';
+    console.log('✅ Direction changed to RTL for Hebrew');
   } else {
     document.documentElement.dir = 'ltr';
     document.documentElement.lang = 'en';
+    console.log('✅ Direction changed to LTR for English');
   }
 });
 

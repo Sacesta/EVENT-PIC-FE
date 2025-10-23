@@ -197,20 +197,20 @@ export default function BrowseEvents() {
     const minPrice = event.ticketInfo?.priceRange?.min || 0;
     const maxPrice = event.ticketInfo?.priceRange?.max || 0;
     const hasAvailableTickets = availableTickets > soldTickets;
-    
+
     // Format date and time
     const eventDate = parseISO(event.startDate);
     const eventEndDate = event.endDate ? parseISO(event.endDate) : null;
-    
+
     return (
       <Card className="group hover:shadow-lg transition-all duration-300 hover:bg-muted/20">
-        <CardContent className="p-5">
-          <div className="flex gap-4">
+        <CardContent className="p-3 sm:p-4 md:p-5">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             {event.image && (
-              <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
-                <img 
-                  src={event.image} 
-                  alt={autoTranslate(event.name, i18n.language)} 
+              <div className="w-full sm:w-20 md:w-24 h-40 sm:h-20 md:h-24 rounded-lg overflow-hidden flex-shrink-0">
+                <img
+                  src={event.image}
+                  alt={autoTranslate(event.name, i18n.language)}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = '/placeholder.svg';
@@ -218,88 +218,90 @@ export default function BrowseEvents() {
                 />
               </div>
             )}
-            
+
             <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold group-hover:text-primary transition-all duration-300 text-foreground truncate">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <h3 className="text-sm sm:text-base font-semibold group-hover:text-primary transition-all duration-300 text-foreground truncate">
                     {autoTranslate(event.name, i18n.language)}
                   </h3>
                   {event.featured && (
-                    <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                    <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500 fill-current flex-shrink-0" />
                   )}
                 </div>
-                <div className="flex flex-wrap gap-1 ml-2">
-                  <Badge variant="secondary" className="text-xs">
+                <div className="flex flex-wrap gap-1 sm:ml-2">
+                  <Badge variant="secondary" className="text-[10px] sm:text-xs">
                     {autoTranslate(event.category, i18n.language)}
                   </Badge>
                   {event.tags && event.tags.slice(0, 1).map((tag) => (
-                    <Badge key={tag} variant="outline" className="text-xs">
+                    <Badge key={tag} variant="outline" className="text-[10px] sm:text-xs">
                       {autoTranslate(tag, i18n.language)}
                     </Badge>
                   ))}
                   {event.tags && event.tags.length > 1 && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-[10px] sm:text-xs">
                       +{event.tags.length - 1}
                     </Badge>
                   )}
                 </div>
               </div>
-              
-              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+
+
+              <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">
                 {autoTranslate(event.description || t('events.noDescription', 'No description available'), i18n.language)}
               </p>
-              
+
               <div className="space-y-1 mb-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="w-4 h-4 text-primary" />
-                  <span>
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
+                  <span className="truncate">
                     {format(eventDate, 'PPP')}
-                    {eventEndDate && format(eventDate, 'yyyy-MM-dd') !== format(eventEndDate, 'yyyy-MM-dd') && 
+                    {eventEndDate && format(eventDate, 'yyyy-MM-dd') !== format(eventEndDate, 'yyyy-MM-dd') &&
                       ` - ${format(eventEndDate, 'PPP')}`
                     }
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="w-4 h-4 text-primary" />
-                  <span>{autoTranslate(event.location?.address || event.location?.city || t('events.locationTBD', 'Location TBD'), i18n.language)}</span>
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                  <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
+                  <span className="truncate">{autoTranslate(event.location?.address || event.location?.city || t('events.locationTBD', 'Location TBD'), i18n.language)}</span>
                 </div>
                 {event.ticketInfo && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Users className="w-4 h-4 text-primary" />
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                    <Users className="w-3 h-3 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
                     <span>{availableTickets - soldTickets} {t('events.ticketsAvailable', 'tickets available')}</span>
                   </div>
                 )}
               </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="text-sm">
+
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                <div className="text-xs sm:text-sm min-w-0">
                   <span className="text-muted-foreground">{t('events.by', 'by')} </span>
-                  <span className="font-medium">
+                  <span className="font-medium truncate block sm:inline">
                     {autoTranslate(event.producerId?.name || event.producerId?.companyName || t('events.eventOrganizer', 'Event Organizer'), i18n.language)}
                   </span>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
                   {event.ticketInfo && (
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-primary flex items-center gap-1">
-                        <DollarSign className="w-4 h-4" />
-                        {minPrice === 0 ? t('events.free', 'Free') : 
-                         minPrice === maxPrice ? `${minPrice}` : 
+                    <div className="text-left sm:text-right">
+                      <div className="text-base sm:text-lg font-bold text-primary flex items-center gap-1">
+                        <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
+                        {minPrice === 0 ? t('events.free', 'Free') :
+                         minPrice === maxPrice ? `${minPrice}` :
                          `${minPrice}-${maxPrice}`}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">
                         {availableTickets - soldTickets} {t('events.left', 'left')}
                       </div>
                     </div>
                   )}
-                  <Button 
+                  <Button
                     size="sm"
                     onClick={() => handleJoinEvent(event._id)}
-                    className="ml-2"
+                    className="text-xs sm:text-sm whitespace-nowrap"
                     variant={hasAvailableTickets ? "default" : "outline"}
                   >
-                    {t('events.viewDetails', 'View Details')}
+                    <span className="hidden sm:inline">{t('events.viewDetails', 'View Details')}</span>
+                    <span className="sm:hidden">View</span>
                   </Button>
                 </div>
               </div>
@@ -320,20 +322,21 @@ export default function BrowseEvents() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="rounded-2xl p-8 glass-card">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">{t('events.browseEvents', 'Browse Events')}</h1>
-            <p className="text-muted-foreground">{t('events.discoverEvents', 'Discover and join exciting events happening around you')}</p>
+      <div className="rounded-2xl p-4 sm:p-6 md:p-8 glass-card">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="w-full sm:w-auto">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1 sm:mb-2">{t('events.browseEvents', 'Browse Events')}</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">{t('events.discoverEvents', 'Discover and join exciting events happening around you')}</p>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full sm:w-auto"
           >
             {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
-            {t('dashboard.sortByDate', 'Sort by Date')}
+            <span className="hidden sm:inline">{t('dashboard.sortByDate', 'Sort by Date')}</span>
+            <span className="sm:hidden">Sort</span>
           </Button>
         </div>
 
@@ -346,21 +349,21 @@ export default function BrowseEvents() {
         )}
 
         {/* Search and Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="relative md:col-span-2">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder={t('events.searchPlaceholder', 'Search events, organizers, locations...')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 text-sm sm:text-base"
             />
           </div>
-          
+
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="text-sm sm:text-base">
               <div className="flex items-center gap-2">
-                <Tag className="w-4 h-4" />
+                <Tag className="w-4 h-4 flex-shrink-0" />
                 <SelectValue placeholder="All Categories" />
               </div>
             </SelectTrigger>
@@ -376,7 +379,7 @@ export default function BrowseEvents() {
         </div>
 
         {/* Additional Filters Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="flex items-center gap-2">
             <Input
               placeholder={t('events.minPrice', 'Min Price')}
@@ -384,43 +387,45 @@ export default function BrowseEvents() {
               onChange={(e) => setMinPrice(e.target.value)}
               type="number"
               min="0"
+              className="text-sm sm:text-base"
             />
-            <span className="text-muted-foreground">-</span>
+            <span className="text-muted-foreground text-sm">-</span>
             <Input
               placeholder={t('events.maxPrice', 'Max Price')}
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
               type="number"
               min="0"
+              className="text-sm sm:text-base"
             />
           </div>
-          
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 text-sm">
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+            <label className="flex items-center gap-2 text-xs sm:text-sm">
               <input
                 type="checkbox"
                 checked={featuredOnly}
                 onChange={(e) => setFeaturedOnly(e.target.checked)}
                 className="rounded"
               />
-              {t('events.featuredOnly', 'Featured Only')}
+              <span className="whitespace-nowrap">{t('events.featuredOnly', 'Featured Only')}</span>
             </label>
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-2 text-xs sm:text-sm">
               <input
                 type="checkbox"
                 checked={hasAvailableTickets}
                 onChange={(e) => setHasAvailableTickets(e.target.checked)}
                 className="rounded"
               />
-              {t('events.availableTickets', 'Available Tickets')}
+              <span className="whitespace-nowrap">{t('events.availableTickets', 'Available Tickets')}</span>
             </label>
           </div>
 
           {/* Enhanced Items per page selector */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground whitespace-nowrap">{t('dashboard.show', 'Show')}:</span>
+            <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">{t('dashboard.show', 'Show')}:</span>
             <Select value={limit.toString()} onValueChange={handleLimitChange}>
-              <SelectTrigger className="w-20">
+              <SelectTrigger className="w-16 sm:w-20 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -431,7 +436,7 @@ export default function BrowseEvents() {
                 <SelectItem value="100">100</SelectItem>
               </SelectContent>
             </Select>
-            <span className="text-sm text-muted-foreground">{t('dashboard.perPage', 'per page')}</span>
+            <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">{t('dashboard.perPage', 'per page')}</span>
           </div>
 
           {/* Quick Reset Filters Button */}
@@ -448,7 +453,7 @@ export default function BrowseEvents() {
                 setHasAvailableTickets(false);
                 setCurrentPage(1);
               }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <RotateCcw className="w-4 h-4" />
               {t('events.reset', 'Reset')}
@@ -479,8 +484,8 @@ export default function BrowseEvents() {
 
                 {/* Simple Pagination */}
                 {pagination.totalPages > 1 && (
-                  <div className="mt-8 flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
+                  <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+                    <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                       {t('dashboard.showing', 'Showing')} {((currentPage - 1) * limit) + 1} {t('dashboard.to', 'to')} {Math.min(currentPage * limit, pagination.totalEvents)} {t('dashboard.of', 'of')} {pagination.totalEvents} {t('dashboard.events', 'events')}
                     </div>
                     <div className="flex items-center gap-2">
@@ -489,7 +494,7 @@ export default function BrowseEvents() {
                         size="sm"
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={!pagination.hasPrevPage}
-                        className="text-muted-foreground"
+                        className="text-xs sm:text-sm text-muted-foreground"
                       >
                         {t('common.back', 'Previous')}
                       </Button>
@@ -498,6 +503,7 @@ export default function BrowseEvents() {
                         size="sm"
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={!pagination.hasNextPage}
+                        className="text-xs sm:text-sm"
                       >
                         {t('common.next', 'Next')}
                       </Button>

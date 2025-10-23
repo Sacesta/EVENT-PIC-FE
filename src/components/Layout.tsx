@@ -35,6 +35,7 @@ import ForgotPasswordModal from "@/components/ForgotPasswordModal";
 import Footer from "@/components/Footer";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { AuthProvider } from "@/hooks/use-auth";
+import { getImageUrl } from '@/utils/imageUtils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -247,7 +248,7 @@ const handleUpdateUser = async (updatedUser: User) => {
         {!hideNavbar && (
           <>
             <header className="fixed top-0 left-1/2 -translate-x-1/2 w-[95%] max-w-6xl z-50">
-              <nav className="flex items-center justify-between p-3 rounded-2xl border shadow-sm bg-background border-border">
+              <nav className="flex items-center justify-between p-3 rounded-2xl border shadow-sm header-dark">
                 <div className="flex items-center gap-6">
                   <Link to="/" className="flex items-center gap-2">
                     <img
@@ -308,7 +309,7 @@ const handleUpdateUser = async (updatedUser: User) => {
                           <button className="flex items-center gap-2 p-2 rounded-lg transition-colors hover:bg-muted">
                             <Avatar className="w-8 h-8">
                               <AvatarImage
-                                src={user.profileImage}
+                                src={getImageUrl(user.profileImage)}
                                 alt={user.name}
                               />
                               <AvatarFallback>
@@ -360,7 +361,7 @@ const handleUpdateUser = async (updatedUser: User) => {
                       </DropdownMenu>
                     ) : (
                       <Link to="/signin">
-                        <button className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-all duration-200">
+                        <button className="px-4 py-2 rounded-lg text-sm font-bold text-white hover:opacity-90 transition-all duration-200" style={{ background: 'linear-gradient(to right, hsl(225 96% 19%), hsl(203 100% 59%))' }}>
                           {t("nav.signIn")}
                         </button>
                       </Link>
@@ -438,7 +439,7 @@ const handleUpdateUser = async (updatedUser: User) => {
                           <div className="flex items-center gap-3 p-4 rounded-xl bg-muted">
                             <Avatar className="w-10 h-10">
                               <AvatarImage
-                                src={user.profileImage}
+                                src={getImageUrl(user.profileImage)}
                                 alt={user.name}
                               />
                               <AvatarFallback>

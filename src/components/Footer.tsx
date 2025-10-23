@@ -45,8 +45,8 @@ const Footer = () => {
   ];
 
   const contactInfo = [
-    { icon: Mail, text: t('footer.email'), href: 'mailto:hello@pic.com' },
-    { icon: Phone, text: t('footer.phone'), href: 'tel:+15551234567' },
+    { icon: Mail, text: t('footer.email'), href: 'mailto:info@pic-events.co.il' },
+    { icon: Phone, text: t('footer.phone'), href: 'tel:+972556604443' },
     { icon: MapPin, text: t('footer.address'), href: '#' },
   ];
 

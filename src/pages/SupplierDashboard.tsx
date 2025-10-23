@@ -60,6 +60,9 @@ export default function SupplierDashboard() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Check if current language is RTL (Hebrew)
+  const isRTL = i18n.language === 'he';
   const [services, setServices] = useState<Service[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -129,7 +132,8 @@ const togglePackage = (eventId: string, supplierIndex: number) => {
       const filters: any = {
         page: eventFilters.page,
         limit: eventFilters.limit,
-        sortBy: 'startDate' // Default sort by start date
+        sortBy: 'startDate', // Default sort by start date
+        includePastEvents: true // Suppliers should see all their events including past ones
       };
 
       // Only add filters if they have actual values (not empty or "all")
@@ -473,99 +477,99 @@ const togglePackage = (eventId: string, supplierIndex: number) => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gradient-primary mb-2">
+    <div className={`container mx-auto px-2 sm:px-4 py-4 sm:py-8 ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gradient-primary mb-2">
           {t('dashboard.supplier.title', 'Supplier Dashboard')}
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground">
           {t('dashboard.supplier.subtitle', 'Manage your services and track orders')}
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            {t('dashboard.overview', 'Overview')}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className={`space-y-4 sm:space-y-6 ${isRTL ? 'text-right' : 'text-left'}`}>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto gap-1">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm py-2 px-1 sm:px-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+            <BarChart3 className="h-4 w-4 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">{t('dashboard.overview', 'Overview')}</span>
           </TabsTrigger>
-          <TabsTrigger value="services" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            {t('dashboard.services', 'Services')}
+          <TabsTrigger value="services" className="text-xs sm:text-sm py-2 px-1 sm:px-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+            <Package className="h-4 w-4 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">{t('dashboard.services', 'Services')}</span>
           </TabsTrigger>
-          <TabsTrigger value="orders" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            {t('dashboard.orders', 'Orders')}
+          <TabsTrigger value="orders" className="text-xs sm:text-sm py-2 px-1 sm:px-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+            <Calendar className="h-4 w-4 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">{t('dashboard.orders', 'Orders')}</span>
           </TabsTrigger>
-          <TabsTrigger value="events" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            {t('dashboard.events', 'Events')}
+          <TabsTrigger value="events" className="text-xs sm:text-sm py-2 px-1 sm:px-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+            <Users className="h-4 w-4 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">{t('dashboard.events', 'Events')}</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent value="overview" className={`space-y-4 sm:space-y-6 ${isRTL ? 'text-right' : 'text-left'}`}>
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 ${isRTL ? 'text-right' : 'text-left'}`}>
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+                <CardTitle className="text-xs sm:text-sm font-medium">
                   {t('dashboard.totalServices', 'Total Services')}
                 </CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
+                <Package className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.totalServices}</div>
-                <p className="text-xs text-muted-foreground">
+              <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+                <div className="text-xl sm:text-2xl font-bold">{stats.totalServices}</div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   {stats.activeServices} {t('dashboard.active', 'active')}
                 </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+                <CardTitle className="text-xs sm:text-sm font-medium">
                   {t('dashboard.totalOrders', 'Total Orders')}
                 </CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.totalOrders}</div>
-                <p className="text-xs text-muted-foreground">
+              <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+                <div className="text-xl sm:text-2xl font-bold">{stats.totalOrders}</div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   {t('dashboard.allTime', 'All time')}
                 </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+                <CardTitle className="text-xs sm:text-sm font-medium">
                   {t('dashboard.pendingOrders', 'Pending Orders')}
                 </CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
+              <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+                <div className="text-xl sm:text-2xl font-bold">
                   {stats.pendingOrders}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   {t('dashboard.awaitingConfirmation', 'Awaiting confirmation')}
                 </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+                <CardTitle className="text-xs sm:text-sm font-medium">
                   {t('dashboard.totalRevenue', 'Total Revenue')}
                 </CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
+              <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+                <div className="text-xl sm:text-2xl font-bold">
                   ${stats.totalRevenue.toFixed(2)}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   {t('dashboard.allTime', 'All time')}
                 </p>
               </CardContent>
@@ -573,30 +577,30 @@ const togglePackage = (eventId: string, supplierIndex: number) => {
           </div>
 
           {/* Recent Activity */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 ${isRTL ? 'text-right' : 'text-left'}`}>
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className={`flex items-center gap-2 text-base sm:text-lg ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                   {t('dashboard.recentOrders', 'Recent Orders')}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="p-4 sm:p-6 pt-0">
+                <div className="space-y-3 sm:space-y-4">
                   {orders.slice(0, 5).map((order) => (
-                    <div key={order._id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{order.eventName}</h4>
-                        <p className="text-sm text-muted-foreground">{order.serviceName}</p>
-                        <p className="text-xs text-muted-foreground">
+                    <div key={order._id} className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 p-2 sm:p-3 border rounded-lg ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+                      <div className={`flex-1 min-w-0 ${isRTL ? 'text-right' : 'text-left'}`}>
+                        <h4 className="text-sm sm:text-base font-medium truncate">{order.eventName}</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{order.serviceName}</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">
                           {new Date(order.createdAt).toLocaleDateString()}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <Badge className={getStatusColor(order.status)}>
+                      <div className={`${isRTL ? 'self-start sm:self-auto text-right' : 'text-right'} flex-shrink-0`}>
+                        <Badge className={`text-[10px] sm:text-xs ${getStatusColor(order.status)}`}>
                           {autoTranslate(order.status, i18n.language)}
                         </Badge>
-                        <p className="text-sm font-medium mt-1">${order.totalAmount}</p>
+                        <p className="text-xs sm:text-sm font-medium mt-1">${order.totalAmount}</p>
                       </div>
                     </div>
                   ))}
@@ -611,33 +615,33 @@ const togglePackage = (eventId: string, supplierIndex: number) => {
 
             {/* Active Services */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className={`flex items-center gap-2 text-base sm:text-lg ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <Package className="h-4 w-4 sm:h-5 sm:w-5" />
                   {t('dashboard.activeServices', 'Active Services')}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="p-4 sm:p-6 pt-0">
+                <div className="space-y-3 sm:space-y-4">
                   {services.filter(service => service.available).slice(0, 5).map((service) => (
-                    <div key={service._id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{autoTranslate(service.title, i18n.language)}</h4>
-                        <p className="text-sm text-muted-foreground">{t(`categories.${service.category}`, service.category)}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-2">
+                    <div key={service._id} className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 p-2 sm:p-3 border rounded-lg ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+                      <div className={`flex-1 min-w-0 ${isRTL ? 'text-right' : 'text-left'}`}>
+                        <h4 className="text-sm sm:text-base font-medium truncate">{autoTranslate(service.title, i18n.language)}</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{t(`categories.${service.category}`, service.category)}</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2">
                           {service.description}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <Badge variant="secondary">{t(`categories.${service.category}`, service.category)}</Badge>
-                        <p className="text-sm font-medium mt-1">
+                      <div className={`${isRTL ? 'self-start sm:self-auto text-right' : 'text-right'} flex-shrink-0`}>
+                        <Badge variant="secondary" className="text-[10px] sm:text-xs">{t(`categories.${service.category}`, service.category)}</Badge>
+                        <p className="text-xs sm:text-sm font-medium mt-1">
                           {service.price.currency} {service.price.amount}
                         </p>
                       </div>
                     </div>
                   ))}
                   {services.filter(service => service.available).length === 0 && (
-                    <p className="text-center text-muted-foreground py-4">
+                    <p className="text-center text-xs sm:text-sm text-muted-foreground py-4">
                       {t('dashboard.noServices', 'No active services')}
                     </p>
                   )}
@@ -683,7 +687,7 @@ const togglePackage = (eventId: string, supplierIndex: number) => {
         </TabsContent>
 
         {/* Orders Tab */}
-        <TabsContent value="orders" className="space-y-6">
+        <TabsContent value="orders" className={`space-y-4 sm:space-y-6 ${isRTL ? 'text-right' : 'text-left'}`}>
           <Card>
             <CardHeader>
               <CardTitle>{t('dashboard.allOrders', 'All Orders')}</CardTitle>
@@ -727,20 +731,20 @@ const togglePackage = (eventId: string, supplierIndex: number) => {
         </TabsContent>
 
         {/* Events Tab */}
-        <TabsContent value="events" className="space-y-6">
+        <TabsContent value="events" className={`space-y-4 sm:space-y-6 ${isRTL ? 'text-right' : 'text-left'}`}>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <Calendar className="h-5 w-5" />
                 {t('events.allEvents', 'All Events')}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className={isRTL ? 'text-right' : 'text-left'}>
                 {t('events.browseAllEvents', 'Browse all events on the platform')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {/* Search and Filters */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className={`flex flex-col gap-3 sm:gap-4 mb-6 ${isRTL ? 'sm:flex-row-reverse' : 'sm:flex-row'}`}>
                 <div className="flex-1">
                   <Input
                     placeholder={t('events.searchEvents', 'Search events...')}
@@ -749,12 +753,12 @@ const togglePackage = (eventId: string, supplierIndex: number) => {
                     className="w-full"
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className={`flex flex-col sm:flex-row gap-2 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
                   <Select
                     value={eventFilters.category || "all"}
                     onValueChange={(value) => handleEventFilterChange('category', value === "all" ? "" : value)}
                   >
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[180px]">
                       <SelectValue placeholder={t('events.filterByCategory', 'Filter by category')} />
                     </SelectTrigger>
                     <SelectContent>
@@ -766,12 +770,12 @@ const togglePackage = (eventId: string, supplierIndex: number) => {
                       ))}
                     </SelectContent>
                   </Select>
-                  
+
                   <Select
                     value={eventFilters.status || "all"}
                     onValueChange={(value) => handleEventFilterChange('status', value === "all" ? "" : value)}
                   >
-                    <SelectTrigger className="w-[150px]">
+                    <SelectTrigger className="w-full sm:w-[150px]">
                       <SelectValue placeholder={t('events.filterByStatus', 'Filter by status')} />
                     </SelectTrigger>
                     <SelectContent>
@@ -795,8 +799,8 @@ const togglePackage = (eventId: string, supplierIndex: number) => {
                   ))}
                 </div>
               ) : events.length > 0 ? (
-                <div className="rounded-md border">
-                  <Table>
+                <div className="rounded-md border overflow-x-auto">
+                  <Table className="min-w-[800px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-[250px]">{t('events.eventName', 'Event Name')}</TableHead>
@@ -1033,16 +1037,17 @@ const togglePackage = (eventId: string, supplierIndex: number) => {
 
               {/* Pagination */}
               {eventsPagination.totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-6">
-                  <div className="text-sm text-gray-600">
+                  <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 mt-6 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+                  <div className={`text-sm text-gray-600 ${isRTL ? 'text-right' : 'text-left'}`}>
                     {t('dashboard.showing', 'Showing')} {((eventsPagination.currentPage - 1) * eventFilters.limit) + 1} {t('dashboard.to', 'to')} {Math.min(eventsPagination.currentPage * eventFilters.limit, eventsPagination.totalEvents)} {t('dashboard.of', 'of')} {eventsPagination.totalEvents} {t('dashboard.events', 'events')}
                   </div>
-                  <div className="flex gap-2">
+                  <div className={`flex gap-2 w-full sm:w-auto ${isRTL ? 'flex-row-reverse' : ''}`}>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleEventPageChange(eventsPagination.currentPage - 1)}
                       disabled={!eventsPagination.hasPrevPage}
+                      className="flex-1 sm:flex-none"
                     >
                       {t('common.back', 'Previous')}
                     </Button>
@@ -1051,6 +1056,7 @@ const togglePackage = (eventId: string, supplierIndex: number) => {
                       size="sm"
                       onClick={() => handleEventPageChange(eventsPagination.currentPage + 1)}
                       disabled={!eventsPagination.hasNextPage}
+                      className="flex-1 sm:flex-none"
                     >
                       {t('common.next', 'Next')}
                     </Button>

@@ -11,6 +11,7 @@ import { Camera, Upload, User, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import apiService from '@/services/api'; // Import your API service
+import { getImageUrl } from '@/utils/imageUtils';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -126,6 +127,7 @@ const [formData, setFormData] = useState({
       name: formData.name,
       phone: formData.phone || '',
       language: formData.language,
+      profileImage: profileImagePath,
       ...(user.role === 'producer' && {
         producerDetails: {
           description: formData.description,
@@ -193,7 +195,7 @@ const [formData, setFormData] = useState({
             <Label className="text-base font-medium">{t('profile.profilePicture')}</Label>
             <div className="flex items-center gap-4">
               <Avatar className="w-20 h-20">
-                <AvatarImage src={formData.profileImage || undefined} alt="Profile" />
+                <AvatarImage src={getImageUrl(formData.profileImage)} alt="Profile" />
                 <AvatarFallback className="text-lg">
                   {getInitials(formData.name)}
                 </AvatarFallback>

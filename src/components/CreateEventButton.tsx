@@ -15,7 +15,7 @@ export const CreateEventButton: React.FC<{ children?: React.ReactNode }> = ({ ch
   const TriggerButton = children || (
     <Button
       onClick={handleCreateEvent}
-      className="w-full h-14 mb-6 bg-gradient-to-r from-primary to-secondary text-white font-bold text-lg rounded-2xl shadow-lg hover:opacity-90 transition-all duration-300 transform hover:-translate-y-0.5"
+      className="w-full h-14 mb-6 gradient-primary text-white font-bold text-lg rounded-2xl shadow-lg hover:opacity-90 transition-all duration-300 transform hover:-translate-y-0.5"
       size="lg"
     >
       <svg

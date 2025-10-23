@@ -200,9 +200,9 @@ const EventDetails = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 sm:py-6 md:py-8">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
           <Button 
             variant="outline" 
             size="sm"
@@ -212,53 +212,56 @@ const EventDetails = () => {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
-          
+
           {isProducer && (
-            <div className="flex gap-2 ml-auto">
-              <Button 
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={handleEditEvent}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 <Pencil className="w-4 h-4" />
-                Edit Event
+                <span className="hidden sm:inline">Edit Event</span>
+                <span className="sm:hidden">Edit</span>
               </Button>
-              <Button 
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={handleManageTickets}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 <Ticket className="w-4 h-4" />
-                Manage Tickets
+                <span className="hidden sm:inline">Manage Tickets</span>
+                <span className="sm:hidden">Tickets</span>
               </Button>
-              <Button 
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={handleChatEvent}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 <MessageCircle className="w-4 h-4" />
-                Event Chat
+                <span className="hidden sm:inline">Event Chat</span>
+                <span className="sm:hidden">Chat</span>
               </Button>
             </div>
           )}
         </div>
 
         {/* Event Header */}
-        <div className="mb-8">
-          <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-            <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">{event.name}</h1>
-              <div className="flex flex-wrap gap-2">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-start justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+            <div className="w-full sm:w-auto">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">{event.name}</h1>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {services.slice(0, 3).map((service) => (
-                  <Badge key={service} variant="secondary">
+                  <Badge key={service} variant="secondary" className="text-xs">
                     {service}
                   </Badge>
                 ))}
                 {services.length > 3 && (
-                  <Badge variant="outline">
+                  <Badge variant="outline" className="text-xs">
                     +{services.length - 3} more
                   </Badge>
                 )}
@@ -287,41 +290,41 @@ const EventDetails = () => {
           </div>
 
           {event.description && (
-            <p className="text-lg text-muted-foreground">{event.description}</p>
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground">{event.description}</p>
           )}
         </div>
 
         {/* Event Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-3">
-                <Calendar className="h-6 w-6 text-primary" />
-                <h3 className="font-semibold">Date & Time</h3>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                <h3 className="text-sm sm:text-base font-semibold">Date & Time</h3>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 {format(eventDate, 'PPP')} at {timeString}
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-3">
-                <MapPin className="h-6 w-6 text-primary" />
-                <h3 className="font-semibold">Location</h3>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                <h3 className="text-sm sm:text-base font-semibold">Location</h3>
               </div>
-              <p className="text-sm text-muted-foreground">{locationString}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate" title={locationString}>{locationString}</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-3">
-                <Users className="h-6 w-6 text-primary" />
-                <h3 className="font-semibold">Attendees</h3>
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                <h3 className="text-sm sm:text-base font-semibold">Attendees</h3>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 {attendeeCount} {attendeeCount === 1 ? 'person' : 'people'} attending
               </p>
             </CardContent>
@@ -330,15 +333,15 @@ const EventDetails = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="tickets">Tickets</TabsTrigger>
-            <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
-            <TabsTrigger value="attendees">Attendees</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="tickets" className="text-xs sm:text-sm">Tickets</TabsTrigger>
+            <TabsTrigger value="suppliers" className="text-xs sm:text-sm">Suppliers</TabsTrigger>
+            <TabsTrigger value="attendees" className="text-xs sm:text-sm">Attendees</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TabsContent value="overview" className="mt-4 sm:mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Services */}
               <Card>
                 <CardHeader>
@@ -388,17 +391,17 @@ const EventDetails = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="tickets" className="mt-6">
+          <TabsContent value="tickets" className="mt-4 sm:mt-6">
             {tickets.length === 0 ? (
               <Card>
-                <CardContent className="p-12 text-center">
-                  <Ticket className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <h3 className="text-lg font-semibold mb-2">No Tickets Available</h3>
-                  <p className="text-muted-foreground">This is a free event with no ticket requirements.</p>
+                <CardContent className="p-8 sm:p-12 text-center">
+                  <Ticket className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-3 sm:mb-4 text-muted-foreground opacity-50" />
+                  <h3 className="text-base sm:text-lg font-semibold mb-2">No Tickets Available</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground">This is a free event with no ticket requirements.</p>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {tickets.map((ticket, index) => (
                   <Card key={index} className="relative overflow-hidden">
                     <CardContent className="p-6">
@@ -428,17 +431,17 @@ const EventDetails = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="suppliers" className="mt-6">
+          <TabsContent value="suppliers" className="mt-4 sm:mt-6">
             {suppliers.length === 0 ? (
               <Card>
-                <CardContent className="p-12 text-center">
-                  <Users className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <h3 className="text-lg font-semibold mb-2">No Suppliers Assigned</h3>
-                  <p className="text-muted-foreground">Suppliers will be listed here once they are assigned to services.</p>
+                <CardContent className="p-8 sm:p-12 text-center">
+                  <Users className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-3 sm:mb-4 text-muted-foreground opacity-50" />
+                  <h3 className="text-base sm:text-lg font-semibold mb-2">No Suppliers Assigned</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground">Suppliers will be listed here once they are assigned to services.</p>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {suppliers.map((supplier, index) => (
                   <Card key={index}>
                     <CardContent className="p-6">

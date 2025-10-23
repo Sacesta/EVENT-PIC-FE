@@ -221,16 +221,16 @@ const Step1_ServicesAndSuppliers: React.FC<Step1_ServicesAndSuppliersProps> = Re
   }, [onUpdate]);
 
   const services = useMemo(() => [
+    { key: 'venue_rental', icon: Building, name: t('createEvent.services.venueRental'), color: 'text-green-500 bg-green-100' },
     { key: 'dj', icon: Music, name: t('createEvent.services.dj'), color: 'text-purple-500 bg-purple-100' },
+    { key: 'sound_lighting', icon: Volume2, name: t('createEvent.services.soundLighting'), color: 'text-yellow-500 bg-yellow-100' },
     { key: 'security', icon: Shield, name: t('createEvent.services.security'), color: 'text-red-500 bg-red-100' },
     { key: 'decoration', icon: Palette, name: t('createEvent.services.decoration'), color: 'text-pink-500 bg-pink-100' },
-    { key: 'sound_lighting', icon: Volume2, name: t('createEvent.services.soundLighting'), color: 'text-yellow-500 bg-yellow-100' },
     { key: 'catering', icon: Utensils, name: t('createEvent.services.catering'), color: 'text-orange-500 bg-orange-100' },
     { key: 'bar', icon: Coffee, name: t('createEvent.services.bar'), color: 'text-amber-500 bg-amber-100' },
     { key: 'first_aid', icon: Heart, name: t('createEvent.services.firstAid'), color: 'text-red-600 bg-red-50' },
     { key: 'artists', icon: Mic, name: t('createEvent.services.artists'), color: 'text-indigo-500 bg-indigo-100' },
     { key: 'insurance', icon: FileText, name: t('createEvent.services.insurance'), color: 'text-slate-500 bg-slate-100' },
-    { key: 'venue_rental', icon: Building, name: t('createEvent.services.venueRental'), color: 'text-green-500 bg-green-100' },
     { key: 'transportation', icon: Bus, name: t('createEvent.services.transportation'), color: 'text-blue-500 bg-blue-100' },
     { key: 'general', icon: Settings, name: t('createEvent.services.general'), color: 'text-gray-500 bg-gray-100' }
   ], [t]);

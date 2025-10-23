@@ -163,7 +163,7 @@ const Step_ProducerDetails: React.FC<Step_BankDetailsProps> = ({
       </Card>
 
       {/* Navigation Buttons */}
-       {!isEditMode && <div className="flex justify-between pt-4">
+       {!isEditMode && <div className="flex justify-between pt-4 border-t nav-wrapper-dark">
         <Button
           variant="outline"
           onClick={onBack}

@@ -158,10 +158,12 @@ const PublicEventDetails = () => {
     );
   }
 
-  const eventDate = parseISO(event.startDate);
-  const eventEndDate = event.endDate ? parseISO(event.endDate) : null;
-  const locationString = typeof event.location === 'string' 
-    ? event.location 
+  // Use dateTimeInfo for proper date and time display
+  const dateTimeInfo = event.dateTimeInfo || {};
+  const eventDate = dateTimeInfo.startDate ? parseISO(`${dateTimeInfo.startDate}T${dateTimeInfo.startTime || '00:00'}`) : parseISO(event.startDate);
+  const eventEndDate = dateTimeInfo.endDate ? parseISO(`${dateTimeInfo.endDate}T${dateTimeInfo.endTime || '00:00'}`) : (event.endDate ? parseISO(event.endDate) : null);
+  const locationString = typeof event.location === 'string'
+    ? event.location
     : `${event.location?.address || ''}, ${event.location?.city || ''}`.trim().replace(/^,\s*/, '');
   
   const minPrice = event.ticketInfo?.priceRange?.min || 0;
@@ -309,7 +311,7 @@ const PublicEventDetails = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-background border-b">
         <div className="container mx-auto px-4 py-4">
           <Button 
             variant="ghost" 
@@ -323,20 +325,20 @@ const PublicEventDetails = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="container mx-auto px-4 py-4 sm:py-6 md:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Main Content - Left Side */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Event Title */}
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 sm:mb-4">
                 {autoTranslate(event.name, i18n.language)}
               </h1>
             </div>
 
             {/* Event Banner Image - Always show */}
 
-<div className="w-full h-96 rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 via-primary/10 to-background shadow-lg">
+<div className="w-full h-48 sm:h-64 md:h-80 lg:h-96 rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 via-primary/10 to-background shadow-lg">
  <img
   src={
     event.image
@@ -378,12 +380,13 @@ const PublicEventDetails = () => {
                     <Calendar className="w-5 h-5 text-primary mt-1" />
                     <div>
                       <p className="font-medium">
-                        {format(eventDate, 'EEEE, MMMM d, yyyy')}
+                        {format(eventDate, 'EEEE, MMMM d, yyyy')} at {format(eventDate, 'h:mm a')}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        {format(eventDate, 'h:mm a')}
-                        {eventEndDate && ` - ${format(eventEndDate, 'h:mm a')}`}
-                      </p>
+                      {eventEndDate && (
+                        <p className="text-sm text-muted-foreground">
+                         {format(eventEndDate, 'EEEE, MMMM d, yyyy')} at {format(eventEndDate, 'h:mm a')}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -409,12 +412,12 @@ const PublicEventDetails = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3 mt-6 pt-6 border-t">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-6 pt-6 border-t">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleShare}
-                    className="flex items-center gap-2"
+                    className="flex items-center justify-center gap-2 w-full sm:w-auto"
                   >
                     <Share2 className="w-4 h-4" />
                     Share
@@ -423,7 +426,7 @@ const PublicEventDetails = () => {
                     variant="outline"
                     size="sm"
                     onClick={handleSave}
-                    className="flex items-center gap-2"
+                    className="flex items-center justify-center gap-2 w-full sm:w-auto"
                   >
                     <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
                     Save
@@ -432,10 +435,11 @@ const PublicEventDetails = () => {
                     variant={isInterested ? "default" : "outline"}
                     size="sm"
                     onClick={handleInterested}
-                    className="flex items-center gap-2"
+                    className="flex items-center justify-center gap-2 w-full sm:w-auto"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    {isInterested ? 'Interested' : 'Add to Calendar'}
+                    <span className="hidden sm:inline">{isInterested ? 'Interested' : 'Add to Calendar'}</span>
+                    <span className="sm:hidden">{isInterested ? 'Interested' : 'Add'}</span>
                   </Button>
                 </div>
               </CardContent>
@@ -443,11 +447,11 @@ const PublicEventDetails = () => {
 
             {/* About this event */}
             <Card>
-              <CardContent className="p-6">
-                <h2 className="text-2xl font-bold mb-4">About this event</h2>
-                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+              <CardContent className="p-4 sm:p-6">
+                <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">About this event</h2>
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line">
                   {autoTranslate(
-                    event.description || 
+                    event.description ||
                     'Join us for an exciting event bringing together the brightest minds in technology. This year\'s summit will feature keynote speeches from industry leaders, interactive workshops, and networking opportunities. Connect with fellow innovators shaping the future of tech. Don\'t miss out on this exciting opportunity to learn, collaborate, and grow.',
                     i18n.language
                   )}
@@ -460,13 +464,13 @@ const PublicEventDetails = () => {
             {/* Highlights */}
             {highlights.length > 0 && (
               <Card>
-                <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold mb-4">Event Features</h2>
-                  <div className="space-y-3">
+                <CardContent className="p-4 sm:p-6">
+                  <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Event Features</h2>
+                  <div className="space-y-2 sm:space-y-3">
                     {highlights.map((highlight, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                        <span className="text-muted-foreground">{highlight}</span>
+                      <div key={index} className="flex items-center gap-2 sm:gap-3">
+                        <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+                        <span className="text-sm sm:text-base text-muted-foreground">{highlight}</span>
                       </div>
                     ))}
                   </div>
@@ -494,24 +498,24 @@ const PublicEventDetails = () => {
           </div>
 
           {/* Sidebar - Right Side */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-4 sm:space-y-6">
             {/* Ticket Booking Card */}
-            <Card className="sticky top-4">
-              <CardContent className="p-6">
+            <Card className="lg:sticky lg:top-4">
+              <CardContent className="p-4 sm:p-6">
                 <div className="mb-4">
-                  <p className="text-sm text-muted-foreground mb-2">Tickets from</p>
-                  <p className="text-3xl font-bold text-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-2">Tickets from</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-foreground">
                     {minPrice === 0 ? 'Free' : `$${minPrice}`}
                   </p>
                   {maxPrice > minPrice && (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Up to ${maxPrice}
                     </p>
                   )}
                 </div>
 
-                <Button 
-                  className="w-full mb-4" 
+                <Button
+                  className="w-full mb-3 sm:mb-4"
                   size="lg"
                   onClick={handleBookTicket}
                   disabled={remainingTickets === 0}
@@ -520,7 +524,7 @@ const PublicEventDetails = () => {
                 </Button>
 
                 {remainingTickets > 0 && remainingTickets < 20 && (
-                  <p className="text-sm text-orange-600 text-center">
+                  <p className="text-xs sm:text-sm text-orange-600 text-center">
                     Only {remainingTickets} tickets left!
                   </p>
                 )}
@@ -530,11 +534,11 @@ const PublicEventDetails = () => {
             {/* Interests/Tags */}
             {event.tags && event.tags.length > 0 && (
               <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-3">Interests</h3>
-                  <div className="flex flex-wrap gap-2">
+                <CardContent className="p-4 sm:p-6">
+                  <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3">Interests</h3>
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
                     {event.tags.map((tag: string, index: number) => (
-                      <Badge key={index} variant="secondary">
+                      <Badge key={index} variant="secondary" className="text-xs">
                         {autoTranslate(tag, i18n.language)}
                       </Badge>
                     ))}
@@ -545,8 +549,8 @@ const PublicEventDetails = () => {
 
             {/* Event Details */}
             <Card>
-              <CardContent className="p-6 space-y-4">
-                <h3 className="font-semibold mb-3">Event Details</h3>
+              <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+                <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3">Event Details</h3>
                 
                 {/* Category */}
                 {event.category && (
@@ -606,23 +610,23 @@ const PublicEventDetails = () => {
             {/* Producer Contact */}
             {event.producerId && (
               <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-3">Organizer</h3>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
-                      <Users className="w-6 h-6 text-primary" />
+                <CardContent className="p-4 sm:p-6">
+                  <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3">Organizer</h3>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Users className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     </div>
-                    <div>
-                      <p className="font-medium">
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-medium truncate">
                         {event.producerId.name || 'Event Organizer'}
                       </p>
                       {event.producerId.email && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">
                           {event.producerId.email}
                         </p>
                       )}
                       {event.producerId.phone && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           {event.producerId.phone}
                         </p>
                       )}

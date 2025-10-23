@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CalendarPlus, BarChart3, Calendar, Clock, Users, MessagesSquare } from 'lucide-react';
+import { CalendarPlus, BarChart3, Calendar, Clock, Users, MessagesSquare, QrCode } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { CreateEventButton } from '@/components/CreateEventButton';
 import { EditEventModal } from '@/components/EditEventModal';
 import { EventsSection } from '@/components/EventsSection';
 import { ManageTicketModal } from '@/components/ManageTicketModal';
+import QRScannerModal from '@/components/QRScannerModal';
 import { apiService, type EnhancedEvent, type MyEventsResponse, type OverallStats } from '@/services/api';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -29,6 +30,7 @@ const ProducerDashboard = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [selectedEventForTickets, setSelectedEventForTickets] = useState<EnhancedEvent | null>(null);
+  const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
   const [events, setEvents] = useState<EnhancedEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -174,7 +176,7 @@ const ProducerDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <CreateEventButton eventCount={events.length}>
             <div className="group p-6 rounded-2xl glass-card transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer">
               <div className="flex items-center gap-4">
@@ -189,6 +191,18 @@ const ProducerDashboard = () => {
             </div>
           </CreateEventButton>
 
+          <div className="group p-6 rounded-2xl glass-card transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer" onClick={() => setIsQRScannerOpen(true)}>
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-green-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <QrCode className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold group-hover:text-gradient-primary transition-all duration-300 text-foreground">Scan QR</h3>
+                <p className="text-sm text-muted-foreground">Check in attendees</p>
+              </div>
+            </div>
+          </div>
+
           <div className="group p-6 rounded-2xl glass-card transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-xl gradient-secondary flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -200,7 +214,7 @@ const ProducerDashboard = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="group p-6 rounded-2xl glass-card transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer" onClick={handleChatClick}>
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-xl gradient-accent flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -350,6 +364,13 @@ const ProducerDashboard = () => {
           event={selectedEventForTickets}
           onSave={handleSaveTickets}
         />
+
+        {/* QR Scanner Modal */}
+        {isQRScannerOpen && (
+          <QRScannerModal
+            onClose={() => setIsQRScannerOpen(false)}
+          />
+        )}
       </div>
     </div>
   );

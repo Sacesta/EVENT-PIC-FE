@@ -207,6 +207,10 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
       newErrors.tickets = t("auth.validation.required");
     }
 
+    if (!eventData.isPaid && (!eventData.maxAttendees || eventData.maxAttendees <= 0)) {
+      newErrors.maxAttendees = t("auth.validation.required");
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [eventData, t, isDateTimeInPast, isEndDateTimeAfterStartDateTime]);
@@ -341,7 +345,7 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
       eventData.location.trim() &&
       eventData.eventType &&
       (!eventData.isPrivate || eventData.eventPassword?.trim()) &&
-      (!eventData.isPaid || eventData.tickets.length > 0)
+      (eventData.isPaid ? eventData.tickets.length > 0 : (eventData.maxAttendees && eventData.maxAttendees > 0))
     );
   }, [eventData]);
 
@@ -378,6 +382,22 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
             error={errors.name}
           />
 
+          {/* Date & Time Selector */}
+          <DateTimeSelector
+            startDate={eventData.startDate}
+            endDate={eventData.endDate}
+            startTime={eventData.startTime}
+            endTime={eventData.endTime}
+            onStartDateChange={(value) => handleUpdate("startDate", value)}
+            onEndDateChange={(value) => handleUpdate("endDate", value)}
+            onStartTimeChange={(value) => handleUpdate("startTime", value)}
+            onEndTimeChange={(value) => handleUpdate("endTime", value)}
+            startDateError={errors.startDate}
+            endDateError={errors.endDate}
+            startTimeError={errors.startTime}
+            endTimeError={errors.endTime}
+          />
+
           {/* Event Image */}
           <ImageUpload
             label={t("createEvent.step2.eventImage")}
@@ -385,52 +405,6 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
             onChange={handleImageChange}
           />
 
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <MemoizedInput
-                label={t("createEvent.step2.startDate")}
-                placeholder=""
-                type="date"
-                value={eventData.startDate}
-                onChange={(value) => handleUpdate("startDate", value)}
-                required
-                error={errors.startDate}
-                min={today}
-              />
-              <MemoizedInput
-                label={t("createEvent.step2.startTime")}
-                placeholder=""
-                type="time"
-                value={eventData.startTime}
-                onChange={(value) => handleUpdate("startTime", value)}
-                required
-                error={errors.startTime}
-                min={eventData.startDate === today ? currentTime : undefined}
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <MemoizedInput
-                label={t("createEvent.step2.endDate")}
-                placeholder=""
-                type="date"
-                value={eventData.endDate}
-                onChange={(value) => handleUpdate("endDate", value)}
-                required
-                error={errors.endDate}
-                min={eventData.startDate || today}
-              />
-              <MemoizedInput
-                label={t("createEvent.step2.endTime")}
-                placeholder=""
-                type="time"
-                value={eventData.endTime}
-                onChange={(value) => handleUpdate("endTime", value)}
-                required
-                error={errors.endTime}
-                min={eventData.endDate === eventData.startDate ? eventData.startTime : undefined}
-              />
-            </div>
-          </div>
 
           {/* Event Type */}
           <MemoizedSelect
@@ -516,32 +490,53 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
             </ToggleCard>
           </div>
 
-          {/* Tickets Section - Always Visible with Default Ticket */}
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">
-              {eventData.isPaid
-                ? `${t("createEvent.step2.ticketTypesPricing")} *`
-                : `${t("createEvent.step2.ticketTypes")} *`}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {eventData.isPaid
-                ? t("createEvent.step2.createTicketTiers")
-                : t("createEvent.step2.createTicketCategories")}
-            </p>
-            <TicketsSection
-              tickets={eventData.tickets}
-              onUpdate={handleUpdateTicket}
-              onAdd={handleAddTicket}
-              onRemove={handleRemoveTicket}
-              isPaid={eventData.isPaid}
-            />
-            {errors.tickets && (
-              <p className="text-sm text-red-500 flex items-center gap-1 mt-2">
-                <AlertCircle className="w-3 h-3" />
-                {errors.tickets}
+          {/* Tickets Section - Show only for Paid Events */}
+          {eventData.isPaid ? (
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">
+                {t("createEvent.step2.ticketTypesPricing")} *
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {t("createEvent.step2.createTicketTiers")}
               </p>
-            )}
-          </div>
+              <TicketsSection
+                tickets={eventData.tickets}
+                onUpdate={handleUpdateTicket}
+                onAdd={handleAddTicket}
+                onRemove={handleRemoveTicket}
+                isPaid={eventData.isPaid}
+              />
+              {errors.tickets && (
+                <p className="text-sm text-red-500 flex items-center gap-1 mt-2">
+                  <AlertCircle className="w-3 h-3" />
+                  {errors.tickets}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">
+                {t("createEvent.step2.maxAttendees")} *
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {t("createEvent.step2.setMaxAttendees")}
+              </p>
+              <Input
+                type="number"
+                min="1"
+                placeholder={t("createEvent.step2.maxAttendeesPlaceholder")}
+                value={eventData.maxAttendees || ''}
+                onChange={(e) => handleUpdate("maxAttendees", parseInt(e.target.value) || 0)}
+                className={errors.maxAttendees ? "border-red-500" : ""}
+              />
+              {errors.maxAttendees && (
+                <p className="text-sm text-red-500 flex items-center gap-1 mt-2">
+                  <AlertCircle className="w-3 h-3" />
+                  {errors.maxAttendees}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Event Description */}
           <MemoizedTextarea
@@ -556,7 +551,7 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
 
       {/* Navigation - Fixed at bottom - Hidden in edit mode */}
       {!isEditMode && (
-        <div className="flex-shrink-0 flex justify-between pt-4 border-t bg-background">
+        <div className="flex-shrink-0 flex justify-between pt-4 border-t nav-wrapper-dark">
           <Button variant="outline" onClick={onBack} className="px-8">
             {t("common.back")}
           </Button>

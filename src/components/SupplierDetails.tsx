@@ -179,7 +179,7 @@ const SupplierDetails = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-background border-b">
         <div className="container mx-auto px-4 py-4">
           <Button
             variant="ghost"
@@ -298,7 +298,7 @@ const SupplierDetails = () => {
             {/* About Supplier */}
             <Card>
               <CardContent className="p-6">
-                <h2 className="text-2xl font-bold mb-4">About</h2>
+                <h2 className="text-2xl font-bold mb-4">{t("suppliers.about")}</h2>
                 <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                   {supplier.description || 'No description available'}
                 </p>
@@ -308,7 +308,7 @@ const SupplierDetails = () => {
             {/* Services & Packages */}
             <Card>
               <CardContent className="p-6">
-                <h2 className="text-2xl font-bold mb-6">Services & Packages</h2>
+                <h2 className="text-2xl font-bold mb-6">{t("suppliers.pack")}</h2>
 
                 {supplier.services && supplier.services.length > 0 ? (
                   <Tabs defaultValue="0" className="space-y-6">

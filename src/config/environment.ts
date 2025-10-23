@@ -16,8 +16,8 @@ const development: Environment = {
 
 const production: Environment = {
   NODE_ENV: 'production',
-  BACKEND_URL: 'https://pic-be.vercel.app',
-  FRONTEND_URL: 'https://pic-fe.vercel.app',
+  BACKEND_URL: 'https://api.pic-events.co.il',
+  FRONTEND_URL: 'https://pic-events.co.il',
   IS_PRODUCTION: true,
   IS_DEVELOPMENT: false
 };

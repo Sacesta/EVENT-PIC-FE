@@ -1003,7 +1003,7 @@ const Step1_ServicesAndSuppliers: React.FC<Step1Props> = ({
       </div>
 
       {/* Navigation - Fixed at bottom */}
-      <div className="flex-shrink-0 flex justify-between pt-3 border-t bg-background">
+      <div className="flex-shrink-0 flex justify-between pt-3 border-t nav-wrapper-dark">
         <Button 
           variant="outline" 
           onClick={() => {

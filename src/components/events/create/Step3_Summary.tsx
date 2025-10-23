@@ -814,7 +814,7 @@ const handleCreateEvent = async () => {
       </ScrollArea>
 
       {/* Action Buttons - Fixed at bottom */}
-      <div className="flex-shrink-0 flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 pt-3 sm:pt-4 mt-3 sm:mt-4 border-t">
+      <div className="flex-shrink-0 flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 pt-3 sm:pt-4 mt-3 sm:mt-4 border-t nav-wrapper-dark">
         <Button 
           variant="outline"
           onClick={onBack}

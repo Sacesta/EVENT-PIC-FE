@@ -86,7 +86,7 @@ const ImageUpload: React.FC<ImageUploadProps> = React.memo(({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={`
-            relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
+            relative border-2 border-dashed rounded-lg p-4 text-center cursor-pointer
             transition-all duration-200 hover:border-primary/50 hover:bg-accent/5
             ${isDragging ? 'border-primary bg-accent/10' : 'border-border'}
             ${error ? 'border-red-500' : ''}
@@ -99,12 +99,12 @@ const ImageUpload: React.FC<ImageUploadProps> = React.memo(({
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
           
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-2">
             <div className={`
-              w-16 h-16 rounded-full flex items-center justify-center
-              ${isDragging ? 'bg-primary/20' : 'bg-accent'}
+              w-10 h-10 rounded-full flex items-center justify-center
+              ${isDragging ? 'bg-primary/20' : 'bg-[#02195f] dark:bg-[#2eafff]'}
             `}>
-              <Upload className={`w-8 h-8 ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
+              <Upload className={`w-5 h-5 ${isDragging ? 'text-primary' : 'text-white'}`} />
             </div>
             
             <div>
@@ -117,7 +117,7 @@ const ImageUpload: React.FC<ImageUploadProps> = React.memo(({
             </div>
 
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <ImageIcon className="w-4 h-4" />
+              <ImageIcon className="w-3 h-3" />
               <span>{t('createEvent.step2.supportedFormats')}</span>
             </div>
           </div>
@@ -127,7 +127,7 @@ const ImageUpload: React.FC<ImageUploadProps> = React.memo(({
           <img
             src={preview}
             alt="Event preview"
-            className="w-full h-64 object-cover"
+            className="w-full h-48 object-cover"
           />
           <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
             <Button

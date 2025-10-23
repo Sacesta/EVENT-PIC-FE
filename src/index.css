@@ -4,6 +4,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* RTL Support */
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.rtl .flex {
+  flex-direction: row-reverse;
+}
+
+.rtl .space-x-2 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}
+
+.rtl .space-x-3 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}
+
+.rtl .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}
+
+.rtl .gap-2 {
+  gap: 0.5rem;
+}
+
+.rtl .gap-3 {
+  gap: 0.75rem;
+}
+
+.rtl .gap-4 {
+  gap: 1rem;
+}
+
 /* Pic Event Planning App - Design System
 Modern, minimalistic design with depth and subtle reflections
 All colors MUST be HSL.
@@ -79,7 +113,7 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222 80% 8%;
+    --background: 222 28% 20%;
     --foreground: 0 0% 98%;
 
     --card: 222 50% 12%;
@@ -303,5 +337,41 @@ All colors MUST be HSL.
     --text: hsl(var(--foreground));
     --muted: hsl(var(--muted-foreground));
     --border: hsl(var(--border));
+  }
+
+  /* Custom dark mode colors for header and steps */
+  .header-dark {
+    @apply bg-background border-border;
+  }
+
+  .dark .header-dark {
+    background-color: #0f182ecc;
+    border-color: #242d42;
+  }
+
+  .steps-dark {
+    @apply bg-card;
+  }
+
+  .dark .steps-dark {
+    background-color: #0f182e;
+  }
+
+  .button-dark {
+    @apply bg-card border-border;
+  }
+
+  .dark .button-dark {
+    background-color: #0f182e;
+    border-color: #242d42;
+  }
+
+  .nav-wrapper-dark {
+    @apply bg-background border-border;
+  }
+
+  .dark .nav-wrapper-dark {
+    background-color: #0f182e;
+    border-color: #242d42;
   }
 }
