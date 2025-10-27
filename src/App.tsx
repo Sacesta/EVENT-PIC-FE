@@ -27,6 +27,7 @@ import NotFound from "./pages/NotFound";
 import ContactTerms from "./pages/ContactTerms";
 import CreateEvent from "./pages/CreateEvent";
 import EditEvent from "./pages/EditEvent";
+import CustomizeTicketPDF from "./pages/CustomizeTicketPDF";
 import './i18n';
 import RoleSelection from "./pages/RoleSelection";
 import BroadSuppliers from "./pages/BroadSuppliers";
@@ -42,6 +43,8 @@ import Help from "./pages/Help";
 import Faq from "./pages/Faq";
 import Community from "./pages/Community";
 import Status from "./pages/Status";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentFailed from "./pages/PaymentFailed";
 
 const queryClient = new QueryClient();
 
@@ -56,7 +59,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             
             {/* Role Selection Routes */}
-            <Route path="/signin" element={<RoleSelection />} />
+            <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<RoleSelection />} />
             
             {/* Role-specific Authentication Routes */}
@@ -87,6 +90,13 @@ const App = () => (
             {/* Edit Event Routes */}
             <Route path="/edit-event/:eventId" element={<EditEvent />} />
             <Route path="/edit-event/:eventId/step/:step" element={<EditEvent />} />
+
+            {/* Ticket PDF Customization */}
+            <Route path="/event/:eventId/ticket/:ticketId/customize-pdf" element={<CustomizeTicketPDF />} />
+
+            {/* Payment Routes */}
+            <Route path="/payment/success" element={<PaymentSuccess />} />
+            <Route path="/payment/failed" element={<PaymentFailed />} />
 
             {/* Information Pages */}
             <Route path="/about" element={<About />} />

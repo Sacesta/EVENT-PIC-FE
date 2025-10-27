@@ -9,8 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, CheckCircle, Loader2, XCircle } from 'lucide-react';
 import Step1_ServicesAndSuppliers from '@/components/events/create/Step1_ServicesAndSuppliers_Fixed';
-import Step2_Details from '@/components/events/create/Step2_Details_Refactored';
-import Step_ProducerDetails from '@/components/events/create/Step_ProducerDetails';
+import Step2_Details from '@/components/events/create/Step2_Details';
 import Step3_Summary from '@/components/events/create/Step3_Summary';
 import { EventData, Ticket } from '@/components/events/create/types';
 import apiService, { type Event } from '@/services/api';
@@ -88,13 +87,8 @@ const EditEvent: React.FC<EditEventProps> = () => {
     },
     {
       number: 3,
-      title: t('createEvent.steps.bankDetails'),
-      path: `/edit-event/${eventId}/step/3`
-    },
-    {
-      number: 4,
       title: t('createEvent.steps.summary'),
-      path: `/edit-event/${eventId}/step/4`
+      path: `/edit-event/${eventId}/step/3`
     }
   ], [t, eventId]);
 
@@ -632,7 +626,6 @@ const EditEvent: React.FC<EditEventProps> = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="min-h-[400px] sm:min-h-[500px]"
               >
                 {currentStep === 1 && (
                   <Step1_ServicesAndSuppliers
@@ -656,15 +649,6 @@ const EditEvent: React.FC<EditEventProps> = () => {
                   />
                 )}
                 {currentStep === 3 && (
-                  <Step_ProducerDetails
-                    eventData={eventDataRef.current}
-                    onUpdate={handleInputChange}
-                    onNext={nextStep}
-                    onBack={prevStep}
-                    isEditMode={true}
-                  />
-                )}
-                {currentStep === 4 && (
                   <Step3_Summary
                     eventData={eventDataRef.current}
                     onBack={prevStep}

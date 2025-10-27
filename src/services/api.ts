@@ -30,11 +30,11 @@ interface EventData {
   };
   language?: "he" | "en" | "ar";
   category: string;
-  requiredServices?: string[];
+  requiredServices?: string[]; // Categories required for the event
   suppliers?: Array<{
     supplierId: string;
-    services: Array<{
-      serviceId: string;
+    packages: Array<{
+      packageId: string;
       requestedPrice?: number;
       notes?: string;
       priority?: "low" | "medium" | "high";
@@ -59,6 +59,12 @@ interface EventData {
   };
   tags?: string[];
   featured?: boolean;
+  bankDetails?: {
+    bankName: string;
+    branch: string;
+    accountNumber: string;
+    accountHolderName: string;
+  };
   [key: string]: unknown;
 }
 
@@ -79,7 +85,7 @@ interface Event {
   };
   language?: "he" | "en" | "ar";
   category: string;
-  requiredServices?: string[];
+  requiredServices?: string[]; // Categories required for the event
   suppliers?: Array<{
     packageDetails: any;
     supplierId: {
@@ -89,8 +95,11 @@ interface Event {
       profileImage?: string;
       isActive: boolean;
     };
-    serviceId: string;
+    packageId: string; // Primary reference for packages
+    serviceId?: string | { title?: string; packages?: unknown[] }; // DEPRECATED: Backward compatibility
+    selectedPackageId?: string; // DEPRECATED: Backward compatibility
     requestedPrice?: number;
+    finalPrice?: number; // Final negotiated price
     notes?: string;
     priority?: "low" | "medium" | "high";
     status?: "pending" | "approved" | "rejected";
@@ -119,6 +128,26 @@ interface Event {
   };
   tags?: string[];
   featured?: boolean;
+  bankDetails?: {
+    bankName: string;
+    branch: string;
+    accountNumber: string;
+    accountHolderName: string;
+  };
+  tickets?: Array<{
+    _id: string;
+    title: string;
+    description?: string;
+    type: string;
+    price: {
+      amount: number;
+      currency: string;
+    };
+    quantity: {
+      total: number;
+      available: number;
+    };
+  }>;
   createdAt: string;
   updatedAt: string;
   [key: string]: unknown;
@@ -135,7 +164,7 @@ interface EnhancedSupplier {
     phone: string;
     isActive: boolean;
   };
-  serviceId: {
+  packageId: { // Changed from serviceId
     _id: string;
     name: string;
     description: string;
@@ -158,11 +187,11 @@ interface EnhancedSupplier {
 
 interface SupplierStats {
   totalSuppliers: number;
-  totalServices: number;
-  approvedServices: number;
-  pendingServices: number;
-  rejectedServices: number;
-  cancelledServices: number;
+  totalPackages: number; // Changed from totalServices
+  approvedPackages: number; // Changed from approvedServices
+  pendingPackages: number; // Changed from pendingServices
+  rejectedPackages: number; // Changed from rejectedServices
+  cancelledPackages: number; // Changed from cancelledServices
 }
 
 interface FinancialSummary {
@@ -181,8 +210,8 @@ interface GroupedSupplier {
     email: string;
     phone: string;
   };
-  services: Array<{
-    service: {
+  packages: Array<{ // Changed from services
+    package: { // Changed from service
       _id: string;
       name: string;
       description: string;
@@ -274,8 +303,8 @@ interface OverallStats {
   upcomingEvents: number;
   pastEvents: number;
   totalUniqueSuppliers: number;
-  totalServices: number;
-  totalApprovedServices: number;
+  totalPackages: number; // Changed from totalServices
+  totalApprovedPackages: number; // Changed from totalApprovedServices
   totalSpent: number;
 }
 
@@ -305,11 +334,11 @@ interface MyEventsParams {
   endDate?: string;
 }
 
-interface ServiceData {
-  title: string;
+// Package is now the primary entity (replaces Service)
+interface PackageData {
+  name: string;
   description: string;
-  category: string;
-  subcategories?: string[];
+  category: string; // Moved from Service level to Package level
   price: {
     amount: number;
     currency: string;
@@ -317,14 +346,9 @@ interface ServiceData {
     minPrice?: number;
     maxPrice?: number;
   };
-  packages?: Array<{
-    name: string;
-    description?: string;
-    price: number;
-    features?: string[];
-    duration?: number;
-    isPopular?: boolean;
-  }>;
+  features?: string[];
+  duration?: number;
+  isPopular?: boolean;
   image?: string;
   portfolio?: Array<{
     title?: string;
@@ -334,6 +358,13 @@ interface ServiceData {
     date?: string;
   }>;
   availability?: {
+    // Simple format (for general availability)
+    days?: string[];
+    hours?: {
+      start: string;
+      end: string;
+    };
+    // Advanced format (for complex availability tracking)
     startDate?: string;
     endDate?: string;
     workingHours?: {
@@ -345,39 +376,26 @@ interface ServiceData {
     };
     leadTime?: number;
   };
-  location: {
-    city: string;
-    coordinates?: {
-      lat: number;
-      lng: number;
-    };
-    serviceRadius?: number;
-  };
-  experience?: string;
-  tags?: string[];
   featured?: boolean;
   [key: string]: unknown;
-}
-
-interface PackageData {
-  name: string;
-  description?: string;
-  price: number;
-  features?: string[];
-  duration?: number;
-  isPopular?: boolean;
 }
 
 interface PackageWithId extends PackageData {
   _id: string;
 }
 
-interface Service {
+// Legacy ServiceData interface (for backward compatibility during migration)
+// @deprecated - Use PackageData instead
+interface ServiceData extends PackageData {
+  title: string; // Maps to PackageData.name
+}
+
+// Package interface (primary entity - replaces Service)
+interface Package {
   _id: string;
-  title: string;
+  name: string;
   description: string;
-  category: string;
-  subcategories?: string[];
+  category: string; // Category is now at package level
   price: {
     amount: number;
     currency: string;
@@ -385,16 +403,11 @@ interface Service {
     minPrice?: number;
     maxPrice?: number;
   };
-  packages?: Array<{
-    _id: string;
-    name: string;
-    description?: string;
-    price: number;
-    features?: string[];
-    duration?: number;
-    isPopular?: boolean;
-  }>;
+  features?: string[];
+  duration?: number;
+  isPopular?: boolean;
   image?: string;
+  imageUrl?: string; // Virtual field from backend with full URL
   portfolio?: Array<{
     title?: string;
     description?: string;
@@ -414,16 +427,6 @@ interface Service {
     };
     leadTime?: number;
   };
-  location: {
-    city: string;
-    coordinates?: {
-      lat: number;
-      lng: number;
-    };
-    serviceRadius?: number;
-  };
-  experience?: string;
-  tags?: string[];
   featured?: boolean;
   available?: boolean;
   status?: string;
@@ -443,17 +446,30 @@ interface Service {
   updatedAt: string;
 }
 
-// Comprehensive interfaces for the new /with-suppliers API endpoint
-interface ServiceWithSupplierDetails {
-  // Service Details
-  serviceId: string;
-  title: string;
-  description: string;
-  category: string;
-  subcategories: string[];
-  tags: string[];
+// Legacy Service interface (for backward compatibility)
+// @deprecated - Use Package instead
+interface Service extends Omit<Package, 'name'> {
+  title: string; // Maps to Package.name
+  packages?: Array<{
+    _id: string;
+    name: string;
+    description?: string;
+    price: number;
+    features?: string[];
+    duration?: number;
+    isPopular?: boolean;
+  }>;
+}
 
-  // Service Pricing
+// Package with complete supplier details (primary interface)
+interface PackageWithSupplierDetails {
+  // Package Details
+  packageId: string;
+  name: string;
+  description: string;
+  category: string; // Category is now at package level
+
+  // Package Pricing
   price: {
     amount: number;
     currency: string;
@@ -462,34 +478,19 @@ interface ServiceWithSupplierDetails {
     maxPrice?: number;
   };
 
-  // Service Packages (Complete Details)
-  packages: Array<{
-    _id: string;
-    name: string;
-    description: string;
-    price: number;
-    features: string[];
-    duration?: number;
-    isPopular: boolean;
-  }>;
+  // Package Features
+  features: string[];
+  duration?: number;
+  isPopular: boolean;
 
-  // Service Rating & Reviews
+  // Package Rating & Reviews
   rating: {
     average: number;
     count: number;
     totalReviews: number;
   };
 
-  // Service Location & Availability
-  location: {
-    city: string;
-    coordinates?: {
-      lat: number;
-      lng: number;
-    };
-    serviceRadius?: number;
-  };
-
+  // Package Availability
   availability: {
     startDate?: string;
     endDate?: string;
@@ -503,7 +504,7 @@ interface ServiceWithSupplierDetails {
     leadTime?: number;
   };
 
-  // Service Media & Portfolio
+  // Package Media & Portfolio
   image?: string;
   portfolio: Array<{
     title: string;
@@ -513,11 +514,10 @@ interface ServiceWithSupplierDetails {
     date: string;
   }>;
 
-  // Service Status
+  // Package Status
   available: boolean;
   featured: boolean;
   views: number;
-  experience?: string;
 
   // Complete Supplier Details
   supplier: {
@@ -535,7 +535,7 @@ interface ServiceWithSupplierDetails {
     description?: string;
     businessLicense?: string;
     experience?: string;
-    categories: string[];
+    categories: string[]; // Categories that supplier offers packages in
 
     // Supplier Rating
     rating: {
@@ -586,6 +586,46 @@ interface ServiceWithSupplierDetails {
   updatedAt: string;
 }
 
+interface PackagesWithSuppliersResponse {
+  success: boolean;
+  message: string;
+  data: PackageWithSupplierDetails[];
+  count: number;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  filters: {
+    category?: string;
+    city?: string;
+    maxPrice?: number;
+    minPrice?: number;
+    search?: string;
+    minRating?: number;
+  };
+}
+
+// Legacy interfaces (for backward compatibility)
+// @deprecated - Use PackageWithSupplierDetails instead
+interface ServiceWithSupplierDetails extends Omit<PackageWithSupplierDetails, 'packageId' | 'name' | 'features'> {
+  serviceId: string; // Maps to packageId
+  title: string; // Maps to name
+  packages: Array<{
+    _id: string;
+    name: string;
+    description: string;
+    price: number;
+    features: string[];
+    duration?: number;
+    isPopular: boolean;
+  }>;
+}
+
+// @deprecated - Use PackagesWithSuppliersResponse instead
 interface ServicesWithSuppliersResponse {
   success: boolean;
   message: string;
@@ -611,7 +651,7 @@ interface ServicesWithSuppliersResponse {
 
 interface OrderData {
   eventId: string;
-  serviceId: string;
+  packageId: string; // Changed from serviceId
   quantity?: number;
   [key: string]: unknown;
 }
@@ -619,6 +659,39 @@ interface OrderData {
 interface TicketData {
   eventId: string;
   [key: string]: unknown;
+}
+
+// Package with supplier information
+interface PackageWithSupplier {
+  package: {
+    _id: string;
+    name: string;
+    description?: string;
+    category: string;
+    price: {
+      amount: number;
+      currency: string;
+      pricingType: string;
+    };
+    features: string[];
+    duration?: number;
+    isPopular?: boolean;
+    image?: string;
+  };
+  supplier: {
+    _id: string;
+    name: string;
+    profileImage?: string;
+    rating: {
+      average: number;
+      count: number;
+    };
+    location: {
+      city: string;
+      state: string;
+    };
+    isVerified: boolean;
+  };
 }
 
 interface ApiResponse<T = unknown> {
@@ -865,6 +938,24 @@ class ApiService {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
+    });
+  }
+
+  async updateTicketTemplate(eventId: string, ticketId: string, template: any) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    console.log("Updating ticket template:", { eventId, ticketId, template });
+
+    return this.request(`/events/${eventId}/tickets/${ticketId}/template`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ pdfTemplate: template }),
     });
   }
 
@@ -1200,7 +1291,7 @@ class ApiService {
     });
   }
 
-  // Service endpoints
+  // Service endpoints - Using existing backend /services routes
   async getServices(params?: {
     page?: number;
     limit?: number;
@@ -1252,10 +1343,11 @@ class ApiService {
     return this.request(`/services/with-suppliers?${queryParams}`);
   }
 
-  async getMyServices(params?: {
+  // New Package API methods
+  async getMyPackages(params?: {
     page?: number;
     limit?: number;
-    isActive?: boolean;
+    status?: string;
   }) {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -1265,10 +1357,9 @@ class ApiService {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append("page", params.page.toString());
     if (params?.limit) queryParams.append("limit", params.limit.toString());
-    if (params?.isActive !== undefined)
-      queryParams.append("isActive", params.isActive.toString());
+    if (params?.status) queryParams.append("status", params.status);
 
-    return this.request(`/services/supplier/me?${queryParams}`, {
+    return this.request(`/packages/supplier/me?${queryParams}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -1276,53 +1367,116 @@ class ApiService {
     });
   }
 
-  async getService(id: string) {
-    return this.request(`/services/${id}`);
-  }
-
-  async createService(serviceData: ServiceData) {
+  async createPackage(packageData: PackageData & { image?: File }) {
     const token = localStorage.getItem("token");
     if (!token) {
       throw new Error("No authentication token found");
     }
 
-    console.log("Creating service with data:", serviceData);
+    console.log("Creating package with data:", packageData);
 
-    return this.request("/services", {
+    // Use FormData if image is provided
+    if (packageData.image) {
+      const formData = new FormData();
+      formData.append("name", packageData.name);
+      formData.append("description", packageData.description || "");
+      formData.append("category", packageData.category);
+      formData.append("price", JSON.stringify(packageData.price));
+      if (packageData.features) {
+        formData.append("features", JSON.stringify(packageData.features));
+      }
+      if (packageData.duration !== undefined) {
+        formData.append("duration", packageData.duration.toString());
+      }
+      formData.append("isPopular", packageData.isPopular ? "true" : "false");
+      if (packageData.featured !== undefined) {
+        formData.append("featured", packageData.featured ? "true" : "false");
+      }
+      if (packageData.availability) {
+        formData.append("availability", JSON.stringify(packageData.availability));
+      }
+      formData.append("image", packageData.image);
+
+      return this.request("/packages", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+    }
+
+    return this.request("/packages", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(serviceData),
+      body: JSON.stringify(packageData),
     });
   }
 
-  async updateService(id: string, serviceData: Partial<ServiceData>) {
+  async updatePackage(id: string, packageData: Partial<PackageData> & { image?: File | null }) {
     const token = localStorage.getItem("token");
     if (!token) {
       throw new Error("No authentication token found");
     }
 
-    console.log("Updating service with data:", serviceData);
+    console.log("Updating package with data:", packageData);
 
-    return this.request(`/services/${id}`, {
+    // Use FormData if image is provided or being removed
+    if (packageData.image !== undefined) {
+      const formData = new FormData();
+      if (packageData.name) formData.append("name", packageData.name);
+      if (packageData.description) formData.append("description", packageData.description);
+      if (packageData.category) formData.append("category", packageData.category);
+      if (packageData.price) formData.append("price", JSON.stringify(packageData.price));
+      if (packageData.duration !== undefined) {
+        formData.append("duration", packageData.duration.toString());
+      }
+      if (packageData.isPopular !== undefined) {
+        formData.append("isPopular", packageData.isPopular ? "true" : "false");
+      }
+      if (packageData.featured !== undefined) {
+        formData.append("featured", packageData.featured ? "true" : "false");
+      }
+      if (packageData.availability) {
+        formData.append("availability", JSON.stringify(packageData.availability));
+      }
+
+      // Handle image: File for new image, null/empty string for removal
+      if (packageData.image === null) {
+        formData.append("image", ""); // Empty string signals removal
+      } else if (packageData.image) {
+        formData.append("image", packageData.image);
+      }
+
+      return this.request(`/packages/${id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+    }
+
+    return this.request(`/packages/${id}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(serviceData),
+      body: JSON.stringify(packageData),
     });
   }
 
-  async deleteService(id: string) {
+  async deletePackage(id: string) {
     const token = localStorage.getItem("token");
     if (!token) {
       throw new Error("No authentication token found");
     }
 
-    return this.request(`/services/${id}`, {
+    return this.request(`/packages/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -1331,15 +1485,15 @@ class ApiService {
     });
   }
 
-  async toggleServiceAvailability(id: string, isAvailable: boolean) {
+  async togglePackageAvailability(id: string, isAvailable: boolean) {
     const token = localStorage.getItem("token");
     if (!token) {
       throw new Error("No authentication token found");
     }
 
-    console.log("Toggling service availability:", { id, isAvailable });
+    console.log("Toggling package availability:", { id, isAvailable });
 
-    return this.request(`/services/${id}/availability`, {
+    return this.request(`/packages/${id}/availability`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -1349,26 +1503,130 @@ class ApiService {
     });
   }
 
-  // Package management endpoints
+  async addPackageReview(packageId: string, rating: number, comment?: string) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    return this.request(`/packages/${packageId}/reviews`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ rating, comment }),
+    });
+  }
+
+  async getPackagesWithSuppliers(params?: {
+    category?: string;
+    city?: string;
+    maxPrice?: number;
+    minPrice?: number;
+    search?: string;
+    limit?: number;
+    page?: number;
+    minRating?: number;
+  }) {
+    const queryParams = new URLSearchParams();
+    if (params?.category) queryParams.append("category", params.category);
+    if (params?.city) queryParams.append("city", params.city);
+    if (params?.maxPrice)
+      queryParams.append("maxPrice", params.maxPrice.toString());
+    if (params?.minPrice)
+      queryParams.append("minPrice", params.minPrice.toString());
+    if (params?.search) queryParams.append("search", params.search);
+    if (params?.minRating)
+      queryParams.append("minRating", params.minRating.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.page) queryParams.append("page", params.page.toString());
+
+    return this.request(`/packages/with-suppliers?${queryParams}`);
+  }
+
+  // Legacy service methods (backward compatibility)
+  async getMyServices(params?: {
+    page?: number;
+    limit?: number;
+    isActive?: boolean;
+  }) {
+    console.warn("getMyServices is deprecated. Use getMyPackages() instead.");
+    return this.getMyPackages(params);
+  }
+
+  async getService(id: string) {
+    console.warn("getService is deprecated. Use getPackage() instead.");
+    return this.request(`/packages/${id}`);
+  }
+
+  async createService(serviceData: ServiceData) {
+    console.warn("createService is deprecated. Use createPackage() instead.");
+    // Map service fields to package fields
+    const packageData = {
+      name: serviceData.title || '',
+      description: serviceData.description || '',
+      category: serviceData.category || '',
+      price: serviceData.price || { amount: 0, currency: 'ILS', pricingType: 'fixed' },
+      features: serviceData.features || [],
+      duration: serviceData.duration,
+      isPopular: serviceData.isPopular || false,
+      featured: serviceData.featured
+    };
+    return this.createPackage(packageData as PackageData & { image?: File });
+  }
+
+  async updateService(id: string, serviceData: Partial<ServiceData>) {
+    console.warn("updateService is deprecated. Use updatePackage() instead.");
+    // Map service fields to package fields
+    const packageData: Record<string, unknown> = {};
+    if (serviceData.title) packageData.name = serviceData.title;
+    if (serviceData.description) packageData.description = serviceData.description;
+    if (serviceData.category) packageData.category = serviceData.category;
+    if (serviceData.price) packageData.price = serviceData.price;
+    if (serviceData.features) packageData.features = serviceData.features;
+    if (serviceData.duration !== undefined) packageData.duration = serviceData.duration;
+    if (serviceData.isPopular !== undefined) packageData.isPopular = serviceData.isPopular;
+    if (serviceData.featured !== undefined) packageData.featured = serviceData.featured;
+
+    return this.updatePackage(id, packageData as Partial<PackageData> & { image?: File });
+  }
+
+  async deleteService(id: string) {
+    console.warn("deleteService is deprecated. Use deletePackage() instead.");
+    return this.deletePackage(id);
+  }
+
+  async toggleServiceAvailability(id: string, isAvailable: boolean) {
+    console.warn("toggleServiceAvailability is deprecated. Use togglePackageAvailability() instead.");
+    return this.togglePackageAvailability(id, isAvailable);
+  }
+
+  // Legacy nested package management endpoints (DEPRECATED - packages are now top-level)
+  // @deprecated - These were for managing packages within services. Now packages are standalone.
   async getServicePackages(serviceId: string) {
+    // This endpoint is deprecated - packages are no longer nested under services
+    console.warn("getServicePackages is deprecated. Use getMyPackages() instead.");
     return this.request(`/services/${serviceId}/packages`);
   }
 
+  // @deprecated
   async addPackageToService(
     serviceId: string,
     packageData: PackageData & { image?: File }
   ) {
+    console.warn("addPackageToService is deprecated. Use createPackage() instead.");
     const token = localStorage.getItem("token");
     if (!token) throw new Error("No authentication token found");
 
     const formData = new FormData();
     formData.append("name", packageData.name);
     formData.append("description", packageData.description || "");
-    formData.append("price", packageData.price.toString());
+    formData.append("price", JSON.stringify(packageData.price));
+    formData.append("category", packageData.category);
     formData.append("duration", (packageData.duration ?? 0).toString());
     formData.append("isPopular", packageData.isPopular ? "true" : "false");
 
-    // Append features correctly for backend parsing
     packageData.features?.forEach((f) => formData.append("features[]", f));
 
     if (packageData.image) {
@@ -1379,24 +1637,26 @@ class ApiService {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        // No Content-Type — browser will handle multipart
       },
       body: formData,
     });
   }
 
+  // @deprecated
   async updateServicePackage(
     serviceId: string,
     packageId: string,
     packageData: PackageData & { image?: File }
   ) {
+    console.warn("updateServicePackage is deprecated. Use updatePackage() instead.");
     const token = localStorage.getItem("token");
     if (!token) throw new Error("No authentication token found");
 
     const formData = new FormData();
     formData.append("name", packageData.name);
     formData.append("description", packageData.description || "");
-    formData.append("price", packageData.price.toString());
+    formData.append("price", JSON.stringify(packageData.price));
+    formData.append("category", packageData.category);
     formData.append("duration", (packageData.duration ?? 0).toString());
     formData.append("isPopular", packageData.isPopular ? "true" : "false");
 
@@ -1414,7 +1674,9 @@ class ApiService {
     });
   }
 
+  // @deprecated
   async deleteServicePackage(serviceId: string, packageId: string) {
+    console.warn("deleteServicePackage is deprecated. Use deletePackage() instead.");
     const token = localStorage.getItem("token");
     if (!token) {
       throw new Error("No authentication token found");
@@ -1429,20 +1691,10 @@ class ApiService {
     });
   }
 
-  // Service reviews
+  // @deprecated - Use addPackageReview instead
   async addServiceReview(serviceId: string, rating: number, comment?: string) {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      throw new Error("No authentication token found");
-    }
-
-    return this.request(`/services/${serviceId}/reviews`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ rating, comment }),
-    });
+    console.warn("addServiceReview is deprecated. Use addPackageReview() instead.");
+    return this.addPackageReview(serviceId, rating, comment);
   }
 
   // Order endpoints
@@ -2042,7 +2294,7 @@ class ApiService {
   async updateSupplierEventStatus(
     eventId: string,
     supplierId: string,
-    serviceId: string,
+    packageId: string, // Changed from serviceId
     status: "approved" | "rejected"
   ) {
     const token = localStorage.getItem("token");
@@ -2058,7 +2310,7 @@ class ApiService {
       },
       body: JSON.stringify({
         supplierId,
-        serviceId,
+        packageId, // Changed from serviceId
         status,
       }),
     });
@@ -2067,6 +2319,53 @@ class ApiService {
   // Get user by ID (for supplier details)
   async getUserById(userId: string) {
     return this.request(`/users/${userId}`);
+  }
+
+  // Get supplier by ID with packages
+  async getSupplierById(supplierId: string) {
+    return this.request(`/suppliers/${supplierId}`);
+  }
+
+  // Review methods
+  async submitSupplierReview(supplierId: string, reviewData: {
+    rating: number;
+    feedback?: string;
+    orderId?: string;
+  }) {
+    return this.request(`/suppliers/${supplierId}/reviews`, {
+      method: "POST",
+      body: JSON.stringify(reviewData),
+    });
+  }
+
+  async getSupplierReviews(supplierId: string, params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+  }) {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.status) queryParams.append("status", params.status);
+
+    const queryString = queryParams.toString();
+    return this.request(`/suppliers/${supplierId}/reviews${queryString ? `?${queryString}` : ""}`);
+  }
+
+  async updateSupplierReview(supplierId: string, reviewId: string, reviewData: {
+    rating?: number;
+    feedback?: string;
+  }) {
+    return this.request(`/suppliers/${supplierId}/reviews/${reviewId}`, {
+      method: "PUT",
+      body: JSON.stringify(reviewData),
+    });
+  }
+
+  async deleteSupplierReview(supplierId: string, reviewId: string) {
+    return this.request(`/suppliers/${supplierId}/reviews/${reviewId}`, {
+      method: "DELETE",
+    });
   }
 
   // Attendee registration (Public - No auth required)
@@ -2091,6 +2390,43 @@ class ApiService {
     });
   }
 
+  // Payment methods
+  async initiatePayment(paymentData: {
+    eventId: string;
+    tickets: Array<{
+      ticketId: string;
+      quantity: number;
+    }>;
+    attendeeInfo: {
+      fullName: string;
+      email: string;
+      phone: string;
+    };
+    bookingReference: string;
+  }) {
+    return this.request("/payments/initiate", {
+      method: "POST",
+      body: JSON.stringify(paymentData),
+    });
+  }
+
+  async verifyPayment(transactionId: string) {
+    return this.request(`/payments/verify/${transactionId}`, {
+      method: "GET",
+    });
+  }
+
+  async refundPayment(refundData: {
+    transactionId: string;
+    amount?: number;
+    reason?: string;
+  }) {
+    return this.request("/payments/refund", {
+      method: "POST",
+      body: JSON.stringify(refundData),
+    });
+  }
+
   async uploadProfileImage(file: File) {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -2100,7 +2436,7 @@ class ApiService {
     const formData = new FormData();
     formData.append("profileImage", file);
 
-    return this.request("/me/profile-image", {
+    return this.request("/users/me/profile-image", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -2250,15 +2586,31 @@ const apiService = new ApiService();
 export { apiService };
 export default apiService;
 export type {
+  // Primary Package types
+  Package,
+  PackageData,
+  PackageWithId,
+  PackageWithSupplier,
+  PackageWithSupplierDetails,
+  PackagesWithSuppliersResponse,
+  // Legacy Service types (deprecated)
   Service,
   ServiceData,
-  PackageData,
+  ServiceWithSupplierDetails,
+  ServicesWithSuppliersResponse,
+  // Event types
   Event,
+  EventData,
   EnhancedEvent,
   MyEventsResponse,
   MyEventsParams,
+  // Stats types
   OverallStats,
   SupplierStats,
   FinancialSummary,
   StatusIndicators,
+  GroupedSupplier,
+  EnhancedSupplier,
+  // Order types
+  OrderData,
 };

@@ -9,11 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar, DollarSign, Star, Users, Package, BarChart3, MapPin, Clock, Eye, Check, X, MessageCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import apiService, { type Service, type Event } from '@/services/api';
+import apiService, { type Service, type Event, type Package } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import ServiceManagement from '@/components/services/ServiceManagement';
-import PackageManagement from '@/components/services/PackageManagement';
+import PackageManagement from '@/components/packages/PackageManagement';
 import { autoTranslate } from '@/utils/autoTranslate';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -69,8 +68,6 @@ export default function SupplierDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isEventsLoading, setIsEventsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
   const [openPackages, setOpenPackages] = useState<Record<string, boolean>>({});
   const [stats, setStats] = useState({
     totalServices: 0,
@@ -681,9 +678,9 @@ const togglePackage = (eventId: string, supplierIndex: number) => {
           </Card> */}
         </TabsContent>
 
-        {/* Services Tab */}
+        {/* Packages Tab (formerly Services) */}
         <TabsContent value="services">
-          <ServiceManagement onDataUpdated={fetchDashboardData} />
+          <PackageManagement onDataUpdated={fetchDashboardData} />
         </TabsContent>
 
         {/* Orders Tab */}
@@ -1007,11 +1004,11 @@ const togglePackage = (eventId: string, supplierIndex: number) => {
                                   </Button>
                                 </>
                               )}
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
+                              <Button
+                                variant="outline"
+                                size="sm"
                                 className="flex items-center gap-1 text-blue-600 border-blue-600 hover:bg-blue-500"
-                                onClick={() => navigate("/event-chat/select")}
+                                onClick={() => navigate(`/event-chat/${event._id}`)}
                               >
                                 <MessageCircle className="h-3 w-3" />
                                 {t('events.chat', 'Chat')}
@@ -1068,13 +1065,6 @@ const togglePackage = (eventId: string, supplierIndex: number) => {
         </TabsContent>
       </Tabs>
 
-      {/* Package Management Modal */}
-      <PackageManagement
-        isOpen={isPackageModalOpen}
-        onClose={() => setIsPackageModalOpen(false)}
-        service={selectedService}
-        onPackagesUpdated={fetchDashboardData}
-      />
     </div>
   );
 }

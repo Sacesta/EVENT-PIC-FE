@@ -3,6 +3,12 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# Accept build arguments
+ARG VITE_BACKEND_URL=https://api.pic-events.co.il
+ARG VITE_MAPBOX_TOKEN
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
+ENV VITE_MAPBOX_TOKEN=$VITE_MAPBOX_TOKEN
+
 # Copy package files
 COPY package*.json ./
 
@@ -12,7 +18,7 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the application with the environment variable
 RUN npm run build
 
 # Production stage with nginx

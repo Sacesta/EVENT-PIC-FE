@@ -9,10 +9,9 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, CheckCircle, Home } from 'lucide-react';
 import Step1_ServicesAndSuppliers from '@/components/events/create/Step1_ServicesAndSuppliers_Fixed';
-import Step2_Details from '@/components/events/create/Step2_Details_Refactored';
+import Step2_Details from '@/components/events/create/Step2_Details';
 import Step3_Summary from '@/components/events/create/Step3_Summary';
 import { EventData, Ticket } from '@/components/events/create/types';
-import Step_ProducerDetails from '@/components/events/create/Step_ProducerDetails';
 
 const CreateEvent: React.FC = () => {
   const { t } = useTranslation();
@@ -28,6 +27,8 @@ const CreateEvent: React.FC = () => {
   // Form state - using refs for stable references
   const [services, setServices] = useState<string[]>([]);
   const [selectedSuppliers, setSelectedSuppliers] = useState<{ [service: string]: { [supplierId: string]: string[] } }>({});
+  const [categories, setCategories] = useState<string[]>([]);
+  const [packageDetails, setPackageDetails] = useState<{ [packageId: string]: { packageId: string; packageDetails: any } }>({});
   const [currentTab, setCurrentTab] = useState('services');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -49,7 +50,7 @@ const CreateEvent: React.FC = () => {
     price: number;
     currency: string;
   }>>([]);
-  const [selectedPackages, setSelectedPackages] = useState<{ [serviceId: string]: { packageId: string; packageDetails: any } }>({});
+  const [selectedPackages, setSelectedPackages] = useState<{ [category: string]: { [supplierId: string]: string[] } }>({});
   const [specialRequests, setSpecialRequests] = useState('');
   const [eventImage, setEventImage] = useState<File | null>(null);
   const [bankDetails, setBankDetails] = useState({
@@ -63,32 +64,29 @@ const CreateEvent: React.FC = () => {
   const eventDataRef = useRef<EventData>({} as EventData);
   eventDataRef.current = {
     name, description, startDate, endDate, startTime, endTime, location: eventLocation, eventType,
-    isPrivate, eventPassword, isPaid, isFree, freeTicketLimit, tickets, services,
-    selectedSuppliers, selectedPackages, specialRequests, currentTab, eventImage,bankDetails
+    isPrivate, eventPassword, isPaid, isFree, freeTicketLimit, tickets,
+    categories, packageDetails, selectedPackages, specialRequests, currentTab, eventImage, bankDetails,
+    // Legacy fields for backward compatibility
+    services, selectedSuppliers
   };
 
   const steps = useMemo(() => [
-    { 
-      number: 1, 
+    {
+      number: 1,
       title: t('createEvent.steps.servicesSuppliers'),
       path: '/create-event/step/1'
     },
-    { 
-      number: 2, 
+    {
+      number: 2,
       title: t('createEvent.steps.eventDetails'),
       path: '/create-event/step/2'
     },
-    { 
-      number: 3, 
-      title: t('createEvent.steps.bankDetails'),
+    {
+      number: 3,
+      title: t('createEvent.steps.summary'),
       path: '/create-event/step/3'
     },
-    { 
-      number: 4, 
-      title: t('createEvent.steps.summary'),
-      path: '/create-event/step/4'
-    },
-      
+
   ], [t]);
 
   // Load saved data from sessionStorage on component mount
@@ -99,6 +97,8 @@ const CreateEvent: React.FC = () => {
         const parsedData = JSON.parse(savedData);
         setServices(parsedData.services || []);
         setSelectedSuppliers(parsedData.selectedSuppliers || {});
+        setCategories(parsedData.categories || []);
+        setPackageDetails(parsedData.packageDetails || {});
         setSelectedPackages(parsedData.selectedPackages || {});
         setCurrentTab(parsedData.currentTab || 'services');
         setName(parsedData.name || '');
@@ -125,12 +125,12 @@ const CreateEvent: React.FC = () => {
   // Save data to sessionStorage whenever form data changes
   useEffect(() => {
     const dataToSave = {
-      services, selectedSuppliers, selectedPackages, currentTab, name, description,
+      services, selectedSuppliers, categories, packageDetails, selectedPackages, currentTab, name, description,
       startDate, endDate, startTime, endTime, location: eventLocation, eventType, isPrivate,
       eventPassword, isPaid, isFree, freeTicketLimit, tickets, specialRequests
     };
     sessionStorage.setItem('createEventData', JSON.stringify(dataToSave));
-  }, [services, selectedSuppliers, selectedPackages, currentTab, name, description, startDate, endDate, startTime, endTime, eventLocation, eventType, isPrivate, eventPassword, isPaid, isFree, freeTicketLimit, tickets, specialRequests]);
+  }, [services, selectedSuppliers, categories, packageDetails, selectedPackages, currentTab, name, description, startDate, endDate, startTime, endTime, eventLocation, eventType, isPrivate, eventPassword, isPaid, isFree, freeTicketLimit, tickets, specialRequests]);
 
   const handleInputChange = useCallback((field: string, value: unknown) => {
     switch (field) {
@@ -148,7 +148,9 @@ const CreateEvent: React.FC = () => {
       case 'isFree': setIsFree(value as boolean); break;
       case 'freeTicketLimit': setFreeTicketLimit(value as number); break;
       case 'tickets': setTickets(value as Ticket[]); break;
-      case 'selectedPackages': setSelectedPackages(value as { [serviceId: string]: { packageId: string; packageDetails: any } }); break;
+      case 'categories': setCategories(value as string[]); break;
+      case 'packageDetails': setPackageDetails(value as { [packageId: string]: { packageId: string; packageDetails: any } }); break;
+      case 'selectedPackages': setSelectedPackages(value as { [category: string]: { [supplierId: string]: string[] } }); break;
       case 'specialRequests': setSpecialRequests(value as string); break;
       case 'services': setServices(value as string[]); break;
       case 'selectedSuppliers': setSelectedSuppliers(value as { [service: string]: { [supplierId: string]: string[] } }); break;
@@ -273,18 +275,17 @@ const CreateEvent: React.FC = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="min-h-[400px] sm:min-h-[500px]"
               >
                 {currentStep === 1 && (
                   <Step1_ServicesAndSuppliers
-                    eventData={eventDataRef}
+                    eventData={{ categories, selectedPackages: packageDetails }}
                     onUpdate={handleInputChange}
                     selectedServices={services}
                     onServicesChange={(newServices) => handleInputChange('services', newServices)}
                     selectedSuppliers={selectedSuppliers}
                     onSuppliersChange={(newSuppliers) => handleInputChange('selectedSuppliers', newSuppliers)}
-                    selectedPackages={selectedPackages}
-                    onPackagesChange={(newPackages) => handleInputChange('selectedPackages', newPackages)}
+                    selectedPackages={packageDetails}
+                    onPackagesChange={(newPackages) => handleInputChange('packageDetails', newPackages)}
                     onNext={nextStep}
                   />
                 )}
@@ -296,17 +297,27 @@ const CreateEvent: React.FC = () => {
                     onBack={prevStep}
                   />
                 )}
-                 {currentStep === 3 && (
-                  <Step_ProducerDetails
-                    eventData={eventDataRef.current}
-                    onUpdate={handleInputChange}
-                    onBack={prevStep}
-                    onNext={nextStep}
-                  />
-                )}
-                {currentStep === 4 && (
+                {currentStep === 3 && (
                   <Step3_Summary
-                    eventData={eventDataRef.current}
+                    eventData={{
+                      name,
+                      description,
+                      startDate,
+                      endDate,
+                      startTime,
+                      endTime,
+                      location: eventLocation,
+                      eventType,
+                      isPrivate,
+                      eventPassword,
+                      isPaid,
+                      tickets,
+                      services,
+                      selectedSuppliers,
+                      selectedPackages: packageDetails,
+                      bankDetails,
+                      eventImage
+                    }}
                     onBack={prevStep}
                     onCreateEvent={handleCreateEvent}
                   />

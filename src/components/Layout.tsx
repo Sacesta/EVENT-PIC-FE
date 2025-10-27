@@ -337,7 +337,13 @@ const handleUpdateUser = async (updatedUser: User) => {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="cursor-pointer"
-                            onSelect={() => setIsProfileModalOpen(true)}
+                            onSelect={() => {
+                              if (user.role === 'supplier') {
+                                navigate(`/supplier/${user._id}`);
+                              } else {
+                                setIsProfileModalOpen(true);
+                              }
+                            }}
                           >
                             <UserCircle className="w-4 h-4 mr-2" />
                             {t("nav.profile")}
@@ -458,7 +464,11 @@ const handleUpdateUser = async (updatedUser: User) => {
                           <button
                             className="w-full flex items-center gap-3 p-3 rounded-lg text-left font-medium transition-colors bg-muted hover:bg-muted/80"
                             onClick={() => {
-                              setIsProfileModalOpen(true);
+                              if (user.role === 'supplier') {
+                                navigate(`/supplier/${user._id}`);
+                              } else {
+                                setIsProfileModalOpen(true);
+                              }
                               setIsMobileMenuOpen(false);
                             }}
                           >

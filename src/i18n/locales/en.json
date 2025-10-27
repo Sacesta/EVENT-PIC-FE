@@ -19,7 +19,7 @@
   "createEvent": {
     "modalTitle": "Create New Event",
     "steps": {
-      "servicesSuppliers": "Services & Suppliers",
+      "servicesSuppliers": "Suppliers",
       "eventDetails": "Event Details",
       "summary": "Summary",
       "bankDetails": "Bank Details"
@@ -41,7 +41,7 @@
       "privateEventDesc": "Require password to access event",
       "passwordPlaceholder": "Enter password",
       "paidTickets": "Paid Tickets",
-      "freeTickets": "Free Tickets",
+      "freeTickets": "Tickets",
       "chargeAttendees": "Charge attendees for tickets",
       "noChargeAttendees": "No charge for attendees",
       "setPricesBelow": "Set ticket prices below",
@@ -132,12 +132,16 @@
       "location": "Location",
       "locationPlaceholder": "Enter event location",
       "popular": "Popular:",
+      "openMap": "Open map",
+      "selectLocation": "Select Location",
+      "selectLocationDescription": "Search for a location or click on the map to select a point",
+      "searchLocation": "Search for a location...",
       "privateEvent": "Private Event",
       "privateEventDesc": "Require password to join",
       "eventPassword": "Event Password",
       "passwordPlaceholder": "Enter password",
       "paidTickets": "Paid Tickets",
-      "freeTickets": "Free Tickets",
+      "freeTickets": "Tickets",
       "chargeAttendees": "Charge attendees for entry",
       "noChargeAttendees": "No charge for attendees",
       "setPricesBelow": "Set ticket prices in the section below",
@@ -237,6 +241,7 @@
       "beach": "Beach",
       "rooftopVenue": "Rooftop Venue",
       "north": "North",
+      "center": "Center",
       "south": "South",
       "golan": "Golan",
       "telAviv": "Tel Aviv",
@@ -886,7 +891,7 @@
   "pricing": {
     "fixed": "Fixed Price",
     "per_hour": "Per Hour",
-    "per_person": "Per Person",
+    "starting_from": "Starting From",
     "negotiable": "Negotiable"
   },
   "experience": {
@@ -1026,6 +1031,7 @@
     }
   },
   "common": {
+    "optional": "(Optional)",
     "minCharacters": "Min. {{count}} characters",
     "charactersCount": "{{current}}/{{min}} characters",
     "loading": "Loading...",
@@ -1040,6 +1046,9 @@
     "done": "Done",
     "selected": "Selected",
     "cancel": "Cancel",
+    "search": "Search",
+    "searching": "Searching...",
+    "confirm": "Confirm",
     "create": "Create",
     "creating": "Creating...",
     "update": "Update",

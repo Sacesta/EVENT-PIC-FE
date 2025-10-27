@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, MapPin, Tag, SortAsc, SortDesc, Calendar, Clock, Pencil, User, Trash2, MessageCircle, Ticket, CheckCircle, XCircle, AlertCircle, Pause, DollarSign, Users as UsersIcon, Lock, Gift, Link2, Check, QrCode } from 'lucide-react';
+import { Search, MapPin, Tag, SortAsc, SortDesc, Calendar, Clock, Pencil, User, Trash2, MessageCircle, Ticket, CheckCircle, XCircle, AlertCircle, Pause, DollarSign, Users as UsersIcon, Lock, Gift, Link2, Check, QrCode, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -283,6 +283,18 @@ export const EventsSection: React.FC<EventsSectionProps> = ({
           <div className="flex gap-2 flex-wrap">
             {!isPastEvent && (
               <>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="w-10 h-10 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/event/${eventId}/manage`);
+                  }}
+                  title="Manage Event"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"

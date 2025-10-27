@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate,Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import apiService from "@/services/api";
+import { TermsModal } from "@/components/TermsModal";
 
 interface ServiceCategoryInfo {
   name: { en: string; he: string };
@@ -70,6 +71,7 @@ export default function SupplierRegister() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
 
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -727,13 +729,13 @@ export default function SupplierRegister() {
                     </Label>
                     <p className="text-xs text-muted-foreground">
                       {t("auth.termsAgreementPrefix")}{" "}
-                      <Link
-                        to="/contact-terms"
+                      <button
+                        type="button"
+                        onClick={() => setIsTermsModalOpen(true)}
                         className="text-accent hover:text-accent/80 underline font-medium transition-colors"
-                        rel="noopener noreferrer"
                       >
                         {t("terms.readTerms")}
-                      </Link>
+                      </button>
                     </p>
                   </div>
                 </div>
@@ -774,7 +776,7 @@ export default function SupplierRegister() {
               <p className="text-sm text-muted-foreground text-center">
                 {t("auth.supplierRegister.alreadyHaveAccount")}{" "}
                 <Link
-                  to="/supplier-login"
+                  to="/signin"
                   className="text-accent hover:text-accent/80 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 rounded"
                 >
                   {t("auth.signInHere")}
@@ -784,6 +786,12 @@ export default function SupplierRegister() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Terms Modal */}
+      <TermsModal
+        isOpen={isTermsModalOpen}
+        onClose={() => setIsTermsModalOpen(false)}
+      />
     </div>
   );
 }

@@ -1,489 +1,67 @@
-import React, { useState, useCallback, useMemo, useRef } from "react";
+
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Calendar as CalendarIcon,
-  Clock,
-  MapPin,
   Lock,
   DollarSign,
-  Plus,
-  Trash2,
   Eye,
   EyeOff,
-  Users,
-  Ticket,
   CheckCircle,
   AlertCircle,
+  Ticket as TicketIcon,
+  Building2,
+  MapPin,
+  CreditCard,
+  User,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Step2_DetailsProps, Ticket, BankDetails } from "./types";
+import { EVENT_TYPES } from "./constants";
+import {
+  MemoizedInput,
+  MemoizedTextarea,
+  MemoizedSelect,
+  LocationInput,
+  DateTimeSelector,
+  ToggleCard,
+  TicketsSection,
+  ImageUpload,
+} from "./form-components";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Combobox, ComboboxOption } from "@/components/ui/combobox";
+import { getUniqueBanks, getBranchesForBank } from './form-components/BankData';
 
-// Types
-interface Ticket {
-  id: string;
-  name: string;
-  quantity: number;
-  price: number;
-  currency: string;
-}
-
-interface EventData {
-  name: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  startTime: string;
-  endTime: string;
-  location: string;
-  eventType: string;
-  isPrivate: boolean;
-  eventPassword: string;
-  isPaid: boolean;
-  isFree: boolean;
-  freeTicketLimit: number;
-  tickets: Ticket[];
-  services: string[];
-  selectedSuppliers: { [service: string]: { [supplierId: string]: string[] } };
-  specialRequests: string;
-  currentTab: string;
-  eventImage?: File | null;
-}
-
-interface Step2_DetailsProps {
-  eventData: EventData;
-  onUpdate: (field: string, value: unknown) => void;
-  onNext: () => void;
-  onBack: () => void;
-}
-
-// Import constants from the constants file
-import { EVENT_TYPES, POPULAR_LOCATIONS } from './constants';
-import { TicketsSection } from './form-components/TicketsSection';
-import { DateTimeSelector } from './form-components/DateTimeSelector';
-import ImageUpload from './form-components/ImageUpload';
-
-// Time slots - moved outside component
-const TIME_SLOTS = [
-  "08:00",
-  "08:30",
-  "09:00",
-  "09:30",
-  "10:00",
-  "10:30",
-  "11:00",
-  "11:30",
-  "12:00",
-  "12:30",
-  "13:00",
-  "13:30",
-  "14:00",
-  "14:30",
-  "15:00",
-  "15:30",
-  "16:00",
-  "16:30",
-  "17:00",
-  "17:30",
-  "18:00",
-  "18:30",
-  "19:00",
-  "19:30",
-  "20:00",
-  "20:30",
-  "21:00",
-  "21:30",
-  "22:00",
-  "22:30",
-  "23:00",
-  "23:30",
-];
-
-// Memoized Input Component
-const MemoizedInput = React.memo<{
-  label: string;
-  placeholder: string;
-  value: string;
-  onChange: (value: string) => void;
-  required?: boolean;
-  type?: string;
-  icon?: any;
-  error?: string;
-}>(
-  ({
-    label,
-    placeholder,
-    value,
-    onChange,
-    required = false,
-    type = "text",
-    icon: Icon,
-    error,
-  }) => (
-    <div className="space-y-2">
-      <Label className="text-sm font-medium">
-        {label} {required && <span className="text-red-500">*</span>}
-      </Label>
-      <div className="relative">
-        {Icon && (
-          <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-        )}
-        <Input
-          type={type}
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={cn(
-            Icon ? "pl-10" : "",
-            error ? "border-red-500 focus:border-red-500" : ""
-          )}
-        />
-      </div>
-      {error && (
-        <p className="text-sm text-red-500 flex items-center gap-1">
-          <AlertCircle className="w-3 h-3" />
-          {error}
-        </p>
-      )}
-    </div>
-  )
-);
-
-// Memoized Textarea Component
-const MemoizedTextarea = React.memo<{
-  label: string;
-  placeholder: string;
-  value: string;
-  onChange: (value: string) => void;
-  required?: boolean;
-}>(({ label, placeholder, value, onChange, required = false }) => (
-  <div className="space-y-2">
-    <Label className="text-sm font-medium">
-      {label} {required && <span className="text-red-500">*</span>}
-    </Label>
-    <Textarea
-      placeholder={placeholder}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      rows={4}
-      className="resize-none"
-    />
-  </div>
-));
-
-// Memoized Select Component
-const MemoizedSelect = React.memo<{
-  label: string;
-  placeholder: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: Array<{ value: string; labelKey: string }>;
-  required?: boolean;
-  error?: string;
-}>(
-  ({
-    label,
-    placeholder,
-    value,
-    onChange,
-    options,
-    required = false,
-    error,
-  }) => {
-    const { t } = useTranslation();
-    
-    return (
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">
-          {label} {required && <span className="text-red-500">*</span>}
-        </Label>
-        <Select value={value} onValueChange={onChange}>
-          <SelectTrigger className={error ? "border-red-500" : ""}>
-            <SelectValue placeholder={placeholder} />
-          </SelectTrigger>
-          <SelectContent>
-            {options.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {t(option.labelKey)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {error && (
-          <p className="text-sm text-red-500 flex items-center gap-1">
-            <AlertCircle className="w-3 h-3" />
-            {error}
-          </p>
-        )}
-      </div>
-    );
-  }
-);
-
-// Location Input Component
-const LocationInput = React.memo<{
-  value: string;
-  onChange: (value: string) => void;
-  error?: string;
-}>(({ value, onChange, error }) => {
-  const { t } = useTranslation();
-  
-  return (
-    <div className="space-y-2">
-      <Label className="text-sm font-medium">
-        {t('createEvent.step2.location')} <span className="text-red-500">*</span>
-      </Label>
-      <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <Input
-          placeholder={t('createEvent.step2.locationPlaceholder')}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={cn("pl-10", error ? "border-red-500" : "")}
-        />
-      </div>
-
-      {/* Popular Locations */}
-      <div className="space-y-2">
-        <p className="text-xs text-gray-500">{t('createEvent.step2.popular')}</p>
-        <div className="flex flex-wrap gap-2">
-          {POPULAR_LOCATIONS.map((location) => (
-            <Button
-              key={location.value}
-              variant="outline"
-              size="sm"
-              onClick={() => onChange(t(location.labelKey))}
-              className="text-xs h-7"
-            >
-              {t(location.labelKey)}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {error && (
-        <p className="text-sm text-red-500 flex items-center gap-1">
-          <AlertCircle className="w-3 h-3" />
-          {error}
-        </p>
-      )}
-    </div>
-  );
-});
-
-
-// Toggle Card Component
-const ToggleCard = React.memo<{
-  title: string;
-  description: string;
-  icon: any;
-  isEnabled: boolean;
-  onToggle: (enabled: boolean) => void;
-  children?: React.ReactNode;
-}>(({ title, description, icon: Icon, isEnabled, onToggle, children }) => (
-  <Card
-    className={cn(
-      "transition-all duration-200",
-      isEnabled ? "ring-2 ring-primary border-primary bg-primary/5" : ""
-    )}
-  >
-    <CardHeader className="pb-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center",
-              isEnabled
-                ? "bg-primary text-primary-foreground"
-                : "bg-gray-100 text-gray-600"
-            )}
-          >
-            <Icon className="w-5 h-5" />
-          </div>
-          <div>
-            <CardTitle className="text-base">{title}</CardTitle>
-            <p className="text-sm text-muted-foreground">{description}</p>
-          </div>
-        </div>
-        <Switch checked={isEnabled} onCheckedChange={onToggle} />
-      </div>
-    </CardHeader>
-    {isEnabled && children && (
-      <CardContent className="pt-0">{children}</CardContent>
-    )}
-  </Card>
-));
-
-// Ticket Item Component
-const TicketItem = React.memo<{
-  ticket: Ticket;
-  onUpdate: (id: string, updates: Partial<Ticket>) => void;
-  onRemove: (id: string) => void;
-}>(({ ticket, onUpdate, onRemove }) => {
-  const handleNameChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      onUpdate(ticket.id, { name: e.target.value });
-    },
-    [ticket.id, onUpdate]
-  );
-
-  const handleQuantityChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      if (value === "") {
-        onUpdate(ticket.id, { quantity: 0 });
-      } else {
-        const numValue = parseInt(value);
-        if (!isNaN(numValue) && numValue >= 0) {
-          onUpdate(ticket.id, { quantity: numValue });
-        }
-      }
-    },
-    [ticket.id, onUpdate]
-  );
-
-  const handlePriceChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      if (value === "") {
-        onUpdate(ticket.id, { price: 0 });
-      } else {
-        const numValue = parseFloat(value);
-        if (!isNaN(numValue) && numValue >= 0) {
-          onUpdate(ticket.id, { price: numValue });
-        }
-      }
-    },
-    [ticket.id, onUpdate]
-  );
-
-  const handleCurrencyChange = useCallback(
-    (value: string) => {
-      onUpdate(ticket.id, { currency: value });
-    },
-    [ticket.id, onUpdate]
-  );
-
-  const handleRemove = useCallback(() => {
-    onRemove(ticket.id);
-  }, [ticket.id, onRemove]);
-
-  const totalRevenue = useMemo(() => {
-    return ((ticket.quantity || 0) * (ticket.price || 0)).toFixed(2);
-  }, [ticket.quantity, ticket.price]);
-
-  return (
-    <Card className="p-4">
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Ticket className="w-4 h-4 text-primary" />
-            <span className="font-medium">Ticket Type</span>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRemove}
-            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div>
-            <Label className="text-xs text-gray-500">Ticket Name</Label>
-            <Input
-              placeholder="e.g., General Admission"
-              value={ticket.name}
-              onChange={handleNameChange}
-            />
-          </div>
-          <div>
-            <Label className="text-xs text-gray-500">Quantity</Label>
-            <Input
-              type="number"
-              min="1"
-              placeholder="100"
-              value={ticket.quantity === 0 ? "" : ticket.quantity}
-              onChange={handleQuantityChange}
-              onBlur={(e) => {
-                if (e.target.value === "") {
-                  onUpdate(ticket.id, { quantity: 0 });
-                }
-              }}
-            />
-          </div>
-          <div>
-            <Label className="text-xs text-gray-500">Price</Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="50.00"
-              value={ticket.price === 0 ? "" : ticket.price}
-              onChange={handlePriceChange}
-              onBlur={(e) => {
-                if (e.target.value === "") {
-                  onUpdate(ticket.id, { price: 0 });
-                }
-              }}
-            />
-          </div>
-          <div>
-            <Label className="text-xs text-gray-500">Currency</Label>
-            <Select value={ticket.currency || 'ILS'} onValueChange={handleCurrencyChange}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="USD">USD ($)</SelectItem>
-                <SelectItem value="EUR">EUR (€)</SelectItem>
-                <SelectItem value="ILS">ILS (₪)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-          Total Revenue: {ticket.currency === 'USD' ? '$' : ticket.currency === 'EUR' ? '€' : '₪'}{totalRevenue}
-        </div>
-      </div>
-    </Card>
-  );
-});
-
-
-// Main Component
 const Step2_Details: React.FC<Step2_DetailsProps> = ({
   eventData,
   onUpdate,
   onNext,
   onBack,
+  isEditMode = false,
 }) => {
-  console.log("Rendering Step2_Details");
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isBankDetailsOpen, setIsBankDetailsOpen] = useState(false);
+  const [selectedBankCode, setSelectedBankCode] = useState<string>("");
+  const [availableBranches, setAvailableBranches] = useState<Array<{code: string; name: string; address: string; city: string; displayName: string}>>([]);
+
+  // Initialize bank and branches on mount or when bank details change (e.g., in edit mode)
+  useEffect(() => {
+    if (eventData.bankDetails?.bankName && !selectedBankCode) {
+      // Find the bank code from the bank name
+      const bank = getUniqueBanks().find(b => b.name === eventData.bankDetails?.bankName);
+      if (bank) {
+        setSelectedBankCode(bank.code);
+        const branches = getBranchesForBank(bank.code);
+        setAvailableBranches(branches);
+      }
+    }
+  }, [eventData.bankDetails?.bankName, selectedBankCode]);
 
   // Use ref to avoid recreating errors object unnecessarily
   const errorsRef = useRef(errors);
@@ -513,72 +91,156 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
     });
   }, []);
 
-  // Validation
+  const isDateTimeInPast = useCallback((dateStr: string, timeStr: string): boolean => {
+    const now = new Date();
+    const dateTime = new Date(`${dateStr}T${timeStr}:00`);
+    return dateTime < now;
+  }, []);
+
+  const isEndDateTimeAfterStartDateTime = useCallback(
+    (
+      startDateStr: string,
+      startTimeStr: string,
+      endDateStr: string,
+      endTimeStr: string
+    ): boolean => {
+      const startDateTime = new Date(`${startDateStr}T${startTimeStr}:00`);
+      const endDateTime = new Date(`${endDateStr}T${endTimeStr}:00`);
+      return endDateTime > startDateTime;
+    },
+    []
+  );
+
+  // Helper function to extract date in YYYY-MM-DD format from various inputs
+  const getNormalizedDate = (dateValue: string | Date | null | undefined): string => {
+    if (!dateValue) return "";
+
+    // If it's already a string in YYYY-MM-DD format, return it
+    if (typeof dateValue === "string" && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return dateValue;
+    }
+
+    // If it's an ISO string with time, extract the date part
+    if (typeof dateValue === "string" && dateValue.includes("T")) {
+      return dateValue.split("T")[0];
+    }
+
+    // If it's a Date object, convert to YYYY-MM-DD
+    if (dateValue instanceof Date) {
+      return dateValue.toISOString().split("T")[0];
+    }
+
+    // Try to parse it as a date
+    try {
+      const parsed = new Date(dateValue);
+      if (!isNaN(parsed.getTime())) {
+        return parsed.toISOString().split("T")[0];
+      }
+    } catch (error) {
+      return "";
+    }
+
+    return "";
+  };
+
+  // Updated validateForm
   const validateForm = useCallback(() => {
     const newErrors: Record<string, string> = {};
 
     if (!eventData.name.trim()) {
-      newErrors.name = "Event name is required";
+      newErrors.name = t("auth.validation.required");
     }
 
     if (!eventData.startDate) {
-      newErrors.startDate = "Start date is required";
+      newErrors.startDate = t("auth.validation.required");
     }
 
     if (!eventData.startTime) {
-      newErrors.startTime = "Start time is required";
+      newErrors.startTime = t("auth.validation.required");
     }
 
     if (!eventData.endDate) {
-      newErrors.endDate = "End date is required";
+      newErrors.endDate = t("auth.validation.required");
     }
 
     if (!eventData.endTime) {
-      newErrors.endTime = "End time is required";
+      newErrors.endTime = t("auth.validation.required");
     }
 
-    // Validate that end date/time is after start date/time
-    if (eventData.startDate && eventData.startTime && eventData.endDate && eventData.endTime) {
-      const startDateTime = new Date(`${eventData.startDate}T${eventData.startTime}`);
-      const endDateTime = new Date(`${eventData.endDate}T${eventData.endTime}`);
+    // Normalize dates before validation
+    const normalizedStartDate = getNormalizedDate(eventData.startDate);
+    const normalizedEndDate = getNormalizedDate(eventData.endDate);
 
-      if (endDateTime <= startDateTime) {
-        newErrors.endDate = "End date/time must be after start date/time";
+    // Check if start date/time is not in past
+    if (normalizedStartDate && eventData.startTime) {
+      if (isDateTimeInPast(normalizedStartDate, eventData.startTime)) {
+        newErrors.startDate = t("auth.validation.cannotBePast") || "Start date/time cannot be in the past";
+        newErrors.startTime = t("auth.validation.cannotBePast") || "Start date/time cannot be in the past";
+      }
+    }
+
+    // Validate end date/time is after start date/time
+    if (normalizedStartDate && normalizedEndDate && eventData.startTime && eventData.endTime) {
+      if (
+        !isEndDateTimeAfterStartDateTime(
+          normalizedStartDate,
+          eventData.startTime,
+          normalizedEndDate,
+          eventData.endTime
+        )
+      ) {
+        newErrors.endDate = t("auth.validation.mustBeAfterStart") || "End date/time must be after start date/time";
+        newErrors.endTime = t("auth.validation.mustBeAfterStart") || "End date/time must be after start date/time";
+      }
+    }
+
+    // Validate date format for start
+    if (normalizedStartDate && eventData.startTime) {
+      try {
+        const startDateTime = new Date(`${normalizedStartDate}T${eventData.startTime}:00`);
+        if (isNaN(startDateTime.getTime())) {
+          newErrors.startDate = "Invalid start date/time format";
+        }
+      } catch (error) {
+        newErrors.startDate = "Invalid start date/time format";
+      }
+    }
+
+    // Validate date format for end
+    if (normalizedEndDate && eventData.endTime) {
+      try {
+        const endDateTime = new Date(`${normalizedEndDate}T${eventData.endTime}:00`);
+        if (isNaN(endDateTime.getTime())) {
+          newErrors.endDate = "Invalid end date/time format";
+        }
+      } catch (error) {
+        newErrors.endDate = "Invalid end date/time format";
       }
     }
 
     if (!eventData.location.trim()) {
-      newErrors.location = "Event location is required";
+      newErrors.location = t("auth.validation.required");
     }
 
     if (!eventData.eventType) {
-      newErrors.eventType = "Event type is required";
+      newErrors.eventType = t("auth.validation.required");
     }
 
     if (eventData.isPrivate && !eventData.eventPassword?.trim()) {
-      newErrors.eventPassword = "Password is required for private events";
+      newErrors.eventPassword = t("auth.validation.required");
     }
 
     if (eventData.isPaid && eventData.tickets.length === 0) {
-      newErrors.tickets =
-        "At least one ticket type is required for paid events";
+      newErrors.tickets = t("auth.validation.required");
+    }
+
+    if (!eventData.isPaid && (!eventData.maxAttendees || eventData.maxAttendees <= 0)) {
+      newErrors.maxAttendees = t("auth.validation.required");
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [
-    eventData.name,
-    eventData.startDate,
-    eventData.startTime,
-    eventData.endDate,
-    eventData.endTime,
-    eventData.location,
-    eventData.eventType,
-    eventData.isPrivate,
-    eventData.eventPassword,
-    eventData.isPaid,
-    eventData.tickets.length,
-  ]);
+  }, [eventData, t, isDateTimeInPast, isEndDateTimeAfterStartDateTime]);
 
   // Memoized handlers
   const handleUpdate = useCallback(
@@ -613,16 +275,19 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
     [handleUpdate]
   );
 
-  const handleAddTicket = useCallback(() => {
-    const newTicket: Ticket = {
-      id: Date.now().toString(),
-      name: "",
-      quantity: 0,
-      price: 0,
-      currency: 'ILS',
-    };
-    const newTickets = [...eventData.tickets, newTicket];
-    handleUpdate("tickets", newTickets);
+  const handleAddTicket = useCallback((newTicket?: Ticket | Ticket[]) => {
+    if (Array.isArray(newTicket)) {
+      handleUpdate("tickets", newTicket);
+    } else {
+      const ticket = newTicket || {
+        id: Date.now().toString(),
+        name: "",
+        quantity: 0,
+        price: 0,
+      };
+      const newTickets = [...eventData.tickets, ticket];
+      handleUpdate("tickets", newTickets);
+    }
   }, [eventData.tickets, handleUpdate]);
 
   const handleUpdateTicket = useCallback(
@@ -666,33 +331,7 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
     [handleUpdate]
   );
 
-  const handleStartDateChange = useCallback(
-    (value: string) => {
-      handleUpdate("startDate", value);
-    },
-    [handleUpdate]
-  );
 
-  const handleStartTimeChange = useCallback(
-    (value: string) => {
-      handleUpdate("startTime", value);
-    },
-    [handleUpdate]
-  );
-
-  const handleEndDateChange = useCallback(
-    (value: string) => {
-      handleUpdate("endDate", value);
-    },
-    [handleUpdate]
-  );
-
-  const handleEndTimeChange = useCallback(
-    (value: string) => {
-      handleUpdate("endTime", value);
-    },
-    [handleUpdate]
-  );
 
   const handleLocationChange = useCallback(
     (value: string) => {
@@ -722,7 +361,23 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
     [handleUpdate]
   );
 
-  // Check if form is valid for continue button
+  // Bank details handlers
+  const handleBankDetailsChange = useCallback(
+    (field: keyof BankDetails, value: string) => {
+      const updatedBankDetails = {
+        ...eventData.bankDetails,
+        [field]: value
+      };
+      onUpdate("bankDetails", updatedBankDetails);
+    },
+    [eventData.bankDetails, onUpdate]
+  );
+
+  const toggleBankDetails = useCallback(() => {
+    setIsBankDetailsOpen((prev) => !prev);
+  }, []);
+
+  // Check if form is valid for continue button - optimized with single dependency
   const isFormValid = useMemo(() => {
     return (
       eventData.name.trim() &&
@@ -733,41 +388,36 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
       eventData.location.trim() &&
       eventData.eventType &&
       (!eventData.isPrivate || eventData.eventPassword?.trim()) &&
-      (!eventData.isPaid || eventData.tickets.length > 0)
+      (eventData.isPaid ? eventData.tickets.length > 0 : (eventData.maxAttendees && eventData.maxAttendees > 0))
     );
-  }, [
-    eventData.name,
-    eventData.startDate,
-    eventData.startTime,
-    eventData.endDate,
-    eventData.endTime,
-    eventData.location,
-    eventData.eventType,
-    eventData.isPrivate,
-    eventData.eventPassword,
-    eventData.isPaid,
-    eventData.tickets.length,
-  ]);
+  }, [eventData]);
+
+
+
+
+  // Compute min values for date/time inputs
+  const today = new Date().toISOString().split("T")[0];
+  const currentTime = new Date().toISOString().split("T")[1].slice(0, 5);
 
   return (
-    <div className="flex flex-col h-full max-h-[calc(90vh-120px)]">
+    <div className="flex flex-col h-auto">
       {/* Header - Fixed */}
       <div className="flex-shrink-0 text-center pb-4">
         <h2 className="text-2xl font-semibold text-foreground mb-2">
-          {t('createEvent.step2.title')}
+          {t("createEvent.step2.title")}
         </h2>
         <p className="text-muted-foreground">
-          {t('createEvent.step2.subtitle')}
+          {t("createEvent.step2.subtitle")}
         </p>
       </div>
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-2 -mr-2">
+      {/* Content - No internal scroll */}
+      <div className="flex-1 p-2">
         <div className="space-y-6 pb-4">
           {/* Event Name */}
           <MemoizedInput
-            label={t('createEvent.step2.eventName')}
-            placeholder={t('createEvent.step2.eventNamePlaceholder')}
+            label={t("createEvent.step2.eventName")}
+            placeholder={t("createEvent.step2.eventNamePlaceholder")}
             value={eventData.name}
             onChange={handleNameChange}
             required
@@ -780,32 +430,33 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
             endDate={eventData.endDate}
             startTime={eventData.startTime}
             endTime={eventData.endTime}
-            onStartDateChange={handleStartDateChange}
-            onEndDateChange={handleEndDateChange}
-            onStartTimeChange={handleStartTimeChange}
-            onEndTimeChange={handleEndTimeChange}
+            onStartDateChange={(value) => handleUpdate("startDate", value)}
+            onEndDateChange={(value) => handleUpdate("endDate", value)}
+            onStartTimeChange={(value) => handleUpdate("startTime", value)}
+            onEndTimeChange={(value) => handleUpdate("endTime", value)}
             startDateError={errors.startDate}
             endDateError={errors.endDate}
             startTimeError={errors.startTime}
             endTimeError={errors.endTime}
           />
 
+          {/* Event Image */}
+          <ImageUpload
+            label={t("createEvent.step2.eventImage")}
+            value={eventData.eventImage || null}
+            onChange={handleImageChange}
+          />
+
+
           {/* Event Type */}
           <MemoizedSelect
-            label={t('createEvent.step2.eventType')}
-            placeholder={t('createEvent.step2.selectEventType')}
+            label={t("createEvent.step2.eventType")}
+            placeholder={t("createEvent.step2.selectEventType")}
             value={eventData.eventType}
             onChange={handleEventTypeChange}
             options={EVENT_TYPES}
             required
             error={errors.eventType}
-          />
-
-          {/* Event Image */}
-          <ImageUpload
-            label={t('createEvent.step2.eventImage')}
-            value={eventData.eventImage || null}
-            onChange={handleImageChange}
           />
 
           {/* Location */}
@@ -815,12 +466,12 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
             error={errors.location}
           />
 
-          {/* Private Event, Free Event, and Paid Event Toggles */}
+          {/* Event Toggles - Side by Side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Private Event Toggle */}
             <ToggleCard
-              title={t('createEvent.step2.privateEvent')}
-              description={t('createEvent.step2.privateEventDesc')}
+              title={t("createEvent.step2.privateEvent")}
+              description={t("createEvent.step2.privateEventDesc")}
               icon={Lock}
               isEnabled={eventData.isPrivate}
               onToggle={handlePrivateToggle}
@@ -828,7 +479,7 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder={t('createEvent.step2.passwordPlaceholder')}
+                  placeholder={t("createEvent.step2.passwordPlaceholder")}
                   value={eventData.eventPassword || ""}
                   onChange={(e) => handlePasswordChange(e.target.value)}
                   className={errors.eventPassword ? "border-red-500" : ""}
@@ -837,7 +488,7 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                  className="absolute ltr:right-2 rtl:left-2 top-1/2 transform -translate-y-1/2"
                   onClick={handleTogglePassword}
                 >
                   {showPassword ? (
@@ -855,63 +506,47 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
               )}
             </ToggleCard>
 
-            {/* Free Event Toggle */}
+            {/* Ticketing Type Toggle */}
             <ToggleCard
-              title="Free Event"
-              description="Tickets are free for this event"
-              icon={Ticket}
-              isEnabled={eventData.isFree || false}
-              onToggle={(enabled) => {
-                handleUpdate("isFree", enabled);
-                if (enabled) {
-                  // Disable paid event when free event is enabled
-                  handleUpdate("isPaid", false);
-                  handleUpdate("tickets", []);
-                }
-              }}
+              title={
+                eventData.isPaid
+                  ? t("createEvent.step2.paidTickets")
+                  : t("createEvent.step2.freeTickets")
+              }
+              description={
+                eventData.isPaid
+                  ? t("createEvent.step2.chargeAttendees")
+                  : t("createEvent.step2.noChargeAttendees")
+              }
+              icon={DollarSign}
+              isEnabled={eventData.isPaid}
+              onToggle={handlePaidToggle}
             >
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Set Ticket Limit</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  placeholder="e.g. 100"
-                  value={eventData.freeTicketLimit || ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "") {
-                      handleUpdate("freeTicketLimit", 0);
-                    } else {
-                      const numValue = parseInt(value);
-                      if (!isNaN(numValue) && numValue >= 0) {
-                        handleUpdate("freeTicketLimit", numValue);
-                      }
-                    }
-                  }}
-                  className="w-full"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Maximum number of free tickets available
+                <p className="text-sm text-muted-foreground">
+                  {eventData.isPaid
+                    ? t("createEvent.step2.setPricesBelow")
+                    : t("createEvent.step2.toggleForPaid")}
                 </p>
               </div>
             </ToggleCard>
           </div>
 
-          {/* Paid Event Toggle - Full Width */}
-          {!eventData.isFree && (
-            <ToggleCard
-              title={t('createEvent.step2.paidEvent')}
-              description={t('createEvent.step2.paidEventDesc')}
-              icon={DollarSign}
-              isEnabled={eventData.isPaid}
-              onToggle={handlePaidToggle}
-            >
+          {/* Tickets Section - Show only for Paid Events */}
+          {eventData.isPaid ? (
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">
+                {t("createEvent.step2.ticketTypesPricing")} *
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {t("createEvent.step2.createTicketTiers")}
+              </p>
               <TicketsSection
                 tickets={eventData.tickets}
                 onUpdate={handleUpdateTicket}
                 onAdd={handleAddTicket}
                 onRemove={handleRemoveTicket}
-                disabled={!eventData.isPaid}
+                isPaid={eventData.isPaid}
               />
               {errors.tickets && (
                 <p className="text-sm text-red-500 flex items-center gap-1 mt-2">
@@ -919,15 +554,175 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
                   {errors.tickets}
                 </p>
               )}
-            </ToggleCard>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">
+                {t("createEvent.step2.maxAttendees")} *
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {t("createEvent.step2.setMaxAttendees")}
+              </p>
+              <Input
+                id="maxAttendees"
+                type="number"
+                min="1"
+                placeholder={t("createEvent.step2.maxAttendeesPlaceholder")}
+                value={eventData.maxAttendees === 0 ? "" : (eventData.maxAttendees || '')}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Allow empty string or valid positive numbers
+                  if (value === '' || value === '0') {
+                    handleUpdate("maxAttendees", 0);
+                  } else {
+                    const numValue = parseInt(value, 10);
+                    if (!isNaN(numValue) && numValue > 0) {
+                      handleUpdate("maxAttendees", numValue);
+                    }
+                  }
+                }}
+                onKeyDown={(e) => {
+                  // Prevent minus sign, decimal point, and 'e' (scientific notation)
+                  if (e.key === '-' || e.key === '.' || e.key === 'e' || e.key === 'E') {
+                    e.preventDefault();
+                  }
+                }}
+                onBlur={(e) => {
+                  if (e.target.value === "") {
+                    handleUpdate("maxAttendees", 0);
+                  }
+                }}
+                className={errors.maxAttendees ? "border-red-500" : ""}
+                disabled={false}
+                readOnly={false}
+              />
+              {errors.maxAttendees && (
+                <p className="text-sm text-red-500 flex items-center gap-1 mt-2">
+                  <AlertCircle className="w-3 h-3" />
+                  {errors.maxAttendees}
+                </p>
+              )}
+            </div>
           )}
+
+          {/* Bank Details Section - Collapsible */}
+          <Card className="border-2">
+            <CardHeader
+              className="cursor-pointer hover:bg-accent/50 transition-colors"
+              onClick={toggleBankDetails}
+            >
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5" />
+                  {t("createEvent.bankDetailsStep.info")}
+                  <span className="text-sm font-normal text-muted-foreground">
+                    ({t("common.optional")})
+                  </span>
+                </div>
+                {isBankDetailsOpen ? (
+                  <ChevronUp className="w-5 h-5" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" />
+                )}
+              </CardTitle>
+            </CardHeader>
+            {isBankDetailsOpen && (
+              <CardContent className="space-y-4 pt-0">
+                {/* Bank Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="bankName" className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4" />
+                    {t("createEvent.bankDetailsStep.form.bankName.label")}
+                  </Label>
+                  <Combobox
+                    id="bankName"
+                    value={selectedBankCode}
+                    onValueChange={(value) => {
+                      setSelectedBankCode(value);
+                      const bank = getUniqueBanks().find(b => b.code === value);
+                      handleBankDetailsChange("bankName", bank?.name || "");
+                      // Load branches for selected bank
+                      const branches = getBranchesForBank(value);
+                      setAvailableBranches(branches);
+                      // Reset branch selection
+                      handleBankDetailsChange("branch", "");
+                    }}
+                    options={getUniqueBanks().map((bank) => ({
+                      value: bank.code,
+                      label: bank.displayName,
+                      searchableText: `${bank.code} ${bank.name}`
+                    }))}
+                    placeholder={t("createEvent.bankDetailsStep.form.bankName.placeholder")}
+                    searchPlaceholder="חפש בנק..."
+                    emptyText="לא נמצאו בנקים"
+                  />
+                </div>
+
+                {/* Branch */}
+                <div className="space-y-2">
+                  <Label htmlFor="branch" className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    {t("createEvent.bankDetailsStep.form.branch.label")}
+                  </Label>
+                  <Combobox
+                    id="branch"
+                    value={eventData.bankDetails?.branch || ""}
+                    onValueChange={(value) => handleBankDetailsChange("branch", value)}
+                    disabled={!selectedBankCode || availableBranches.length === 0}
+                    options={availableBranches.map((branch) => ({
+                      value: branch.name,
+                      label: branch.displayName,
+                      searchableText: `${branch.code} ${branch.name} ${branch.city}`
+                    }))}
+                    placeholder={
+                      selectedBankCode
+                        ? t("createEvent.bankDetailsStep.form.branch.placeholder")
+                        : "בחר בנק תחילה"
+                    }
+                    searchPlaceholder="חפש סניף..."
+                    emptyText="לא נמצאו סניפים"
+                  />
+                </div>
+
+                {/* Account Number */}
+                <div className="space-y-2">
+                  <Label htmlFor="accountNumber" className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4" />
+                    {t("createEvent.bankDetailsStep.form.accountNumber.label")}
+                  </Label>
+                  <Input
+                    id="accountNumber"
+                    placeholder={t("createEvent.bankDetailsStep.form.accountNumber.placeholder")}
+                    value={eventData.bankDetails?.accountNumber || ""}
+                    onChange={(e) => handleBankDetailsChange("accountNumber", e.target.value)}
+                    type="text"
+                  />
+                </div>
+
+                {/* Account Holder Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="accountHolderName" className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    {t("createEvent.bankDetailsStep.form.accountHolderName.label")}
+                  </Label>
+                  <Input
+                    id="accountHolderName"
+                    placeholder={t("createEvent.bankDetailsStep.form.accountHolderName.placeholder")}
+                    value={eventData.bankDetails?.accountHolderName || ""}
+                    onChange={(e) => handleBankDetailsChange("accountHolderName", e.target.value)}
+                  />
+                </div>
+              </CardContent>
+            )}
+          </Card>
 
           {/* Event Description */}
           <MemoizedTextarea
-            label={t('createEvent.step2.description')}
-            placeholder={t('createEvent.step2.descriptionPlaceholder')}
+            label={t("createEvent.step2.description")}
+            placeholder={t("createEvent.step2.descriptionPlaceholder")}
             value={eventData.description}
             onChange={handleDescriptionChange}
+            error={errors.description}
           />
         </div>
       </div>
@@ -935,15 +730,17 @@ const Step2_Details: React.FC<Step2_DetailsProps> = ({
       {/* Navigation - Fixed at bottom */}
       <div className="flex-shrink-0 flex justify-between pt-4 border-t nav-wrapper-dark">
         <Button variant="outline" onClick={onBack} className="px-8">
-          {t('common.back')}
+          {t("common.back")}
         </Button>
         <Button onClick={handleNext} disabled={!isFormValid} className="px-8">
-          {t('createEvent.step2.continue')}
+          {t("createEvent.step2.continue")}
           {isFormValid && <CheckCircle className="w-4 h-4 ml-2" />}
         </Button>
       </div>
     </div>
   );
 };
+
+Step2_Details.displayName = "Step2_Details";
 
 export default Step2_Details;

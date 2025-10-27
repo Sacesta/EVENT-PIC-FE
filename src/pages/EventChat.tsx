@@ -1,21 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MessageCircle, Plus } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, MessageCircle, Plus, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useChat, Chat } from '@/hooks/use-chat';
 import { ChatList } from '@/components/chat/ChatList';
 import { ChatMessages } from '@/components/chat/ChatMessages';
 import { StartChatModal } from '@/components/chat/StartChatModal';
 import { useAuth } from '@/hooks/use-auth';
+import { apiService } from '@/services/api';
+
+interface Event {
+  _id: string;
+  name: string;
+  date: string;
+  location: string;
+  category?: string;
+}
 
 const EventChat = () => {
   const { eventId } = useParams<{ eventId: string }>();
+  const navigate = useNavigate();
   const [selectedEvent, setSelectedEvent] = useState<string | null>(
     eventId && eventId !== 'select' ? eventId : null
   );
   const { user } = useAuth();
-  
+  const [producerEvents, setProducerEvents] = useState<Event[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [eventFilter, setEventFilter] = useState<string>('all'); // 'all' or specific eventId
+
   // Use the chat hook
   const {
     chats,
@@ -40,14 +56,27 @@ const EventChat = () => {
     deleteMessage,
     messagesEndRef
   } = useChat();
-  
+
   // Local state for managing chats to update unread counts
   const [localChats, setLocalChats] = useState<Chat[]>([]);
-  
-  // Sync local chats with hook chats
+
+  // Sync local chats with hook chats and filter by selected event or event filter
   useEffect(() => {
-    setLocalChats(chats);
-  }, [chats]);
+    if (selectedEvent && selectedEvent !== 'select') {
+      // Filter chats to only show those belonging to the selected event
+      const filteredChats = chats.filter(chat => chat.event?._id === selectedEvent);
+      console.log('🎯 Filtering chats for event:', selectedEvent, 'Found:', filteredChats.length);
+      setLocalChats(filteredChats);
+    } else if (eventId === 'select' && eventFilter !== 'all') {
+      // On select page, filter by dropdown selection
+      const filteredChats = chats.filter(chat => chat.event?._id === eventFilter);
+      console.log('🎯 Filtering chats by filter:', eventFilter, 'Found:', filteredChats.length);
+      setLocalChats(filteredChats);
+    } else {
+      // Show all chats
+      setLocalChats(chats);
+    }
+  }, [chats, selectedEvent, eventId, eventFilter]);
   
   // Update selectedEvent when eventId changes
   useEffect(() => {
@@ -73,10 +102,34 @@ const EventChat = () => {
     };
   }, [selectedEvent, fetchChats]);
 
+  // Fetch producer's events
+  useEffect(() => {
+    const loadProducerEvents = async () => {
+      if (user?.role !== 'producer') return;
+
+      try {
+        setLoadingEvents(true);
+        console.log('📅 Fetching producer events...');
+        const response = await apiService.getMyEvents({ limit: 100 });
+
+        if (response.success && response.data?.events) {
+          setProducerEvents(response.data.events);
+          console.log('✅ Loaded producer events:', response.data.events.length);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching producer events:', error);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
+    loadProducerEvents();
+  }, [user?.role]);
+
   // Determine the correct dashboard based on user role
   const getDashboardPath = () => {
     if (!user) return '/';
-    
+
     switch (user.role) {
       case 'producer':
         return '/producer-dashboard';
@@ -89,26 +142,13 @@ const EventChat = () => {
     }
   };
 
-  // Mock events data for selection
-  const mockEvents = [
-    { id: '1', name: 'Summer Music Festival', location: 'Central Park, New York' },
-    { id: '2', name: 'Corporate Gala', location: 'Grand Hotel Ballroom' },
-    { id: '3', name: 'Tech Conference 2024', location: 'Convention Center' },
-    { id: '4', name: 'Wedding Reception', location: 'Seaside Resort' }
-  ];
-
-  // Mock event data - in real app this would come from backend  
+  // Get current event details
   const getCurrentEvent = () => {
     if (!selectedEvent) return null;
-    return mockEvents.find(e => e.id === selectedEvent) || {
-      id: selectedEvent,
-      name: 'Summer Music Festival',
-      date: new Date('2024-06-15'),
-      location: 'Central Park, New York'
-    };
+    return producerEvents.find(e => e._id === selectedEvent);
   };
 
-  const mockEvent = getCurrentEvent();
+  const currentEvent = getCurrentEvent();
 
   // Fetch all chats (no longer filtering by event on backend)
   useEffect(() => {
@@ -156,43 +196,53 @@ const EventChat = () => {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
           <Link to={getDashboardPath()}>
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+            <BackButton>
               Back to Dashboard
-            </Button>
+            </BackButton>
           </Link>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gradient-primary">Event Chat</h1>
-            <p className="text-muted-foreground">
-              {eventId === 'select' ? 'Select an event to view its conversations' : `${mockEvent?.name} - Communications Hub`}
+            <h1 className="text-2xl sm:text-3xl font-bold text-gradient-primary">
+              {eventId === 'select' ? 'All Chats' : 'Event Chat'}
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              {eventId === 'select' ? 'View and manage all your conversations' : `${currentEvent?.name || 'Event'} - Communications Hub`}
             </p>
           </div>
-        </div>
 
-        {/* Event Selection */}
-        {eventId === 'select' && !selectedEvent && (
-          <Card className="glass-card mb-8">
-            <CardHeader>
-              <CardTitle>Select an Event</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {mockEvents?.map((event) => (
-                  <div
-                    key={event.id}
-                    className="p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => setSelectedEvent(event.id)}
-                  >
-                    <h3 className="font-semibold mb-2">{event.name}</h3>
-                    <p className="text-sm text-muted-foreground">{event.location}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+          {/* Event Filter - Show on select page */}
+          {eventId === 'select' && user?.role === 'producer' && producerEvents.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <Select value={eventFilter} onValueChange={setEventFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Filter by event" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Events</SelectItem>
+                  {producerEvents.map((event) => (
+                    <SelectItem key={event._id} value={event._id}>
+                      {event.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* View All Chats Button - Only show when on a specific event page */}
+          {eventId !== 'select' && user?.role === 'producer' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/event-chat/select')}
+              className="whitespace-nowrap"
+            >
+              View All Chats
+            </Button>
+          )}
+        </div>
 
         {/* Connection Status */}
         {!isConnected && (
@@ -217,15 +267,15 @@ const EventChat = () => {
           </Card>
         )}
 
-        {/* Show conversations only if we have a selected event */}
-        {((eventId !== 'select') || selectedEvent) && (
+        {/* Show conversations always (on both select page and specific event pages) */}
+        {eventId && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-250px)] max-h-[700px]">
-            {/* Conversations List */}
-            <div className="space-y-4 h-full flex flex-col">
+            {/* Conversations List - Hidden on mobile when chat is selected */}
+            <div className={`space-y-4 h-full flex flex-col ${currentChat ? 'hidden lg:flex' : 'flex'}`}>
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Chats</h2>
                 <StartChatModal
-                  eventId={selectedEvent || undefined}
+                  eventId={eventId === 'select' ? undefined : (selectedEvent || eventId || undefined)}
                   onChatCreated={handleChatCreated}
                   trigger={
                     <Button size="sm">
@@ -243,21 +293,33 @@ const EventChat = () => {
               />
             </div>
 
-            {/* Chat Messages */}
-            <div className="lg:col-span-2">
-              <ChatMessages
-                chat={currentChat}
-                messages={messages}
-                onSendMessage={sendMessage}
-                onStartTyping={startTyping}
-                onStopTyping={stopTyping}
-                onEditMessage={editMessage}
-                onDeleteMessage={deleteMessage}
-                onAddReaction={addReaction}
-                typingUsers={typingUsers}
-                loading={loading}
-                messagesEndRef={messagesEndRef}
-              />
+            {/* Chat Messages - Hidden on mobile when no chat selected */}
+            <div className={`lg:col-span-2 ${currentChat ? 'flex flex-col' : 'hidden lg:flex'}`}>
+              {currentChat && (
+                <div className="flex items-center gap-2 mb-4 lg:hidden">
+                  <BackButton
+                    variant="ghost"
+                    onClick={() => leaveChat(currentChat._id)}
+                  >
+                    Back to Chats
+                  </BackButton>
+                </div>
+              )}
+              <div className="flex-1 min-h-0">
+                <ChatMessages
+                  chat={currentChat}
+                  messages={messages}
+                  onSendMessage={sendMessage}
+                  onStartTyping={startTyping}
+                  onStopTyping={stopTyping}
+                  onEditMessage={editMessage}
+                  onDeleteMessage={deleteMessage}
+                  onAddReaction={addReaction}
+                  typingUsers={typingUsers}
+                  loading={loading}
+                  messagesEndRef={messagesEndRef}
+                />
+              </div>
             </div>
           </div>
         )}

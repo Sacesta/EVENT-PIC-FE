@@ -4,7 +4,6 @@ import { CalendarPlus, BarChart3, Calendar, Clock, Users, MessagesSquare, QrCode
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { CreateEventButton } from '@/components/CreateEventButton';
-import { EditEventModal } from '@/components/EditEventModal';
 import { EventsSection } from '@/components/EventsSection';
 import { ManageTicketModal } from '@/components/ManageTicketModal';
 import QRScannerModal from '@/components/QRScannerModal';
@@ -26,8 +25,6 @@ const ProducerDashboard = () => {
   const displayGreeting = randomGreeting.replace('{{name}}', userName);
   
   // State management
-  const [editingEvent, setEditingEvent] = useState<EnhancedEvent | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [selectedEventForTickets, setSelectedEventForTickets] = useState<EnhancedEvent | null>(null);
   const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
@@ -81,35 +78,8 @@ const ProducerDashboard = () => {
   };
 
   const handleEditEvent = (eventId: string) => {
-    const event = events.find(e => e._id === eventId);
-    if (event) {
-      setEditingEvent(event);
-      setIsEditModalOpen(true);
-    }
-  };
-
-  const handleSaveEvent = async (updatedEvent: Record<string, unknown>) => {
-    try {
-      // The EditEventModal already handles the update and refetch
-      // We just need to refresh the events list to show the updated data
-      const response: MyEventsResponse = await apiService.getMyEvents({ 
-        limit: 10,
-        page: pagination.currentPage,
-        sortBy: 'createdAt',
-        sortOrder: 'desc'
-      });
-      
-      if (response.success && response.data) {
-        setEvents(response.data);
-        setPagination(response.pagination);
-        setOverallStats(response.overallStats);
-      }
-      
-      console.log('Event list refreshed successfully');
-    } catch (error) {
-      console.error('Error refreshing events:', error);
-      setError('Failed to refresh events. Please try again.');
-    }
+    // Navigate to edit event page
+    navigate(`/edit-event/${eventId}/2`);
   };
 
   const handleDeleteEvent = async (eventId: string) => {
@@ -140,7 +110,7 @@ const ProducerDashboard = () => {
   };
 
   const handleChatEvent = (eventId: string) => {
-    navigate("/event-chat/select");
+    navigate(`/event-chat/${eventId}`);
   };
 
   const handleManageTickets = (eventId: string) => {
@@ -159,6 +129,7 @@ const ProducerDashboard = () => {
   };
 
   const handleChatClick = () => {
+    // Navigate to select page to choose which event to chat about
     navigate('/event-chat/select');
   };
 
@@ -342,17 +313,6 @@ const ProducerDashboard = () => {
             </Button>
           </Link>
         </div>
-
-        {/* Edit Event Modal */}
-        <EditEventModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setEditingEvent(null);
-          }}
-          event={editingEvent}
-          onSave={handleSaveEvent}
-        />
 
         {/* Manage Ticket Modal */}
         <ManageTicketModal

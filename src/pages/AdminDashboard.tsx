@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
   Users, 
@@ -21,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import apiService from '@/services/api';
+import apiService, { Event as ApiEvent } from '@/services/api';
 import UserManagement from '@/components/admin/UserManagement';
 import CreateUserModal from '@/components/admin/CreateUserModal';
 import OrdersManagement from '@/components/admin/OrdersManagement';
@@ -67,7 +68,7 @@ interface User {
   };
 }
 
-interface Event {
+interface AdminEvent {
   _id: string;
   title: string;
   status: string;
@@ -106,6 +107,7 @@ interface Order {
 const AdminDashboard = () => {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   // Check if current language is RTL (Hebrew)
   const isRTL = i18n.language === 'he';
@@ -120,8 +122,8 @@ const AdminDashboard = () => {
     newUsersThisMonth: 0
   });
   const [recentUsers, setRecentUsers] = useState<User[]>([]);
-  const [recentEvents, setRecentEvents] = useState<Event[]>([]);
-  const [allEvents, setAllEvents] = useState<Event[]>([]);
+  const [recentEvents, setRecentEvents] = useState<AdminEvent[]>([]);
+  const [allEvents, setAllEvents] = useState<AdminEvent[]>([]);
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -130,10 +132,10 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [eventsLoading, setEventsLoading] = useState(false);
   const [ordersLoading, setOrdersLoading] = useState(false);
-  
+
   // Cache management
   const [dataCache, setDataCache] = useState<{
-    events: { data: Event[]; timestamp: number };
+    events: { data: AdminEvent[]; timestamp: number };
     orders: { data: Order[]; timestamp: number };
     users: { data: User[]; timestamp: number };
   }>({
@@ -141,7 +143,7 @@ const AdminDashboard = () => {
     orders: { data: [], timestamp: 0 },
     users: { data: [], timestamp: 0 }
   });
-  
+
   const CACHE_TTL = 30 * 60 * 1000; // 30 minutes in milliseconds
 
   // Cache helper functions
@@ -149,20 +151,31 @@ const AdminDashboard = () => {
     return Date.now() - timestamp < CACHE_TTL;
   }, [CACHE_TTL]);
 
-  const updateCache = useCallback(<T extends Event[] | Order[] | User[]>(key: 'events' | 'orders' | 'users', data: T) => {
+  const updateCache = useCallback(<T extends AdminEvent[] | Order[] | User[]>(key: 'events' | 'orders' | 'users', data: T) => {
     setDataCache(prev => ({
       ...prev,
       [key]: { data, timestamp: Date.now() }
     }));
   }, []);
 
-  const getCachedData = useCallback(<T extends Event[] | Order[] | User[]>(key: 'events' | 'orders' | 'users'): T | null => {
+  const getCachedData = useCallback(<T extends AdminEvent[] | Order[] | User[]>(key: 'events' | 'orders' | 'users'): T | null => {
     const cached = dataCache[key];
     if (isCacheValid(cached.timestamp)) {
       return cached.data as T;
     }
     return null;
   }, [dataCache, isCacheValid]);
+
+  // Helper to map API Event to AdminEvent
+  const mapApiEventToAdminEvent = useCallback((apiEvent: ApiEvent): AdminEvent => {
+    return {
+      _id: apiEvent._id,
+      title: apiEvent.name || 'Untitled Event',
+      status: apiEvent.status,
+      createdAt: apiEvent.createdAt || apiEvent.startDate,
+      producer: apiEvent.producerId ? { name: apiEvent.producerId.name } : undefined
+    };
+  }, []);
 
   // Chat functionality
   const {
@@ -221,18 +234,11 @@ const AdminDashboard = () => {
     window.location.href = '/create-event';
   }, []);
 
-  // Debug chat data
-  useEffect(() => {
-    console.log('🔍 AdminDashboard - localChats:', localChats);
-    console.log('🔍 AdminDashboard - localChats length:', localChats?.length || 0);
-    console.log('🔍 AdminDashboard - isConnected:', isConnected);
-  }, [localChats, isConnected]);
-
   // Fetch events function with caching
   const fetchEvents = useCallback(async (forceRefresh = false) => {
     // Check cache first
     if (!forceRefresh) {
-      const cachedEvents = getCachedData<Event[]>('events');
+      const cachedEvents = getCachedData<AdminEvent[]>('events');
       if (cachedEvents) {
         setAllEvents(cachedEvents);
         setRecentEvents(cachedEvents.slice(0, 10));
@@ -249,9 +255,11 @@ const AdminDashboard = () => {
       });
 
       if (eventsData?.data) {
-        setAllEvents(eventsData.data);
-        setRecentEvents(eventsData.data.slice(0, 10));
-        updateCache('events', eventsData.data);
+        // Map API Events to AdminEvents
+        const mappedEvents = eventsData.data.map(mapApiEventToAdminEvent);
+        setAllEvents(mappedEvents);
+        setRecentEvents(mappedEvents.slice(0, 10));
+        updateCache('events', mappedEvents);
       }
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -263,7 +271,7 @@ const AdminDashboard = () => {
     } finally {
       setEventsLoading(false);
     }
-  }, [toast, getCachedData, updateCache]);
+  }, [toast, getCachedData, updateCache, mapApiEventToAdminEvent]);
 
   // Fetch orders function with caching
   const fetchOrders = useCallback(async (forceRefresh = false) => {
@@ -343,9 +351,10 @@ const AdminDashboard = () => {
 
       // Set recent events
       if (eventsData?.data) {
-        const eventsResponse = eventsData.data as { events: Event[] };
+        const eventsResponse = eventsData.data as { events: ApiEvent[] };
         if (eventsResponse.events) {
-          setRecentEvents(eventsResponse.events);
+          const mappedEvents = eventsResponse.events.map(mapApiEventToAdminEvent);
+          setRecentEvents(mappedEvents);
         }
       }
 
@@ -368,7 +377,7 @@ const AdminDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, mapApiEventToAdminEvent]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -409,16 +418,11 @@ const AdminDashboard = () => {
     try {
       // Join the chat (this will also fetch messages)
       await joinChat(chat._id, chat);
-      
-      // Mark as read
-      await markAsRead(chat._id);
-      
-      // Update the chat's unread count to 0 in local state immediately
-      setLocalChats(prev => prev.map(c => 
-        c._id === chat._id ? { ...c, unreadCount: 0 } : c
-      ));
-      
-      console.log('✅ Chat marked as read, unread count reset to 0');
+
+      // Admin should NOT mark messages as read - they're just monitoring
+      // Do not call markAsRead() for admins
+
+      console.log('✅ Admin viewing chat (read-only monitoring mode)');
     } catch (error) {
       console.error('Error selecting chat:', error);
       toast({
@@ -648,7 +652,7 @@ const AdminDashboard = () => {
         </TabsContent>
 
         <TabsContent value="users" className={`space-y-4 sm:space-y-6 ${isRTL ? 'text-right' : 'text-left'}`}>
-          <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+          <div className={`flex ${isRTL ? 'flex-row-reverse' : 'flex-row'} justify-between items-start sm:items-center gap-4`}>
             <div>
               <h3 className="text-lg font-semibold">User Management</h3>
               <p className="text-sm text-muted-foreground">
@@ -666,7 +670,7 @@ const AdminDashboard = () => {
         </TabsContent>
 
         <TabsContent value="orders" className={`space-y-4 sm:space-y-6 ${isRTL ? 'text-right' : 'text-left'}`}>
-          <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+          <div className={`flex ${isRTL ? 'flex-row-reverse' : 'flex-row'} justify-between items-start sm:items-center gap-4`}>
             <div>
               <h3 className="text-lg font-semibold">{t('dashboard.admin.orderManagement', 'Order Management')}</h3>
               <p className="text-sm text-muted-foreground">
@@ -698,9 +702,9 @@ const AdminDashboard = () => {
               {allOrders.map((order) => (
                 <Card key={order._id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
-                    <div className={`flex flex-col lg:flex-row justify-between items-start gap-4 ${isRTL ? 'lg:flex-row-reverse' : ''}`}>
+                    <div className={`flex ${isRTL ? 'lg:flex-row-reverse' : 'lg:flex-row'} justify-between items-start gap-4`}>
                       <div className="flex-1 w-full">
-                        <div className={`flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-3 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+                        <div className={`flex ${isRTL ? 'flex-row-reverse' : 'flex-row'} items-start sm:items-center gap-2 mb-3`}>
                           <h4 className="font-semibold text-lg">{order.eventName}</h4>
                           <Badge 
                             variant={
@@ -756,8 +760,8 @@ const AdminDashboard = () => {
                           Order ID: {order._id.slice(-8)} | Created: {new Date(order.createdAt).toLocaleDateString()}
                         </div>
                       </div>
-                      
-                      <div className={`flex flex-col sm:flex-row gap-2 w-full lg:w-auto ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+
+                      <div className={`flex ${isRTL ? 'flex-row-reverse' : 'flex-row'} gap-2 w-full lg:w-auto`}>
                         <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
                           View Details
                         </Button>
@@ -784,16 +788,16 @@ const AdminDashboard = () => {
         </TabsContent>
 
         <TabsContent value="events" className={`space-y-4 sm:space-y-6 ${isRTL ? 'text-right' : 'text-left'}`}>
-          <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+          <div className={`flex ${isRTL ? 'flex-row-reverse' : 'flex-row'} justify-between items-start sm:items-center gap-4`}>
             <div>
               <h3 className="text-lg font-semibold">{t('dashboard.admin.eventManagement', 'Event Management')}</h3>
               <p className="text-sm text-muted-foreground">
                 {t('dashboard.admin.manageAllEvents', 'Manage all platform events')}
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <Button 
-                onClick={() => setIsProducerSelectionModalOpen(true)} 
+            <div className={`flex ${isRTL ? 'flex-row-reverse' : 'flex-row'} gap-2 w-full sm:w-auto`}>
+              <Button
+                onClick={() => setIsProducerSelectionModalOpen(true)}
                 className="gap-2 w-full sm:w-auto"
               >
                 Create Event
@@ -825,43 +829,53 @@ const AdminDashboard = () => {
           ) : allEvents.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {allEvents.map((event) => (
-                <Card key={event._id} className="hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <div className={`flex items-start justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
-                      <div className="flex-1">
-                        <CardTitle className={`text-lg line-clamp-2 ${isRTL ? 'text-right' : 'text-left'}`}>{event.title}</CardTitle>
-                        <CardDescription className={`mt-1 ${isRTL ? 'text-right' : 'text-left'}`}>
-                          {t('dashboard.admin.by', 'by')} {event.producer?.name || 'Unknown'}
-                        </CardDescription>
-                      </div>
-                      <Badge
-                        variant={event.status === 'active' ? 'default' : 'secondary'}
-                        className={isRTL ? 'mr-2' : 'ml-2'}
-                      >
-                        {event.status}
-                      </Badge>
+                <Card key={event._id} className="group p-6 rounded-2xl glass-card transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+                  <div className={`flex items-start justify-between mb-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`text-xl font-bold mb-1 line-clamp-2 group-hover:text-gradient-primary transition-all duration-300 ${isRTL ? 'text-right' : 'text-left'}`}>
+                        {event.title}
+                      </h3>
+                      <p className={`text-sm text-muted-foreground ${isRTL ? 'text-right' : 'text-left'}`}>
+                        {t('dashboard.admin.by', 'by')} {event.producer?.name || 'Unknown'}
+                      </p>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className={`space-y-2 text-sm text-muted-foreground ${isRTL ? 'text-right' : 'text-left'}`}>
-                      <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <Calendar className="w-4 h-4" />
-                        <span>{new Date(event.createdAt).toLocaleDateString()}</span>
-                      </div>
-                      <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <Users className="w-4 h-4" />
-                        <span>Event ID: {event._id.slice(-8)}</span>
-                      </div>
+                    <Badge
+                      variant={event.status === 'active' ? 'default' : 'secondary'}
+                      className={`${isRTL ? 'mr-2' : 'ml-2'} flex-shrink-0`}
+                    >
+                      {event.status}
+                    </Badge>
+                  </div>
+
+                  <div className={`space-y-2 text-sm text-muted-foreground mb-4 ${isRTL ? 'text-right' : 'text-left'}`}>
+                    <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                      <Calendar className="w-4 h-4" />
+                      <span>{new Date(event.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <div className={`mt-4 flex flex-col sm:flex-row gap-2 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
-                      <Button variant="outline" size="sm" className="flex-1">
-                        View Details
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
-                        Edit Event
-                      </Button>
+                    <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                      <Users className="w-4 h-4" />
+                      <span>Event ID: {event._id.slice(-8)}</span>
                     </div>
-                  </CardContent>
+                  </div>
+
+                  <div className={`flex ${isRTL ? 'flex-row-reverse' : 'flex-row'} gap-2`}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => navigate(`/event/${event._id}`)}
+                    >
+                      View Details
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => navigate(`/edit-event/${event._id}`)}
+                    >
+                      Edit Event
+                    </Button>
+                  </div>
                 </Card>
               ))}
             </div>
@@ -946,54 +960,67 @@ const AdminDashboard = () => {
           {/* Chat Interface */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 h-[calc(100vh-300px)] sm:h-[calc(100vh-350px)] max-h-[500px] sm:max-h-[700px]">
             {/* Conversations List */}
-            <div className="space-y-4 h-full flex flex-col">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <MessageCircle className="w-5 h-5" />
-                  {t('dashboard.admin.allChats', 'All Platform Chats')}
-                </h2>
+            <div className="h-full flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-hidden">
+                <ChatList
+                  chats={localChats}
+                  selectedChatId={currentChat?._id}
+                  onSelectChat={handleSelectChat}
+                  loading={chatLoading}
+                />
               </div>
-              <ChatList
-                chats={localChats}
-                selectedChatId={currentChat?._id}
-                onSelectChat={handleSelectChat}
-                loading={chatLoading}
-              />
             </div>
 
             {/* Chat Messages */}
-            <div className="lg:col-span-2">
-              {!isConnected ? (
-                <Card>
-                  <CardContent className="p-8 text-center h-full flex flex-col justify-center">
-                    <WifiOff className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">
-                      {t('chat.notConnected', 'Not Connected to Chat Server')}
-                    </h3>
-                    <p className="text-muted-foreground mb-4">
-                      {t('chat.connectToViewChats', 'Connect to the chat server to view and manage platform chats')}
-                    </p>
-                    <Button onClick={handleReconnect} className="gap-2">
-                      <Wifi className="w-4 h-4" />
-                      Connect to Chat Server
+            <div className="lg:col-span-2 flex flex-col h-full overflow-hidden">
+              {!isConnected && (
+                <Card className="mb-4 flex-shrink-0">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <WifiOff className="w-5 h-5 text-amber-500 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-amber-700">
+                        {t('chat.limitedMode', 'Limited Mode - Real-time updates unavailable')}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {t('chat.reconnectForRealtime', 'Reconnect for live messaging')}
+                      </p>
+                    </div>
+                    <Button onClick={handleReconnect} size="sm" variant="outline" className="flex-shrink-0">
+                      <Wifi className="w-4 h-4 mr-2" />
+                      Reconnect
                     </Button>
                   </CardContent>
                 </Card>
-              ) : (
-                <ChatMessages
-                  chat={currentChat}
-                  messages={messages}
-                  onSendMessage={sendMessage}
-                  onStartTyping={startTyping}
-                  onStopTyping={stopTyping}
-                  onEditMessage={editMessage}
-                  onDeleteMessage={deleteMessage}
-                  onAddReaction={addReaction}
-                  typingUsers={typingUsers}
-                  loading={chatLoading}
-                  messagesEndRef={messagesEndRef}
-                />
               )}
+              <div className="flex-1 overflow-hidden">
+                {!currentChat ? (
+                  <Card className="h-full">
+                    <CardContent className="p-8 text-center h-full flex flex-col justify-center">
+                      <MessageCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">
+                        {t('chat.selectChat', 'Select a conversation')}
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {t('chat.selectChatDescription', 'Choose a chat from the list to view messages')}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <ChatMessages
+                    chat={currentChat}
+                    messages={messages}
+                    onSendMessage={sendMessage}
+                    onStartTyping={startTyping}
+                    onStopTyping={stopTyping}
+                    onEditMessage={editMessage}
+                    onDeleteMessage={deleteMessage}
+                    onAddReaction={addReaction}
+                    typingUsers={typingUsers}
+                    loading={chatLoading}
+                    messagesEndRef={messagesEndRef}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </TabsContent>

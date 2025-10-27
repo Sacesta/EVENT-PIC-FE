@@ -13,11 +13,32 @@ import { useTranslation } from 'react-i18next';
 import apiService from '@/services/api'; // Import your API service
 import { getImageUrl } from '@/utils/imageUtils';
 
+interface UserDetails {
+  name: string;
+  email: string;
+  phone?: string;
+  role: 'producer' | 'supplier';
+  language?: string;
+  profileImage?: string | null;
+  supplierDetails?: {
+    description?: string;
+    companyName?: string;
+    instagramLink?: string;
+    website?: string;
+  };
+  producerDetails?: {
+    description?: string;
+    companyName?: string;
+    instagramLink?: string;
+    website?: string;
+  };
+}
+
 interface ProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: any;
-  onUpdateUser: (updatedUser: any) => void;
+  user: UserDetails;
+  onUpdateUser: (updatedUser: UserDetails) => void;
 }
 
 const placeholderAvatars = [
@@ -80,7 +101,7 @@ const [formData, setFormData] = useState({
         return;
       }
 
-      // Validate file size (max 5MB)
+      // Validate file size (max 3MB)
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: 'File too large',
@@ -115,8 +136,13 @@ const [formData, setFormData] = useState({
     // Upload profile image if a new file was selected
     if (uploadedFile) {
       const uploadResponse = await apiService.uploadProfileImage(uploadedFile);
-      if (uploadResponse.success && uploadResponse.data?.profileImage) {
-        profileImagePath = uploadResponse.data.profileImage;
+      if (uploadResponse.success && uploadResponse.data) {
+        const data = uploadResponse.data as { profileImage?: string };
+        if (data.profileImage) {
+          profileImagePath = data.profileImage;
+        } else {
+          throw new Error('Failed to upload image');
+        }
       } else {
         throw new Error('Failed to upload image');
       }
@@ -153,8 +179,9 @@ const [formData, setFormData] = useState({
     }
 
     // Update user state with response data
+    const data = apiResponse.data as { user?: UserDetails };
     const updatedUser = {
-      ...apiResponse.data.user,
+      ...data.user,
       profileImage: profileImagePath
     };
 

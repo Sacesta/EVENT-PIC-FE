@@ -21,6 +21,9 @@ interface SupplierService {
   price: number;
   description: string;
   duration?: string;
+  image?: string;
+  rating?: number;
+  category?: string;
 }
 
 interface Supplier {
@@ -30,8 +33,8 @@ interface Supplier {
   location: string;
   description: string;
   services: SupplierService[];
-  experience: string;
   availability: string;
+  categories?: string[];
 }
 
 interface Step1_ServicesAndSuppliersProps {
@@ -81,21 +84,22 @@ const ServiceItem = React.memo(({
 });
 
 // Supplier Invitation Card Component
-const SupplierInvitationCard = React.memo(({ 
-  supplier, 
-  service, 
+const SupplierInvitationCard = React.memo(({
+  supplier,
+  service,
   selectedServices,
-  onServiceToggle 
-}: { 
-  supplier: Supplier; 
+  onServiceToggle
+}: {
+  supplier: Supplier;
   service: string;
   selectedServices: string[];
-  onServiceToggle: (service: string, supplierId: string, serviceId: string) => void; 
+  onServiceToggle: (service: string, supplierId: string, serviceId: string) => void;
 }) => {
   const { t } = useTranslation();
-  const relevantServices = supplier.services.filter(s => 
-    s.name.toLowerCase().includes(service.toLowerCase()) || 
+  const relevantServices = supplier.services.filter(s =>
+    s.name.toLowerCase().includes(service.toLowerCase()) ||
     service === 'dj' && (s.name.toLowerCase().includes('dj') || s.name.toLowerCase().includes('music')) ||
+    service === 'venue_rental' && s.name.toLowerCase().includes('venue') ||
     service === 'security' && s.name.toLowerCase().includes('security') ||
     service === 'decoration' && s.name.toLowerCase().includes('decor') ||
     service === 'sound_lighting' && (s.name.toLowerCase().includes('sound') || s.name.toLowerCase().includes('lighting') || s.name.toLowerCase().includes('audio') || s.name.toLowerCase().includes('visual')) ||
@@ -104,7 +108,6 @@ const SupplierInvitationCard = React.memo(({
     service === 'first_aid' && (s.name.toLowerCase().includes('medical') || s.name.toLowerCase().includes('first') || s.name.toLowerCase().includes('aid')) ||
     service === 'artists' && (s.name.toLowerCase().includes('band') || s.name.toLowerCase().includes('musician') || s.name.toLowerCase().includes('performer') || s.name.toLowerCase().includes('artist')) ||
     service === 'insurance' && s.name.toLowerCase().includes('insurance') ||
-    service === 'venue_rental' && s.name.toLowerCase().includes('venue') ||
     service === 'transportation' && s.name.toLowerCase().includes('transport') ||
     service === 'general' && (s.name.toLowerCase().includes('coordination') || s.name.toLowerCase().includes('setup') || s.name.toLowerCase().includes('general'))
   );
@@ -124,16 +127,23 @@ const SupplierInvitationCard = React.memo(({
               </div>
             </div>
             <p className="text-sm text-muted-foreground mb-2">{supplier.description}</p>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
               <div className="flex items-center gap-1">
                 <MapPin className="w-3 h-3" />
                 <span>{supplier.location}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <Badge variant="outline" className="text-xs">{supplier.experience}</Badge>
-              </div>
               <div className="text-green-600 font-medium">{supplier.availability}</div>
             </div>
+            {/* Categories offered by supplier */}
+            {supplier.categories && supplier.categories.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {supplier.categories.map((cat, idx) => (
+                  <Badge key={idx} variant="outline" className="text-xs">
+                    {cat}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -148,33 +158,66 @@ const SupplierInvitationCard = React.memo(({
               {relevantServices.map((supplierService) => {
                 const isSelected = selectedServices.includes(supplierService.id);
                 return (
-                  <div 
+                  <div
                     key={supplierService.id}
                     className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
-                      isSelected 
-                        ? 'border-primary bg-primary/5 ring-1 ring-primary/20' 
+                      isSelected
+                        ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
                         : 'border-border hover:border-primary/50 hover:bg-muted/30'
                     }`}
                     onClick={() => onServiceToggle(service, supplier.id, supplierService.id)}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h5 className="font-medium text-sm">{supplierService.name}</h5>
-                          <div className="text-lg font-bold text-primary">${supplierService.price}</div>
+                    <div className="flex items-start gap-3">
+                      {/* Package Image */}
+                      {supplierService.image && (
+                        <div className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden bg-muted">
+                          <img
+                            src={supplierService.image}
+                            alt={supplierService.name}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
-                        <p className="text-xs text-muted-foreground mb-1">{supplierService.description}</p>
-                        {supplierService.duration && (
-                          <div className="text-xs text-muted-foreground">
-                            Duration: {supplierService.duration}
+                      )}
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="flex-1">
+                            <h5 className="font-medium text-sm mb-1">{supplierService.name}</h5>
+
+                            {/* Package Rating and Category */}
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              {supplierService.rating !== undefined && (
+                                <div className="flex items-center gap-1">
+                                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                  <span className="text-xs font-medium">{supplierService.rating.toFixed(1)}</span>
+                                </div>
+                              )}
+                              {supplierService.category && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {supplierService.category}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
-                        )}
+
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-primary">${supplierService.price}</div>
+                            {supplierService.duration && (
+                              <div className="text-xs text-muted-foreground">
+                                {supplierService.duration}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-muted-foreground mb-2">{supplierService.description}</p>
                       </div>
-                       <Checkbox 
-                         checked={isSelected}
-                         onChange={() => onServiceToggle(service, supplier.id, supplierService.id)}
-                         className="pointer-events-none"
-                       />
+
+                      <Checkbox
+                        checked={isSelected}
+                        onChange={() => onServiceToggle(service, supplier.id, supplierService.id)}
+                        className="pointer-events-none flex-shrink-0"
+                      />
                     </div>
                   </div>
                 );
@@ -238,81 +281,81 @@ const Step1_ServicesAndSuppliers: React.FC<Step1_ServicesAndSuppliersProps> = Re
   // Mock supplier data with detailed services - memoized to prevent recreation on every render
   const supplierData = useMemo((): { [key: string]: Supplier[] } => ({
     'dj': [
-      { 
-        id: '1', 
-        name: 'DJ Supreme', 
-        rating: 4.9, 
-        location: 'Citywide', 
+      {
+        id: '1',
+        name: 'DJ Supreme',
+        rating: 4.9,
+        location: 'Citywide',
         description: 'Professional DJ and MC services with state-of-the-art sound equipment and lighting.',
-        experience: '10+ years',
         availability: 'Available',
+        categories: ['DJ', 'MC Services', 'Sound Equipment'],
         services: [
-          { id: 'dj-1', name: 'Wedding DJ Package', price: 800, description: 'Complete wedding entertainment with MC services', duration: '6 hours' },
-          { id: 'dj-2', name: 'Party DJ Service', price: 500, description: 'DJ services for private parties and celebrations', duration: '4 hours' },
-          { id: 'dj-3', name: 'Corporate Event DJ', price: 650, description: 'Professional entertainment for corporate events', duration: '4 hours' }
+          { id: 'dj-1', name: 'Wedding DJ Package', price: 800, description: 'Complete wedding entertainment with MC services', duration: '6 hours', image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400', rating: 4.9, category: 'Wedding' },
+          { id: 'dj-2', name: 'Party DJ Service', price: 500, description: 'DJ services for private parties and celebrations', duration: '4 hours', image: 'https://images.unsplash.com/photo-1571266028243-d220c6c1e4c3?w=400', rating: 4.7, category: 'Party' },
+          { id: 'dj-3', name: 'Corporate Event DJ', price: 650, description: 'Professional entertainment for corporate events', duration: '4 hours', image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400', rating: 4.8, category: 'Corporate' }
         ]
       }
     ],
     'security': [
-      { 
-        id: '2', 
-        name: 'SecureGuard Solutions', 
-        rating: 4.8, 
-        location: 'City Center', 
+      {
+        id: '2',
+        name: 'SecureGuard Solutions',
+        rating: 4.8,
+        location: 'City Center',
         description: 'Professional security services for events of all sizes with trained personnel.',
-        experience: '12+ years',
         availability: 'Available',
+        categories: ['Event Security', 'VIP Protection', 'Crowd Control'],
         services: [
-          { id: 'sec-1', name: 'Event Security Package', price: 200, description: 'Security personnel per hour (minimum 4 hours)', duration: '4+ hours' },
-          { id: 'sec-2', name: 'VIP Protection', price: 350, description: 'Personal security for VIP guests', duration: 'Full event' }
+          { id: 'sec-1', name: 'Event Security Package', price: 200, description: 'Security personnel per hour (minimum 4 hours)', duration: '4+ hours', image: 'https://images.unsplash.com/photo-1504805572947-34fad45aed93?w=400', rating: 4.8, category: 'Security' },
+          { id: 'sec-2', name: 'VIP Protection', price: 350, description: 'Personal security for VIP guests', duration: 'Full event', image: 'https://images.unsplash.com/photo-1520697830682-bbb6e85e2796?w=400', rating: 4.9, category: 'VIP' }
         ]
       }
     ],
     'decoration': [
-      { 
-        id: '3', 
-        name: 'Dream Decorators', 
-        rating: 4.7, 
-        location: 'Design Quarter', 
+      {
+        id: '3',
+        name: 'Dream Decorators',
+        rating: 4.7,
+        location: 'Design Quarter',
         description: 'Full-service event decoration specialists creating magical atmospheres for every occasion.',
-        experience: '9+ years',
         availability: 'Available',
+        categories: ['Wedding Decor', 'Party Themes', 'Floral Design'],
         services: [
-          { id: 'decor-1', name: 'Wedding Decoration Package', price: 1500, description: 'Complete venue transformation with floral arrangements', duration: 'Setup & breakdown' },
-          { id: 'decor-2', name: 'Birthday Party Decor', price: 350, description: 'Themed party decorations and setup', duration: '2 hours setup' },
-          { id: 'decor-3', name: 'Corporate Event Styling', price: 800, description: 'Professional corporate event decoration', duration: 'Full setup' }
+          { id: 'decor-1', name: 'Wedding Decoration Package', price: 1500, description: 'Complete venue transformation with floral arrangements', duration: 'Setup & breakdown', image: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=400', rating: 4.9, category: 'Wedding' },
+          { id: 'decor-2', name: 'Birthday Party Decor', price: 350, description: 'Themed party decorations and setup', duration: '2 hours setup', image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400', rating: 4.6, category: 'Birthday' },
+          { id: 'decor-3', name: 'Corporate Event Styling', price: 800, description: 'Professional corporate event decoration', duration: 'Full setup', image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=400', rating: 4.7, category: 'Corporate' }
         ]
       }
     ],
     'sound_lighting': [
-      { 
-        id: '4', 
-        name: 'Audio Visual Pro', 
-        rating: 4.9, 
-        location: 'Tech District', 
+      {
+        id: '4',
+        name: 'Audio Visual Pro',
+        rating: 4.9,
+        location: 'Tech District',
         description: 'Professional sound and lighting equipment rental with expert setup and operation.',
-        experience: '8+ years',
         availability: 'Available',
+        categories: ['Sound Systems', 'Stage Lighting', 'AV Equipment'],
         services: [
-          { id: 'av-1', name: 'Complete Sound System', price: 400, description: 'Professional sound system with microphones', duration: 'Full event' },
-          { id: 'av-2', name: 'Lighting Package', price: 300, description: 'Stage and ambient lighting setup', duration: 'Full event' },
-          { id: 'av-3', name: 'AV Combo Package', price: 650, description: 'Sound and lighting combined package', duration: 'Full event' }
+          { id: 'av-1', name: 'Complete Sound System', price: 400, description: 'Professional sound system with microphones', duration: 'Full event', image: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400', rating: 4.9, category: 'Sound' },
+          { id: 'av-2', name: 'Lighting Package', price: 300, description: 'Stage and ambient lighting setup', duration: 'Full event', image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400', rating: 4.8, category: 'Lighting' },
+          { id: 'av-3', name: 'AV Combo Package', price: 650, description: 'Sound and lighting combined package', duration: 'Full event', image: 'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=400', rating: 5.0, category: 'Combo' }
         ]
       }
     ],
     'catering': [
-      { 
-        id: '5', 
-        name: 'Elite Catering Co.', 
-        rating: 4.8, 
-        location: 'Downtown', 
+      {
+        id: '5',
+        name: 'Elite Catering Co.',
+        rating: 4.8,
+        location: 'Downtown',
         description: 'Premium catering service offering exquisite cuisine crafted from the finest local ingredients.',
-        experience: '12+ years',
         availability: 'Available',
+        categories: ['Italian Cuisine', 'Vegetarian', 'Corporate Catering'],
         services: [
-          { id: 'cater-1', name: 'Italian Feast Menu', price: 45, description: 'Authentic Italian cuisine per person (min 50 people)', duration: 'Full service' },
-          { id: 'cater-2', name: 'Vegetarian Deluxe', price: 38, description: 'Gourmet vegetarian options per person', duration: 'Full service' },
-          { id: 'cater-3', name: 'Corporate Lunch Package', price: 25, description: 'Business lunch catering per person', duration: '2 hours setup' }
+          { id: 'cater-1', name: 'Italian Feast Menu', price: 45, description: 'Authentic Italian cuisine per person (min 50 people)', duration: 'Full service', image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400', rating: 4.9, category: 'Italian' },
+          { id: 'cater-2', name: 'Vegetarian Deluxe', price: 38, description: 'Gourmet vegetarian options per person', duration: 'Full service', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400', rating: 4.7, category: 'Vegetarian' },
+          { id: 'cater-3', name: 'Corporate Lunch Package', price: 25, description: 'Business lunch catering per person', duration: '2 hours setup', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400', rating: 4.8, category: 'Corporate' }
         ]
       }
     ],
@@ -323,7 +366,7 @@ const Step1_ServicesAndSuppliers: React.FC<Step1_ServicesAndSuppliersProps> = Re
         rating: 4.7, 
         location: 'Entertainment District', 
         description: 'Professional bar services with skilled bartenders and premium beverages.',
-        experience: '6+ years',
+        // experience: '6+ years',
         availability: 'Available',
         services: [
           { id: 'bar-1', name: 'Open Bar Package', price: 35, description: 'Unlimited drinks per person', duration: 'Full event' },
@@ -338,7 +381,7 @@ const Step1_ServicesAndSuppliers: React.FC<Step1_ServicesAndSuppliersProps> = Re
         rating: 4.9, 
         location: 'Citywide', 
         description: 'Professional medical services and first aid support for events.',
-        experience: '15+ years',
+        // experience: '15+ years',
         availability: 'Available',
         services: [
           { id: 'med-1', name: 'First Aid Station', price: 150, description: 'Medical professional on-site with first aid equipment', duration: 'Full event' },
@@ -353,7 +396,7 @@ const Step1_ServicesAndSuppliers: React.FC<Step1_ServicesAndSuppliersProps> = Re
         rating: 4.8, 
         location: 'Arts Quarter', 
         description: 'Professional talent booking agency for musicians, performers, and entertainers.',
-        experience: '10+ years',
+        // experience: '10+ years',
         availability: 'Available',
         services: [
           { id: 'art-1', name: 'Live Band Performance', price: 1200, description: 'Professional band for 3-hour performance', duration: '3 hours' },
@@ -368,7 +411,7 @@ const Step1_ServicesAndSuppliers: React.FC<Step1_ServicesAndSuppliersProps> = Re
         rating: 4.6, 
         location: 'Financial District', 
         description: 'Comprehensive event insurance coverage for all types of events.',
-        experience: '20+ years',
+        // experience: '20+ years',
         availability: 'Available',
         services: [
           { id: 'ins-1', name: 'Event Liability Insurance', price: 200, description: 'Comprehensive liability coverage for the event', duration: 'Event duration' },
@@ -383,7 +426,7 @@ const Step1_ServicesAndSuppliers: React.FC<Step1_ServicesAndSuppliersProps> = Re
         rating: 4.8, 
         location: 'Downtown', 
         description: 'Elegant ballroom venue with crystal chandeliers and accommodation for up to 300 guests.',
-        experience: '15+ years',
+        // experience: '15+ years',
         availability: 'Available',
         services: [
           { id: 'venue-1', name: 'Wedding Venue Rental', price: 2500, description: 'Full day ballroom rental with setup assistance', duration: '12 hours' },
@@ -398,7 +441,7 @@ const Step1_ServicesAndSuppliers: React.FC<Step1_ServicesAndSuppliersProps> = Re
         rating: 4.7, 
         location: 'Citywide', 
         description: 'Premium transportation services for events with luxury vehicles.',
-        experience: '8+ years',
+        // experience: '8+ years',
         availability: 'Available',
         services: [
           { id: 'trans-1', name: 'Luxury Bus Rental', price: 500, description: 'Luxury bus for up to 50 passengers', duration: 'Full day' },
@@ -413,7 +456,7 @@ const Step1_ServicesAndSuppliers: React.FC<Step1_ServicesAndSuppliersProps> = Re
         rating: 4.5, 
         location: 'City Center', 
         description: 'General event services and coordination for all your event needs.',
-        experience: '5+ years',
+        // experience: '5+ years',
         availability: 'Available',
         services: [
           { id: 'gen-1', name: 'Event Coordination', price: 300, description: 'Full event coordination and management', duration: 'Full event' },

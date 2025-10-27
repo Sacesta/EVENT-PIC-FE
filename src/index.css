@@ -14,6 +14,15 @@
   flex-direction: row-reverse;
 }
 
+/* Exception: Keep flex-col as column direction even in RTL */
+.rtl .flex-col {
+  flex-direction: column !important;
+}
+
+.rtl .flex-col-reverse {
+  flex-direction: column-reverse !important;
+}
+
 .rtl .space-x-2 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 1;
 }
@@ -71,9 +80,9 @@ All colors MUST be HSL.
     --secondary-purple: 263 79% 58%; /* #9A45E5 - Purple */
 
     /* Accent Colors - From provided palette */
-    --accent: 355 100% 66%; /* #FF4553 - Coral/Pink */
+    --accent: 203 100% 59%; /* #31A7FF - Bright Cyan Blue */
     --accent-foreground: 0 0% 100%;
-    --accent-orange: 25 100% 66%; /* #FF994D - Orange */
+    --accent-orange: 203 100% 59%; /* #31A7FF - Bright Cyan Blue */
 
     --muted: 220 13% 95%;
     --muted-foreground: 220 9% 46%;
@@ -88,9 +97,9 @@ All colors MUST be HSL.
     --radius: 12px;
 
     /* Gradients - Updated with new brand colors */
-    --gradient-primary: linear-gradient(135deg, hsl(225 96% 19%) 0%, hsl(203 100% 59%) 100%);
+    --gradient-primary: #31A7FF;
     --gradient-secondary: linear-gradient(135deg, hsl(203 100% 59%) 0%, hsl(211 100% 51%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(355 100% 66%) 0%, hsl(25 100% 66%) 100%);
+    --gradient-accent: linear-gradient(135deg, #31a7ff 0%, hsl(203 100% 69%) 100%);
     --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 13% 98%) 100%);
     --gradient-hero: linear-gradient(180deg, #031760 0%, #31A7FF 30%, #FF4553 80%, #FF994D 100%);
 
@@ -134,9 +143,9 @@ All colors MUST be HSL.
     --secondary-green: 148 100% 43%;
     --secondary-green-dark: 148 100% 28%;
 
-    --accent: 8 100% 62%;
+    --accent: 203 100% 59%;
     --accent-foreground: 0 0% 100%;
-    --accent-yellow: 46 99% 40%;
+    --accent-blue: 211 100% 51%;
 
     --muted: 222 30% 18%;
     --muted-foreground: 220 9% 65%;
@@ -150,7 +159,7 @@ All colors MUST be HSL.
 
     --gradient-primary: linear-gradient(135deg, hsl(200 100% 66%) 0%, hsl(222 80% 29%) 100%);
     --gradient-secondary: linear-gradient(135deg, hsl(188 94% 45%) 0%, hsl(207 92% 44%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(8 100% 62%) 0%, hsl(46 99% 40%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(203 100% 59%) 0%, hsl(211 100% 51%) 100%);
     --gradient-subtle: linear-gradient(180deg, hsl(222 50% 12%) 0%, hsl(222 80% 8%) 100%);
     --gradient-hero: linear-gradient(180deg, #1a1a2e 0%, #16213e 30%, #e94560 80%, #f39c12 100%);
 
@@ -178,9 +187,6 @@ All colors MUST be HSL.
   background-clip: text;
 }
 
-[dir="rtl"] .gradient-primary {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
-}
 
 /* Flip icons and spacing for RTL */
 [dir="rtl"] .rtl\:rotate-180 {

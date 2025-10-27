@@ -6,6 +6,7 @@ import { Edit, Trash2, Eye, EyeOff, Package, MapPin, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Service } from '@/services/api';
 import { autoTranslate } from '@/utils/autoTranslate';
+import { getImageUrl } from '@/utils/imageUtils';
 
 interface ServiceCardProps {
   service: Service;
@@ -72,7 +73,7 @@ export default function ServiceCard({
         {service.image && (
           <div className="w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
             <img
-              src={service.image}
+              src={getImageUrl(service.image) || '/placeholder.svg'}
               alt={service.title}
               className="w-full h-full object-cover"
             />
@@ -106,22 +107,6 @@ export default function ServiceCard({
             <span>
               {service.packages.length} {t('services.packages', 'packages')}
             </span>
-          </div>
-        )}
-
-        {/* Tags */}
-        {service.tags && service.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {service.tags.slice(0, 3).map((tag, index) => (
-              <Badge key={index} variant="outline" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
-            {service.tags.length > 3 && (
-              <Badge variant="outline" className="text-xs">
-                +{service.tags.length - 3} more
-              </Badge>
-            )}
           </div>
         )}
 

@@ -10,6 +10,7 @@ export const EVENT_TYPES = [
 
 // Popular locations - using translation keys
 export const POPULAR_LOCATIONS = [
+  { value: 'center', labelKey: 'createEvent.locations.center' },
   { value: 'north', labelKey: 'createEvent.locations.north' },
   { value: 'south', labelKey: 'createEvent.locations.south' },
   { value: 'golan', labelKey: 'createEvent.locations.golan' },

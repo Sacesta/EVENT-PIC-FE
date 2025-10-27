@@ -11,6 +11,7 @@ import { format, parseISO } from 'date-fns';
 import { apiService, type Event } from '@/services/api';
 import { useTranslation } from 'react-i18next';
 import { autoTranslate } from '@/utils/autoTranslate';
+import { getImageUrl } from '@/utils/imageUtils';
 
 // Backend response interface that matches the API exactly
 interface BackendEventsResponse {
@@ -209,7 +210,7 @@ export default function BrowseEvents() {
             {event.image && (
               <div className="w-full sm:w-20 md:w-24 h-40 sm:h-20 md:h-24 rounded-lg overflow-hidden flex-shrink-0">
                 <img
-                  src={event.image}
+                  src={getImageUrl(event.image) || '/placeholder.svg'}
                   alt={autoTranslate(event.name, i18n.language)}
                   className="w-full h-full object-cover"
                   onError={(e) => {

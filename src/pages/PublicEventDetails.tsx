@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
-import { 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  Users, 
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
   Share2,
   Bookmark,
   CheckCircle2,
@@ -19,11 +19,19 @@ import {
   Car,
   CreditCard,
   DollarSign,
-  Package
+  Package,
+  Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { BookTicketModal } from '@/components/BookTicketModal';
 import { VerifyEventPasswordModal } from '@/components/VerifyEventPasswordModal';
 import { apiService } from '@/services/api';
@@ -31,6 +39,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { autoTranslate } from '@/utils/autoTranslate';
 import { useToast } from '@/hooks/use-toast';
 import config from '@/config/environment';
+import { getImageUrl } from '@/utils/imageUtils';
+import { generateGoogleCalendarUrl, downloadICSFile } from '@/utils/calendarUtils';
 
 const PublicEventDetails = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -42,7 +52,6 @@ const PublicEventDetails = () => {
   const [event, setEvent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isInterested, setIsInterested] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -135,10 +144,9 @@ const PublicEventDetails = () => {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground mb-4">Event Not Found</h1>
           <p className="text-muted-foreground mb-6">{error || 'The event you are looking for does not exist.'}</p>
-          <Button onClick={() => navigate('/browse-events')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Events
-          </Button>
+          <BackButton onClick={() => navigate('/browse-events')}>
+            {t('common.backToEvents', 'Back to Events')}
+          </BackButton>
         </div>
       </div>
     );
@@ -221,7 +229,7 @@ const PublicEventDetails = () => {
   const handleBookingComplete = async (selectedTickets: any[], attendeeInfo: any) => {
     try {
       console.log('Booking completed:', { selectedTickets, attendeeInfo, eventId });
-      
+
       // Prepare data for backend API
       const registrationData = {
         eventId: eventId!,
@@ -246,17 +254,59 @@ const PublicEventDetails = () => {
       console.log('✅ Registration response:', response);
 
       if (response.success) {
-        // Show success message
-        toast({
-          title: "Booking Successful!",
-          description: `Your tickets for ${event.name} have been booked successfully. Booking reference: ${response.data?.bookingReferences?.[0] || 'N/A'}`,
-          variant: "default",
-        });
+        // Check if payment is required
+        if (response.requiresPayment && response.data?.totalAmount > 0) {
+          // Booking created, now initiate payment
+          const bookingReference = response.data.bookingReferences[0];
 
-        // Optionally refresh event data to update ticket counts
-        const refreshedEvent = await apiService.getEvent(eventId!);
-        if (refreshedEvent.success && refreshedEvent.data) {
-          setEvent(refreshedEvent.data);
+          console.log('💳 Payment required, initiating payment...');
+
+          const paymentData = {
+            eventId: eventId!,
+            tickets: selectedTickets.map(ticket => ({
+              ticketId: ticket.ticketId,
+              quantity: ticket.quantity
+            })),
+            attendeeInfo: {
+              fullName: attendeeInfo.fullName,
+              email: attendeeInfo.email,
+              phone: attendeeInfo.phone
+            },
+            bookingReference: bookingReference
+          };
+
+          const paymentResponse = await apiService.initiatePayment(paymentData);
+
+          if (paymentResponse.success && paymentResponse.payment?.paymentUrl) {
+            // Redirect to Hyp payment gateway
+            toast({
+              title: "Redirecting to Payment",
+              description: "You will be redirected to complete your payment...",
+              variant: "default",
+            });
+
+            // Redirect to payment URL
+            window.location.href = paymentResponse.payment.paymentUrl;
+          } else {
+            toast({
+              title: "Payment Initiation Failed",
+              description: paymentResponse.error || 'Failed to initiate payment. Please contact support.',
+              variant: "destructive",
+            });
+          }
+        } else {
+          // Free tickets - booking complete
+          toast({
+            title: "Booking Successful!",
+            description: `Your tickets for ${event.name} have been booked successfully. Booking reference: ${response.data?.bookingReferences?.[0] || 'N/A'}`,
+            variant: "default",
+          });
+
+          // Optionally refresh event data to update ticket counts
+          const refreshedEvent = await apiService.getEvent(eventId!);
+          if (refreshedEvent.success && refreshedEvent.data) {
+            setEvent(refreshedEvent.data);
+          }
         }
       } else {
         toast({
@@ -267,7 +317,7 @@ const PublicEventDetails = () => {
       }
     } catch (error) {
       console.error('❌ Booking error:', error);
-      
+
       let errorMessage = 'Failed to complete booking. Please try again.';
       if (error instanceof Error) {
         try {
@@ -277,7 +327,7 @@ const PublicEventDetails = () => {
           errorMessage = error.message || errorMessage;
         }
       }
-      
+
       toast({
         title: "Booking Error",
         description: errorMessage,
@@ -286,8 +336,52 @@ const PublicEventDetails = () => {
     }
   };
 
-  const handleInterested = () => {
-    setIsInterested(!isInterested);
+  const handleAddToGoogleCalendar = () => {
+    const startDate = dateTimeInfo.startDate
+      ? new Date(`${dateTimeInfo.startDate}T${dateTimeInfo.startTime || '00:00'}`)
+      : new Date(event.startDate);
+    const endDate = dateTimeInfo.endDate
+      ? new Date(`${dateTimeInfo.endDate}T${dateTimeInfo.endTime || '00:00'}`)
+      : (event.endDate ? new Date(event.endDate) : new Date(startDate.getTime() + 2 * 60 * 60 * 1000));
+
+    const url = generateGoogleCalendarUrl(
+      event.name,
+      startDate,
+      endDate,
+      locationString,
+      event.description
+    );
+
+    window.open(url, '_blank');
+
+    toast({
+      title: "Opening Google Calendar",
+      description: "Adding event to your Google Calendar",
+      variant: "default",
+    });
+  };
+
+  const handleAddToAppleCalendar = () => {
+    const startDate = dateTimeInfo.startDate
+      ? new Date(`${dateTimeInfo.startDate}T${dateTimeInfo.startTime || '00:00'}`)
+      : new Date(event.startDate);
+    const endDate = dateTimeInfo.endDate
+      ? new Date(`${dateTimeInfo.endDate}T${dateTimeInfo.endTime || '00:00'}`)
+      : (event.endDate ? new Date(event.endDate) : new Date(startDate.getTime() + 2 * 60 * 60 * 1000));
+
+    downloadICSFile(
+      event.name,
+      startDate,
+      endDate,
+      locationString,
+      event.description
+    );
+
+    toast({
+      title: "Calendar Event Downloaded",
+      description: "Open the .ics file to add to Apple Calendar",
+      variant: "default",
+    });
   };
 
   const handleSave = () => {
@@ -313,15 +407,27 @@ const PublicEventDetails = () => {
       {/* Header */}
       <div className="bg-background border-b">
         <div className="container mx-auto px-4 py-4">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => navigate('/browse-events')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Events
-          </Button>
+          <div className="flex items-center justify-between">
+            <BackButton
+              variant="ghost"
+              onClick={() => navigate('/browse-events')}
+            >
+              {t('common.backToEvents', 'Back to Events')}
+            </BackButton>
+
+            {/* Quick Edit Button for Producers */}
+            {user?.role === 'producer' && user?.email === event?.producerId?.email && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/event/${eventId}/manage`)}
+                className="flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Manage Event</span>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -340,11 +446,7 @@ const PublicEventDetails = () => {
 
 <div className="w-full h-48 sm:h-64 md:h-80 lg:h-96 rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 via-primary/10 to-background shadow-lg">
  <img
-  src={
-    event.image
-      ? `${config.BACKEND_URL.replace(/\/$/, '')}/${event.image.replace(/^\/+/, '')}`
-      : '/image.png'
-  }
+  src={getImageUrl(event.image) || '/image.png'}
   alt={autoTranslate(event.name, i18n.language)}
   className="w-full h-full object-cover"
   onError={(e) => {
@@ -431,16 +533,27 @@ const PublicEventDetails = () => {
                     <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
                     Save
                   </Button>
-                  <Button
-                    variant={isInterested ? "default" : "outline"}
-                    size="sm"
-                    onClick={handleInterested}
-                    className="flex items-center justify-center gap-2 w-full sm:w-auto"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">{isInterested ? 'Interested' : 'Add to Calendar'}</span>
-                    <span className="sm:hidden">{isInterested ? 'Interested' : 'Add'}</span>
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center justify-center gap-2 w-full sm:w-auto"
+                      >
+                        <Calendar className="w-4 h-4" />
+                        <span className="hidden sm:inline">Add to Calendar</span>
+                        <span className="sm:hidden">Add</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={handleAddToGoogleCalendar}>
+                        Google Calendar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleAddToAppleCalendar}>
+                        Apple Calendar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </CardContent>
             </Card>

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, LogIn } from "lucide-react";
+import { ArrowLeft, LogIn, Eye, EyeOff, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from 'react-i18next';
 import ForgotPasswordModal from '@/components/ForgotPasswordModal';
@@ -44,10 +44,12 @@ export default function SignIn() {
   });
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, isLoadingUser, setUser, setIsLoadingUser } = useAuth();
+  const [searchParams] = useSearchParams();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -133,13 +135,42 @@ export default function SignIn() {
       // Update the global user state
       setUser(userData);
 
+      // Check if there's a return URL from event creation flow
+      const returnUrl = searchParams.get('returnUrl');
+      const savedEventData = sessionStorage.getItem('createEventData');
+
+      if (returnUrl && savedEventData && userData.role === 'producer') {
+        try {
+          const eventData = JSON.parse(savedEventData);
+          if (eventData.pendingSubmission) {
+            // Show success message for login
+            toast({
+              title: t('auth.login.welcomeBack'),
+              description: "Welcome back! Redirecting to complete your event creation...",
+            });
+
+            // Navigate back to the event creation step
+            navigate(decodeURIComponent(returnUrl));
+            return;
+          }
+        } catch (error) {
+          console.error('Error parsing saved event data:', error);
+        }
+      }
+
+      // Default navigation logic with role-specific messages
+      const dashboardUrl = getDashboardUrl(userData);
+      const welcomeMessage = userData.role === 'admin'
+        ? "You have successfully signed in to your admin account."
+        : userData.role === 'supplier'
+        ? "You have successfully signed in to your supplier account."
+        : "You have successfully signed in to your producer account.";
+
       toast({
-        title: t('common.success'),
-        description: t('auth.login.welcomeBack'),
+        title: t('auth.login.welcomeBack'),
+        description: welcomeMessage,
       });
 
-      // Navigate to appropriate dashboard
-      const dashboardUrl = getDashboardUrl(userData);
       navigate(dashboardUrl);
 
     } catch (error: unknown) {
@@ -212,99 +243,108 @@ export default function SignIn() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-lg">
           <CardHeader className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-4">
-              <Link 
-                to="/" 
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                {t('auth.backToHome')}
-              </Link>
+            <div className="flex items-center justify-center mb-4">
+              <Building2 className="w-12 h-12 text-primary" />
             </div>
-            <CardTitle className="text-3xl font-bold text-gray-900">
-              {t('auth.signIn')} to PIC
+            <CardTitle className="text-3xl font-semibold text-foreground">
+              {t('auth.signIn')}
             </CardTitle>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               {t('auth.login.signInToContinue')}
             </p>
           </CardHeader>
-          
+
           <CardContent>
-          <form onSubmit={handleSignInSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                {t('auth.email')} {t('auth.required')}
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder={t('auth.login.emailPlaceholder')}
-                value={credentials.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                {t('auth.password')} {t('auth.required')}
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder={t('auth.login.passwordPlaceholder')}
-                value={credentials.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
-                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                required
-              />
-            </div>
+            <form onSubmit={handleSignInSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">{t('auth.email')}</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder={t('auth.login.emailPlaceholder')}
+                  value={credentials.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">{t('auth.password')}</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder={t('auth.login.passwordPlaceholder')}
+                    value={credentials.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    className="pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                    )}
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-4 pt-4">
+                <button
+                  type="button"
+                  className="text-sm text-secondary hover:text-secondary/80 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 rounded"
+                  onClick={handleForgotPasswordClick}
+                >
+                  {t('auth.forgotPassword')}
+                </button>
+                <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 space-y-2 space-y-reverse sm:space-y-0">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate('/')}
+                    className="px-6"
+                  >
+                    {t('auth.cancel')}
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="px-6 bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-md transition-all duration-300"
+                    disabled={isSigningIn}
+                  >
+                    {isSigningIn ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        {t('auth.login.signingIn')}
+                      </>
+                    ) : (
+                      <>
+                        <LogIn className="mr-2 h-4 w-4" />
+                        {t('auth.login.signIn')}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </form>
+            <div className="mt-6 pt-4 border-t border-border/50">
+              <p className="text-sm text-muted-foreground text-center">
+                {t('auth.noAccount')}{' '}
+                <Link
+                  to="/signup"
+                  className="text-accent hover:text-accent/80 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 rounded"
+                >
+                  {t('auth.registerHere')}
+                </Link>
+              </p>
 
-            {/* Forgot Password Link */}
-            <div className="flex justify-end">
-              <button 
-                type="button" 
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                onClick={handleForgotPasswordClick}
-              >
-                {t('auth.forgotPassword')}
-              </button>
             </div>
-
-            {/* Sign In Button */}
-            <Button 
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors"
-              disabled={isSigningIn}
-            >
-              {isSigningIn ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {t('auth.login.signingIn')}
-                </>
-              ) : (
-                t('auth.login.signIn')
-              )}
-            </Button>
-          </form>
-
-          {/* Sign Up Link */}
-          <div className="mt-6 pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-600 text-center">
-              {t('auth.noAccount')}{' '}
-              <Link 
-                to="/signup"
-                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-              >
-                {t('auth.registerHere')}
-              </Link>
-            </p>
-          </div>
           </CardContent>
         </Card>
 

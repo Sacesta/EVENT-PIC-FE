@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { Calendar, Clock, MapPin, Users, DollarSign, Lock, Camera, Video, UtensilsCrossed, Music, Palette, MapPinIcon, Shield, Car, Loader2, CheckCircle, Lightbulb, Volume2, Armchair, Home, Grid3X3, Building2, CreditCard } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, DollarSign, Lock, Camera, Video, UtensilsCrossed, Music, Palette, MapPinIcon, Shield, Car, Loader2, CheckCircle, Lightbulb, Volume2, Armchair, Home, Grid3X3, Building2, CreditCard, ChevronDown, ChevronUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import apiService from '@/services/api';  
@@ -73,6 +73,8 @@ const Step3_Summary: React.FC<Step3_SummaryProps> = ({ eventData, onBack, onCrea
   const [isCreating, setIsCreating] = useState(false);
   const [supplierDetails, setSupplierDetails] = useState<Record<string, SupplierData>>({});
   const [loadingSuppliers, setLoadingSuppliers] = useState(false);
+  const [isTicketingOpen, setIsTicketingOpen] = useState(false);
+  const [isBankDetailsOpen, setIsBankDetailsOpen] = useState(false);
   const isRTL = i18n.language === 'he';
 
   const serviceIcons: { [key: string]: React.ComponentType<{ className?: string }> } = {
@@ -103,29 +105,27 @@ const transformEventData = () => {
   console.log('Bank Details:', eventData.bankDetails);
   
   // Create start and end dates from separate date/time fields
-  // Handle both formats: YYYY-MM-DD and date objects
-  const formatDate = (date: string) => {
+  // Handle both formats: YYYY-MM-DD, ISO string, and date objects
+  const formatDate = (date: string | Date) => {
     const d = new Date(date);
+    if (isNaN(d.getTime())) {
+      console.error('Invalid date:', date);
+      return '';
+    }
     return d.toISOString().split('T')[0]; // Returns YYYY-MM-DD
   };
 
-  const startDateStr = typeof eventData.startDate === 'string'
-    ? eventData.startDate
-    : formatDate(eventData.startDate);
-  const endDateStr = typeof eventData.endDate === 'string'
-    ? eventData.endDate
-    : formatDate(eventData.endDate);
-
-  const startDate = new Date(`${startDateStr}T${eventData.startTime}:00`);
-  const endDate = new Date(`${endDateStr}T${eventData.endTime}:00`);
+  // Always extract YYYY-MM-DD from the date (whether it's ISO string or date object)
+  const startDateStr = formatDate(eventData.startDate);
+  const endDateStr = formatDate(eventData.endDate);
 
   console.log('Date Time Debug:', {
+    rawStartDate: eventData.startDate,
+    rawEndDate: eventData.endDate,
     startDateStr,
     endDateStr,
     startTime: eventData.startTime,
     endTime: eventData.endTime,
-    startDate: startDate.toISOString(),
-    endDate: endDate.toISOString()
   });
 
   // Transform suppliers from nested object to backend expected format (nested services structure)
@@ -149,9 +149,11 @@ const transformEventData = () => {
 
   console.log('Processing selectedSuppliers:', eventData.selectedSuppliers);
 
-  // Create a map to group services by supplier
+  // Create a map to group services/packages by supplier
+  // NOTE: This works with both old (service-based) and new (package-based) structures
+  // In the new structure, serviceId will be packageId, but the backend accepts both
   const supplierServicesMap = new Map<string, Array<{
-    serviceId: string;
+    serviceId: string; // Will be packageId in new structure
     selectedPackageId?: string;
     packageDetails?: {
       name: string;
@@ -266,7 +268,13 @@ const transformEventData = () => {
   })) : [];
 
   // Prepare bank details for backend
-  const bankDetails = eventData.bankDetails ? {
+  // Only include bank details if at least one field is filled
+  const bankDetails = eventData.bankDetails && (
+    eventData.bankDetails.bankName?.trim() ||
+    eventData.bankDetails.branch?.trim() ||
+    eventData.bankDetails.accountNumber?.trim() ||
+    eventData.bankDetails.accountHolderName?.trim()
+  ) ? {
     bankName: eventData.bankDetails.bankName || '',
     branch: eventData.bankDetails.branch || '',
     accountNumber: eventData.bankDetails.accountNumber || '',
@@ -722,92 +730,116 @@ const handleCreateEvent = async () => {
 
           {/* Tickets (if paid event) */}
           {eventData.isPaid && eventData.tickets && eventData.tickets.length > 0 && (
-            <Card>
-              <CardHeader className="pb-2 sm:pb-3">
-                <CardTitle className={`flex items-center gap-2 text-base sm:text-lg ${isRTL ? 'flex-row-reverse' : ''}`}>
-                  <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
-                  {t('createEvent.step3.ticketing')}
+            <Card className="overflow-hidden">
+              <CardHeader
+                className="pb-2 sm:pb-3 cursor-pointer hover:bg-accent/50 transition-colors rounded-lg"
+                onClick={() => setIsTicketingOpen(!isTicketingOpen)}
+              >
+                <CardTitle className={`flex items-center justify-between text-base sm:text-lg ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
+                    {t('createEvent.step3.ticketing')}
+                  </div>
+                  {isTicketingOpen ? (
+                    <ChevronUp className="w-5 h-5" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5" />
+                  )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-3 sm:p-6">
-                <div className="space-y-3 sm:space-y-4">
-                  {eventData.tickets.map((ticket) => (
-                    <div key={ticket.id} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-muted/50 rounded-lg gap-2 sm:gap-0 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
-                      <div className="min-w-0 flex-1">
-                        <span className="font-medium text-sm sm:text-base block truncate">{ticket.name}</span>
-                        <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                          {ticket.quantity} {t('createEvent.step3.tickets')} × ₪{ticket.price}
-                        </p>
+              {isTicketingOpen && (
+                <CardContent className="p-3 sm:p-6 pt-0">
+                  <div className="space-y-3 sm:space-y-4">
+                    {eventData.tickets.map((ticket) => (
+                      <div key={ticket.id} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-muted/50 rounded-lg gap-2 sm:gap-0 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+                        <div className="min-w-0 flex-1">
+                          <span className="font-medium text-sm sm:text-base block truncate">{ticket.name}</span>
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                            {ticket.quantity} {t('createEvent.step3.tickets')} × ₪{ticket.price}
+                          </p>
+                        </div>
+                        <span className={`font-semibold text-base sm:text-lg ${isRTL ? 'text-left' : 'text-right'}`}>₪{(ticket.quantity * ticket.price).toFixed(2)}</span>
                       </div>
-                      <span className={`font-semibold text-base sm:text-lg ${isRTL ? 'text-left' : 'text-right'}`}>₪{(ticket.quantity * ticket.price).toFixed(2)}</span>
+                    ))}
+
+                    <Separator className="my-3 sm:my-4" />
+
+                    <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between font-semibold text-base sm:text-lg p-3 bg-primary/10 rounded-lg gap-2 sm:gap-0 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
+                      <span>{t('createEvent.step3.totalRevenue')}</span>
+                      <span className={`${isRTL ? 'text-left' : 'text-right'}`}>₪{getTotalRevenue().toFixed(2)}</span>
                     </div>
-                  ))}
-                  
-                  <Separator className="my-3 sm:my-4" />
-                  
-                  <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between font-semibold text-base sm:text-lg p-3 bg-primary/10 rounded-lg gap-2 sm:gap-0 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
-                    <span>{t('createEvent.step3.totalRevenue')}</span>
-                    <span className={`${isRTL ? 'text-left' : 'text-right'}`}>₪{getTotalRevenue().toFixed(2)}</span>
                   </div>
-                </div>
-              </CardContent>
+                </CardContent>
+              )}
             </Card>
           )}
 
           {/* Producer Banking Details */}
           {eventData.bankDetails && (
-            <Card>
-              <CardHeader className="pb-2 sm:pb-3">
-                <CardTitle className={`flex items-center gap-2 text-base sm:text-lg ${isRTL ? 'flex-row-reverse' : ''}`}>
-                  <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                 {t("createEvent.bankDetailsStep.info")}
+            <Card className="overflow-hidden">
+              <CardHeader
+                className="pb-2 sm:pb-3 cursor-pointer hover:bg-accent/50 transition-colors rounded-lg"
+                onClick={() => setIsBankDetailsOpen(!isBankDetailsOpen)}
+              >
+                <CardTitle className={`flex items-center justify-between text-base sm:text-lg ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                    <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                    {t("createEvent.bankDetailsStep.info")}
+                  </div>
+                  {isBankDetailsOpen ? (
+                    <ChevronUp className="w-5 h-5" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5" />
+                  )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-3 sm:p-6">
-                <div className="space-y-3 sm:space-y-4">
-                  <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 ${isRTL ? 'text-right' : ''}`}>
-                    <div className="space-y-2">
-                      <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <Building2 className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="font-medium">{t("createEvent.bankDetailsStep.form.bankName.label")}</span>
+              {isBankDetailsOpen && (
+                <CardContent className="p-3 sm:p-6 pt-0">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 ${isRTL ? 'text-right' : ''}`}>
+                      <div className="space-y-2">
+                        <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
+                          <Building2 className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="font-medium">{t("createEvent.bankDetailsStep.form.bankName.label")}</span>
+                        </div>
+                        <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md">
+                          {eventData.bankDetails.bankName || 'Not provided'}
+                        </p>
                       </div>
-                      <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md">
-                        {eventData.bankDetails.bankName || 'Not provided'}
-                      </p>
-                    </div>
 
-                    <div className="space-y-2">
-                      <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="font-medium"> {t("createEvent.bankDetailsStep.form.branch.label")}</span>
+                      <div className="space-y-2">
+                        <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
+                          <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="font-medium"> {t("createEvent.bankDetailsStep.form.branch.label")}</span>
+                        </div>
+                        <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md">
+                          {eventData.bankDetails.branch || 'Not provided'}
+                        </p>
                       </div>
-                      <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md">
-                        {eventData.bankDetails.branch || 'Not provided'}
-                      </p>
-                    </div>
 
-                    <div className="space-y-2">
-                      <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="font-medium"> {t("createEvent.bankDetailsStep.form.accountNumber.label")}</span>
+                      <div className="space-y-2">
+                        <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
+                          <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="font-medium"> {t("createEvent.bankDetailsStep.form.accountNumber.label")}</span>
+                        </div>
+                        <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md font-mono">
+                          {eventData.bankDetails.accountNumber || 'Not provided'}
+                        </p>
                       </div>
-                      <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md font-mono">
-                        {eventData.bankDetails.accountNumber || 'Not provided'}
-                      </p>
-                    </div>
 
-                    <div className="space-y-2">
-                      <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="font-medium">{t("createEvent.bankDetailsStep.form.accountHolderName.label")}</span>
+                      <div className="space-y-2">
+                        <div className={`flex items-center gap-2 text-xs sm:text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
+                          <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="font-medium">{t("createEvent.bankDetailsStep.form.accountHolderName.label")}</span>
+                        </div>
+                        <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md">
+                          {eventData.bankDetails.accountHolderName || 'Not provided'}
+                        </p>
                       </div>
-                      <p className="text-sm sm:text-base text-foreground bg-muted/50 p-2 rounded-md">
-                        {eventData.bankDetails.accountHolderName || 'Not provided'}
-                      </p>
                     </div>
                   </div>
-                </div>
-              </CardContent>
+                </CardContent>
+              )}
             </Card>
           )}
         </div>

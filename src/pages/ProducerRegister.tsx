@@ -376,7 +376,7 @@ export default function ProducerRegister() {
               <p className="text-sm text-muted-foreground text-center">
                 {t('auth.producerRegister.alreadyHaveAccount')}{' '}
                 <Link 
-                  to="/producer-login"
+                  to="/signin"
                   className="text-accent hover:text-accent/80 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 rounded"
                 >
                   {t('auth.signInHere')}

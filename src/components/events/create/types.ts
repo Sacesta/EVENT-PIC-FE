@@ -44,13 +44,23 @@ export interface EventData {
   isFree: boolean;
   freeTicketLimit: number;
   tickets: Ticket[];
-  services: string[];
-  selectedSuppliers: { [service: string]: { [supplierId: string]: string[] } };
-  selectedPackages: { [serviceId: string]: SelectedPackageInfo };
+  // Changed from service-based to category-based
+  categories: string[]; // Selected categories (e.g., ['dj', 'catering'])
+  // Simplified structure: category -> supplier -> packageIds
+  selectedPackages: {
+    [category: string]: {
+      [supplierId: string]: string[] // Array of package IDs
+    }
+  };
+  packageDetails: { [packageId: string]: SelectedPackageInfo }; // Package details by package ID
   specialRequests: string;
   currentTab: string;
   eventImage?: File | null;
   bankDetails: BankDetails;
+
+  // Legacy fields (for backward compatibility during migration)
+  services?: string[];
+  selectedSuppliers?: { [service: string]: { [supplierId: string]: string[] } };
 }
 
 export interface Step2_DetailsProps {

@@ -1,7 +1,7 @@
 {
   "nav": {
     "dashboard": "לוח בקרה",
-    "browseEvents": "עיון באירועים",
+    "browseEvents": "האירועים שלנו",
     "createEvent": "יצירת אירוע",
     "Suppliers ": "הספקים שלנו",
     "signIn": "התחברות / הרשמה",
@@ -19,7 +19,7 @@
   "createEvent": {
     "modalTitle": "צור אירוע חדש",
     "steps": {
-      "servicesSuppliers": "שירותים וספקים",
+      "servicesSuppliers": "ספקי שירות",
       "eventDetails": "פרטי האירוע",
       "summary": "סיכום",
       "bankDetails": "פרטי בנק"
@@ -92,12 +92,16 @@
       "location": "מיקום",
       "locationPlaceholder": "הזן מיקום אירוע",
       "popular": "פופולרי:",
+      "openMap": "פתח מפה",
+      "selectLocation": "בחר מיקום",
+      "selectLocationDescription": "חפש מיקום או לחץ על המפה כדי לבחור נקודה",
+      "searchLocation": "חפש מיקום...",
       "privateEvent": "אירוע פרטי",
       "privateEventDesc": "דרוש סיסמה להצטרפות",
       "eventPassword": "סיסמת אירוע",
-      "passwordPlaceholder": "הזן סיסמה",
+      "passwordPlaceholder": "צור סיסמה לאירוע",
       "paidTickets": "כרטיסים בתשלום",
-      "freeTickets": "כרטיסים חינם",
+      "freeTickets": "כרטיסים",
       "chargeAttendees": "גבה תשלום מהמשתתפים עבור כניסה",
       "noChargeAttendees": "ללא תשלום עבור משתתפים",
       "setPricesBelow": "הגדר מחירי כרטיסים בסעיף למטה",
@@ -185,6 +189,7 @@
       "other": "אחר"
     },
     "locations": {
+      "optional":"(אופציונלי)",
       "hotelBallroom": "אולם מלון",
       "communityCenter": "מרכז קהילתי",
       "restaurant": "מסעדה",
@@ -194,6 +199,7 @@
       "beach": "חוף",
       "rooftopVenue": "מקום על הגג",
       "north": "צפון",
+      "center": "מרכז",
       "south": "דרום",
       "golan": "גולן",
       "telAviv": "תל אביב",
@@ -348,7 +354,7 @@
     "scanTicket": "סרוק כרטיס",
     "allEvents": "כל האירועים",
     "browseAllEvents": "עיין בכל האירועים בפלטפורמה",
-    "browseEvents": "עיון באירועים",
+    "browseEvents": "האירועים שלנו",
     "discoverEvents": "גלה והצטרף לאירועים מרגשים המתרחשים סביבך",
     "searchEvents": "חפש אירועים...",
     "searchPlaceholder": "חפש אירועים, מארגנים, מיקומים...",
@@ -837,7 +843,7 @@
   "pricing": {
     "fixed": "מחיר קבוע",
     "per_hour": "לשעה",
-    "per_person": "לאדם",
+    "starting_from": "מתחיל מ",
     "negotiable": "ניתן למשא ומתן"
   },
   "experience": {
@@ -986,10 +992,11 @@
     "view": "צפה",
     "close": "סגור",
     "confirm": "אשר",
-    "back": "חזור",
+    "back": "חזרה",
     "next": "הבא",
     "previous": "הקודם",
     "search": "חפש",
+    "searching": "מחפש...",
     "filter": "סנן",
     "sort": "מיין",
     "all": "הכל",
