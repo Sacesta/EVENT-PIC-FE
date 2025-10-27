@@ -42,7 +42,7 @@ interface QRScannerModalProps {
 }
 
 const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) => {
-  const isModal = !eventId; // If no eventId, it's used as a modal
+  const isModal = !eventId;
   const navigate = useNavigate();
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
@@ -51,10 +51,18 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [scanMode, setScanMode] = useState<'camera' | 'upload'>('camera');
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const initAttemptedRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mountedRef = useRef(true);
 
   const startCamera = async () => {
+    // Verify DOM element exists first
+    const qrReaderElement = document.getElementById('qr-reader');
+    if (!qrReaderElement) {
+      console.error('QR reader element not found in DOM');
+      setCameraError('Scanner interface not ready. Please try again.');
+      return;
+    }
+
     // Clear any previous errors
     setCameraError(null);
     setPermissionDenied(false);
@@ -72,41 +80,20 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
             console.log('Stopping existing scanner...');
             await scannerRef.current.stop();
           }
-          scannerRef.current.clear();
+          await scannerRef.current.clear();
         } catch (e) {
           console.log('No active scanner to stop');
         }
         scannerRef.current = null;
       }
 
+      // Small delay to ensure cleanup is complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // Initialize the QR scanner
       console.log('Creating new Html5Qrcode instance...');
       const scanner = new Html5Qrcode('qr-reader');
       scannerRef.current = scanner;
-
-      // Get available cameras - this will trigger permission request
-      console.log('Getting available cameras (this will request permission)...');
-      const cameras = await Html5Qrcode.getCameras();
-      console.log('Cameras retrieved:', cameras);
-
-      if (!cameras || cameras.length === 0) {
-        throw new Error('No cameras found on this device');
-      }
-
-      // Require back camera (environment facing) - no fallback to front camera
-      const backCamera = cameras.find(camera =>
-        camera.label.toLowerCase().includes('back') ||
-        camera.label.toLowerCase().includes('environment') ||
-        camera.label.toLowerCase().includes('rear')
-      );
-
-      if (!backCamera) {
-        throw new Error('Back camera is required for ticket scanning. Please ensure your device has a rear camera and try again.');
-      }
-
-      const cameraId = backCamera.id;
-
-      console.log('Selected camera:', backCamera);
 
       // Configuration for camera scanning
       const config: Html5QrcodeCameraScanConfig = {
@@ -114,7 +101,67 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
         qrbox: { width: 250, height: 250 },
       };
 
+      // Try back camera first
+      console.log('Attempting to start scanner with back camera...');
+      try {
+        await scanner.start(
+          { facingMode: 'environment' },
+          config,
+          onScanSuccess,
+          onScanError
+        );
+        console.log('✅ Scanner started successfully with back camera!');
+        if (mountedRef.current) {
+          setScanning(true);
+          setLoading(false);
+          setCameraError(null);
+        }
+        return;
+      } catch (backCameraError: any) {
+        console.log('Back camera failed, trying front camera...', backCameraError.message);
+
+        // Try front camera fallback
+        try {
+          await scanner.start(
+            { facingMode: 'user' },
+            config,
+            onScanSuccess,
+            onScanError
+          );
+          console.log('✅ Scanner started successfully with front camera!');
+          if (mountedRef.current) {
+            setScanning(true);
+            setLoading(false);
+            setCameraError(null);
+          }
+          return;
+        } catch (frontCameraError: any) {
+          console.log('Front camera also failed, trying manual camera selection...', frontCameraError.message);
+        }
+      }
+
+      // Manual camera selection fallback
+      console.log('Manual camera selection fallback...');
+      const cameras = await Html5Qrcode.getCameras();
+      console.log('Cameras retrieved:', cameras);
+
+      if (!cameras || cameras.length === 0) {
+        throw new Error('No cameras found on this device');
+      }
+
+      // Prefer back camera
+      const backCamera = cameras.find(camera =>
+        camera.label.toLowerCase().includes('back') ||
+        camera.label.toLowerCase().includes('environment') ||
+        camera.label.toLowerCase().includes('rear')
+      );
+
+      const selectedCamera = backCamera || cameras[0];
+      const cameraId = selectedCamera.id;
+
+      console.log('Selected camera:', selectedCamera);
       console.log('Starting scanner with camera ID:', cameraId);
+      
       await scanner.start(
         cameraId,
         config,
@@ -123,28 +170,29 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
       );
 
       console.log('✅ Scanner started successfully!');
-      setScanning(true);
-      setLoading(false);
-      setCameraError(null);
+      if (mountedRef.current) {
+        setScanning(true);
+        setLoading(false);
+        setCameraError(null);
+      }
     } catch (error: any) {
       console.error('❌ Failed to start camera:', error);
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      console.error('Full error:', error);
+      if (!mountedRef.current) return;
+      
       setLoading(false);
 
       let errorMessage = '';
       let isDenied = false;
 
-      // Check error message content as well
       const errorStr = (error.message || '').toLowerCase();
 
       if (error.name === 'NotAllowedError' ||
           error.name === 'PermissionDeniedError' ||
           errorStr.includes('permission') ||
-          errorStr.includes('denied')) {
+          errorStr.includes('denied') ||
+          errorStr.includes('not allowed')) {
         isDenied = true;
-        errorMessage = 'Camera access was denied. Please allow camera access and click "Try Again".';
+        errorMessage = 'Camera access was denied. Please allow camera access in your browser settings and click "Try Again".';
       } else if (error.name === 'NotFoundError' ||
                  errorStr.includes('no camera') ||
                  errorStr.includes('not found')) {
@@ -168,23 +216,20 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
     }
   };
 
+  // Cleanup on unmount
   useEffect(() => {
-    // Initialize scanner with camera on mount
-    if (!initAttemptedRef.current && !result) {
-      initAttemptedRef.current = true;
-      startCamera();
-    }
-
-    // Cleanup on unmount
+    mountedRef.current = true;
+    
     return () => {
+      mountedRef.current = false;
       const cleanup = async () => {
         if (scannerRef.current) {
           try {
             const state = await scannerRef.current.getState();
-            if (state === 2) { // SCANNING state
+            if (state === 2) {
               await scannerRef.current.stop();
             }
-            scannerRef.current.clear();
+            await scannerRef.current.clear();
             scannerRef.current = null;
             console.log('Scanner cleaned up successfully');
           } catch (error) {
@@ -197,7 +242,34 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
     };
   }, []);
 
+  // Start camera when switching to camera mode
+  useEffect(() => {
+    if (scanMode === 'camera' && !scanning && !result && !loading && !cameraError) {
+      // Wait for DOM to be ready
+      const timer = setTimeout(() => {
+        const qrReaderElement = document.getElementById('qr-reader');
+        if (qrReaderElement) {
+          startCamera();
+        } else {
+          console.log('QR reader element not found, retrying...');
+          // Retry after delay
+          setTimeout(() => {
+            if (document.getElementById('qr-reader')) {
+              startCamera();
+            } else {
+              setCameraError('Scanner interface failed to load. Please refresh the page.');
+            }
+          }, 300);
+        }
+      }, 200);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [scanMode, scanning, result, loading, cameraError]);
+
   const onScanSuccess = async (decodedText: string, decodedResult: any) => {
+    if (!mountedRef.current) return;
+    
     console.log('QR Code scanned:', decodedText);
 
     // Stop scanning while we verify
@@ -206,34 +278,35 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
 
     // Stop the scanner
     if (scannerRef.current) {
-      scannerRef.current.stop().then(() => {
-        scannerRef.current?.clear();
+      try {
+        await scannerRef.current.stop();
+        await scannerRef.current.clear();
         scannerRef.current = null;
-      }).catch(console.error);
+      } catch (error) {
+        console.error('Error stopping scanner:', error);
+      }
     }
 
     await verifyQRCode(decodedText);
   };
 
   const onScanError = (errorMessage: string) => {
-    // This fires continuously while scanning, so we don't log it
-    // Only actual scan failures are logged
+    // Fires continuously while scanning, ignore
   };
 
   const verifyQRCode = async (qrCode: string) => {
     try {
-      // Use the apiService instead of direct fetch to avoid duplicate calls
       const response = await apiService.verifyQR(qrCode.trim());
 
+      if (!mountedRef.current) return;
+
       if (response.success) {
-        // Show the attendee details immediately in the modal
         setResult({
           valid: true,
           attendee: response.data.attendee,
           alreadyCheckedIn: response.data.alreadyCheckedIn
         });
 
-        // Play success sound
         if (response.data.alreadyCheckedIn) {
           toast.warning('This ticket has already been checked in');
           playSound('error');
@@ -246,27 +319,24 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
           valid: false,
           error: response.message || 'Invalid ticket'
         });
-
-        // Show toast with error message
         toast.error(response.message || 'Invalid ticket');
-
-        // Play error sound (optional)
         playSound('error');
       }
     } catch (error: any) {
       console.error('Verification error:', error);
+      if (!mountedRef.current) return;
+      
       const errorMessage = error.response?.data?.message || error.message || 'Failed to verify ticket. Please try again.';
       setResult({
         valid: false,
         error: errorMessage
       });
-
-      // Show toast with error message
       toast.error(errorMessage);
-
       playSound('error');
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -276,7 +346,6 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
       const response = await apiService.checkInAllTickets(attendeeId);
 
       if (response.success) {
-        // Update result to show checked in
         setResult(prev => prev ? {
           ...prev,
           alreadyCheckedIn: true,
@@ -290,7 +359,6 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
         toast.success('Attendee checked in successfully!');
         playSound('success');
 
-        // Auto reset after 3 seconds to scan next ticket
         setTimeout(() => {
           resetScanner();
         }, 3000);
@@ -306,14 +374,11 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
   };
 
   const playSound = (type: 'success' | 'error') => {
-    // Optional: Play audio feedback
     const audio = new Audio(type === 'success'
       ? '/sounds/success.mp3'
       : '/sounds/error.mp3'
     );
-    audio.play().catch(() => {
-      // Ignore errors if sounds don't exist
-    });
+    audio.play().catch(() => {});
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -329,10 +394,10 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
       if (scannerRef.current) {
         try {
           const state = await scannerRef.current.getState();
-          if (state === 2) { // SCANNING state
+          if (state === 2) {
             await scannerRef.current.stop();
           }
-          scannerRef.current.clear();
+          await scannerRef.current.clear();
           scannerRef.current = null;
         } catch (e) {
           console.log('No active scanner to stop');
@@ -343,7 +408,6 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
       const scanner = new Html5Qrcode('qr-reader');
       scannerRef.current = scanner;
 
-      // Scan the uploaded file
       const result = await scanner.scanFile(file, true);
       console.log('QR Code from file:', result);
 
@@ -363,31 +427,35 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
   const resetScanner = async () => {
     console.log('Resetting scanner...');
     setResult(null);
-    setLoading(true);
     setCameraError(null);
     setPermissionDenied(false);
     setScanning(false);
+    setLoading(true);
 
     // Stop and clear the existing scanner
     if (scannerRef.current) {
       try {
         const state = await scannerRef.current.getState();
-        if (state === 2) { // SCANNING state
+        if (state === 2) {
           await scannerRef.current.stop();
         }
-        scannerRef.current.clear();
+        await scannerRef.current.clear();
         scannerRef.current = null;
       } catch (error) {
-        console.log('Scanner already stopped or cleared:', error);
+        console.log('Scanner already stopped:', error);
         scannerRef.current = null;
       }
     }
 
-    // Small delay to ensure cleanup is complete
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Wait for cleanup
+    await new Promise(resolve => setTimeout(resolve, 150));
 
     // Restart camera
-    await startCamera();
+    if (scanMode === 'camera') {
+      await startCamera();
+    } else {
+      setLoading(false);
+    }
   };
 
   return (
@@ -523,40 +591,38 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
             </div>
           )}
 
-          {/* Scanner View */}
-          {scanning && !result && !cameraError && (
+          {/* Scanner View - MUST BE RENDERED EVEN WHEN NOT SCANNING */}
+          {scanMode === 'camera' && !result && !cameraError && (
             <div>
-              <div className="mb-4 text-center">
-                <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg mb-2">
-                  <svg className="w-5 h-5 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-                  </svg>
-                  <span className="font-semibold">Camera Active</span>
+              {scanning && (
+                <div className="mb-4 text-center">
+                  <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg mb-2">
+                    <svg className="w-5 h-5 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                    </svg>
+                    <span className="font-semibold">Camera Active</span>
+                  </div>
+                  <p className="text-gray-700 font-medium text-lg">
+                    Position the QR code within the frame
+                  </p>
+                  <p className="text-gray-500 text-sm mt-1">
+                    The scanner will detect the code automatically
+                  </p>
                 </div>
-                <p className="text-gray-700 font-medium text-lg">
-                  Position the QR code within the frame
-                </p>
-                <p className="text-gray-500 text-sm mt-1">
-                  The scanner will detect the code automatically
-                </p>
-              </div>
+              )}
+              
+              {/* THIS ELEMENT MUST ALWAYS BE PRESENT */}
               <div id="qr-reader" className="w-full rounded-lg overflow-hidden shadow-lg" style={{ minHeight: '300px' }}></div>
             </div>
           )}
 
-          {/* Initial Loading State */}
-          {!scanning && !result && !cameraError && !loading && scanMode === 'camera' && (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#031760]"></div>
-              <p className="mt-4 text-gray-600">Starting camera...</p>
-            </div>
-          )}
-
-          {/* Verification Loading State */}
+          {/* Loading State */}
           {loading && (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#031760]"></div>
-              <p className="mt-4 text-gray-600">Verifying ticket...</p>
+              <p className="mt-4 text-gray-600">
+                {scanning ? 'Starting camera...' : 'Verifying ticket...'}
+              </p>
             </div>
           )}
 
@@ -621,7 +687,7 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
                       Attendee Information
                     </h3>
 
-                    {/* Primary Info - Highlighted */}
+                    {/* Primary Info */}
                     <div className="bg-white rounded-lg p-4 shadow-sm space-y-3">
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Full Name</p>
@@ -734,7 +800,7 @@ const QRScannerModal = ({ eventId, eventName, onClose }: QRScannerModalProps) =>
           )}
         </div>
 
-        {/* Instructions (shown only when scanning) */}
+        {/* Instructions */}
         {scanning && !result && !cameraError && (
           <div className="bg-gray-50 px-6 py-4 rounded-b-lg border-t">
             <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
